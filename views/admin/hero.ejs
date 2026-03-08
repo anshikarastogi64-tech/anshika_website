@@ -1,0 +1,32 @@
+<%- include('layout', { body: `
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="h3 mb-4">Edit Home Hero Section</h1>
+      ${message ? `<div class="alert alert-success">${message}</div>` : ''}
+      <form method="post">
+        <div class="mb-3">
+          <label for="greeting" class="form-label">Greeting (small text)</label>
+          <input type="text" id="greeting" name="greeting" class="form-control" value="${hero.greeting || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="name" class="form-label">Name (big heading)</label>
+          <input type="text" id="name" name="name" class="form-control" value="${hero.name || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="line1" class="form-label">Line 1</label>
+          <input type="text" id="line1" name="line1" class="form-control" value="${hero.line1 || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="line2" class="form-label">Line 2</label>
+          <input type="text" id="line2" name="line2" class="form-control" value="${hero.line2 || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="line3" class="form-label">Line 3</label>
+          <input type="text" id="line3" name="line3" class="form-control" value="${hero.line3 || ''}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Hero Content</button>
+      </form>
+    </div>
+  </div>
+` }) %>
+

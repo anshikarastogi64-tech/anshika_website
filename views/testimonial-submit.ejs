@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Share Your Experience</title>
+  <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; padding: 2rem 0; }
+    .submit-card { max-width: 640px; margin: 0 auto; }
+    .star-rating { font-size: 2rem; cursor: pointer; }
+    .star-rating .bx { color: #ddd; transition: color 0.2s; }
+    .star-rating .bx.active, .star-rating .bx.filled { color: #ffc107; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card submit-card shadow">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Share Your Experience</h2>
+        <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success">
+          Thank you! Your testimonial has been submitted. We will review it and publish it soon.
+        </div>
+        <% } else if (typeof invalidToken !== 'undefined' && invalidToken) { %>
+        <div class="alert alert-danger">
+          This link is invalid or has already been used.
+        </div>
+        <% } else if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+        <% if (typeof success === 'undefined' || !success) { %>
+        <% if (typeof invalidToken === 'undefined' || !invalidToken) { %>
+        <form method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label">Your Name *</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Role / Title (optional)</label>
+            <input type="text" name="role" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Rating (1-5 stars) *</label>
+            <div class="star-rating" id="starRating">
+              <i class="bx bx-star" data-value="1"></i>
+              <i class="bx bx-star" data-value="2"></i>
+              <i class="bx bx-star" data-value="3"></i>
+              <i class="bx bx-star" data-value="4"></i>
+              <i class="bx bx-star" data-value="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="ratingInput" value="5" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Your Message *</label>
+            <textarea name="message" class="form-control" rows="5" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Profile Photo (optional)</label>
+            <input type="file" name="profile_image" class="form-control" accept="image/*">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Images (optional, multiple)</label>
+            <input type="file" name="media_images" class="form-control" accept="image/*" multiple>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Videos (optional, one YouTube or Vimeo URL per line)</label>
+            <textarea name="video_urls" class="form-control" rows="3" placeholder="https://youtube.com/watch?v=xxx&#10;https://vimeo.com/123456"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Testimonial</button>
+        </form>
+        <% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      var stars = document.querySelectorAll('#starRating .bx');
+      var input = document.getElementById('ratingInput');
+      if (!stars.length || !input) return;
+      function setRating(v) {
+        var val = parseInt(v, 10);
+        input.value = val;
+        stars.forEach(function(s, i) {
+          s.classList.remove('bx-star', 'bxs-star', 'active', 'filled');
+          s.classList.add(i < val ? 'bxs-star' : 'bx-star');
+          if (i < val) s.classList.add('filled');
+        });
+      }
+      stars.forEach(function(s) {
+        s.addEventListener('click', function() { setRating(this.getAttribute('data-value')); });
+        s.addEventListener('mouseenter', function() {
+          setRating(this.getAttribute('data-value'));
+          stars.forEach(function(x) { x.classList.add('active'); });
+        });
+      });
+      document.getElementById('starRating').addEventListener('mouseleave', function() {
+        setRating(input.value);
+      });
+      setRating(5);
+    })();
+  </script>
+</body>
+</html>

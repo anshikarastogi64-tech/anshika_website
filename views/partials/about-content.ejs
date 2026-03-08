@@ -1,0 +1,89 @@
+<section id="about" class="about">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2><%= typeof aboutIntro !== 'undefined' && aboutIntro && aboutIntro.title ? aboutIntro.title : 'About' %></h2>
+      <p><%= typeof aboutIntro !== 'undefined' && aboutIntro && aboutIntro.paragraph ? aboutIntro.paragraph : '' %></p>
+    </div>
+    <div class="row">
+      <div class="col-lg-4">
+        <img loading="lazy" src="/assets/img/me.png" class="img-fluid" alt="">
+      </div>
+      <div class="col-lg-8 pt-4 pt-lg-0 content">
+        <h3>Interior Designer and Consultant</h3>
+        <p class="fst-italic" style="text-align: justify;">
+          I am Experienced Interior Designer with a demonstrated history of working in the furniture industry. I have
+          more expertise is in Modern & Modular Interior designing. Space planning, Color selection, Material selection &
+          Creative Designing are my skills. I love putting my creativity to work to produce the best outcome for my clients
+          regarding style and function.
+        </p>
+        <div class="row">
+          <div class="col-lg-6">
+            <ul>
+              <li><i class="bi bi-rounded-right"></i> <strong>Relevant Project Experience:</strong> 7 Years</li>
+              <li><i class="bi bi-rounded-right"></i> <strong>Website:</strong> www.designersvision.in</li>
+              <li><i class="bi bi-rounded-right"></i> <strong>Phone:</strong> +91 9557058902</li>
+              <li><i class="bi bi-rounded-right"></i> <strong>City:</strong> Hyderabad, Metro Cities, Global Clientele</li>
+            </ul>
+          </div>
+          <div class="col-lg-6">
+            <ul>
+              <li><i class="bi bi-rounded-right"></i> <strong>Degree:</strong> Master in Design (IIFT)</li>
+              <li><i class="bi bi-rounded-right"></i> <strong>Email:</strong> anshika@designersvision.com</li>
+              <li><i class="bi bi-rounded-right"></i> <strong>Freelance:</strong> Available</li>
+            </ul>
+          </div>
+        </div>
+        <p style="text-align: justify;">
+          You will Experience Happiness, comfort & lots of positivity in your home. My expertise in designing and
+          managing luxury residential, commercial, and hospitality projects.
+        </p>
+        <a href="/experience" class="btn-about">My Professional Experience</a>
+        <a href="/portfolio" class="btn-about">Check My Designs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills" class="skills skills-compact">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title"><h2>Skills</h2></div>
+    <div class="skills-pills">
+      <span class="skill-pill">Sketch UP</span>
+      <span class="skill-pill">Photoshop</span>
+      <span class="skill-pill">AutoCAD</span>
+      <span class="skill-pill">Technical Drawing</span>
+      <span class="skill-pill">Illustration</span>
+      <span class="skill-pill">Project Management</span>
+      <span class="skill-pill">Space Planning</span>
+      <span class="skill-pill">Design Process</span>
+      <span class="skill-pill">Image Manipulation</span>
+      <span class="skill-pill">Color Sense</span>
+      <span class="skill-pill">Compusoft</span>
+      <span class="skill-pill">Residential & Commercial Design</span>
+    </div>
+  </div>
+</section>
+
+<section id="facts" class="facts d-none">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title"><h2>Facts</h2></div>
+    <div class="row counters">
+      <div class="col-lg-3 col-6 text-center">
+        <span data-purecounter-start="0" data-purecounter-end="<%= typeof facts !== 'undefined' && facts && facts.clients ? facts.clients : '156' %>" data-purecounter-duration="1" class="purecounter"></span>
+        <p>Clients</p>
+      </div>
+      <div class="col-lg-3 col-6 text-center">
+        <span data-purecounter-start="0" data-purecounter-end="<%= typeof facts !== 'undefined' && facts && facts.projects ? facts.projects : '309' %>" data-purecounter-duration="1" class="purecounter"></span>
+        <p>Projects</p>
+      </div>
+      <div class="col-lg-3 col-6 text-center">
+        <span data-purecounter-start="0" data-purecounter-end="<%= typeof facts !== 'undefined' && facts && facts.hours ? facts.hours : '1463' %>" data-purecounter-duration="1" class="purecounter"></span>
+        <p>Hours Of Support</p>
+      </div>
+      <div class="col-lg-3 col-6 text-center">
+        <span data-purecounter-start="0" data-purecounter-end="<%= typeof facts !== 'undefined' && facts && facts.workers ? facts.workers : '15' %>" data-purecounter-duration="1" class="purecounter"></span>
+        <p>Hard Workers</p>
+      </div>
+    </div>
+  </div>
+</section>

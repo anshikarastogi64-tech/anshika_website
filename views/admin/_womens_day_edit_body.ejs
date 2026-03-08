@@ -1,0 +1,38 @@
+<div class="row">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-4">Edit Women's Day Submission</h1>
+    <% if (message) { %><div class="alert alert-info"><%= message %></div><% } %>
+    <form method="post" action="/admin/womens-day/edit/<%= submission.id %>" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label class="form-label">Name <span class="text-danger">*</span></label>
+        <input type="text" name="name" class="form-control" value="<%= (submission.name || '').replace(/"/g, '&quot;') %>" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Mobile Number (optional)</label>
+        <input type="tel" name="mobile" class="form-control" value="<%= (submission.mobile || '').replace(/"/g, '&quot;') %>" placeholder="e.g. 9876543210">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Testimonial <small class="text-muted">(optional)</small></label>
+        <textarea name="testimonial" class="form-control" rows="4" placeholder="What does Women's Day mean to you?"><%= submission.testimonial || '' %></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Photo</label>
+        <input type="file" name="photo" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
+        <small class="text-muted">Leave empty to keep current. JPG, PNG, GIF or WebP. Max 5 MB.</small>
+        <% if (submission.image_path) { %>
+        <p class="mt-2 mb-0 small">Current photo:</p>
+        <img src="/<%= submission.image_path %>" alt="" class="img-fluid rounded mt-1" style="max-height: 180px;">
+        <% } %>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Visible on public page</label>
+        <select name="approved" class="form-select" style="max-width: 120px">
+          <option value="1" <%= submission.approved ? 'selected' : '' %>>Show</option>
+          <option value="0" <%= !submission.approved ? 'selected' : '' %>>Hide</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="/admin/womens-day" class="btn btn-secondary">Back</a>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+<%- include('partials/layout', {
+  active: 'home',
+  footerName,
+  body: `
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container d-flex flex-column align-items-center" data-aos="zoom-in" data-aos-delay="100">
+      <a style="color:green; font-size: 40px;"><b>${hero.greeting}</b></a>
+      <h1>${hero.name}</h1>
+      <h2>${hero.line1}</h2>
+      <h2>${hero.line2}</h2>
+      <h2>${hero.line3}</h2>
+      <h2></h2>
+      <a href="/about-new" class="btn-about">About Me</a>
+      <br /><br />
+      <div class="row">
+        <div class="column">
+          <a
+            href="https://bni-secunderabad.in/en-IN/memberdetails?encryptedMemberId=vBkpqJRWhMsZCygaZ29hew%3D%3D&name=Anshika+Rastogi?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget"
+            class="logo"
+            ><img src="/assets/img/bni.png" alt="BNI" class="img-fluid" width="160" height="60" loading="lazy"
+          /></a>
+        </div>
+        <div class="column">
+          <a
+            href="https://www.bark.com/en/in/company/anshika-rastogi/QlQ9N/"
+            target="_blank"
+            class="bark-widget"
+            data-type="pro"
+            data-id="QlQ9N"
+            data-image="small-gold"
+            data-version="3.0"
+            >Anshika Rastogi</a
+          ><script
+            type="text/javascript"
+            src="https://d3a1eo0ozlzntn.cloudfront.net/assets/js/frontend-v2/widgets-v2.24a197bed6.v2.js"
+            defer
+          ></script>
+        </div>
+      </div>
+    </div>
+  </section><!-- End Hero -->
+` }) %>
+

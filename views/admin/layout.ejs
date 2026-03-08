@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Panel - Designers Vision</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/admin">Admin - Designers Vision</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#adminNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="adminNav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" href="/admin">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/hero">Home Hero</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/about">About</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/services">Services</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/portfolio">Portfolio</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/testimonials">Testimonials</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/recordings">Audio & QR</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/womens-day">Women's Day</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/facts">Facts</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/contact">Contact Info</a></li>
+          </ul>
+          <% if (adminUsername) { %>
+          <span class="navbar-text me-3">Logged in as <%= adminUsername %></span>
+          <a href="/admin/change-password" class="btn btn-outline-light btn-sm me-1">Change password</a>
+          <form method="post" action="/admin/logout" class="d-inline">
+            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+          </form>
+          <% } %>
+        </div>
+      </div>
+    </nav>
+    <div class="container mb-5">
+      <%- body %>
+    </div>
+    <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,96 @@
+<div class="row">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-4">Testimonials</h1>
+    <% if (message) { %><div class="alert alert-info"><%= message %></div><% } %>
+    <% if (inviteUrl) { %>
+    <div class="alert alert-success">
+      <strong>Share this link with your client:</strong><br>
+      <code class="user-select-all"><%= inviteUrl %></code>
+      <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button>
+    </div>
+    <% } %>
+
+    <div class="mb-3">
+      <form method="post" action="/admin/testimonials/invite" class="d-inline">
+        <button type="submit" class="btn btn-outline-primary btn-sm">Generate testimonial invite link</button>
+      </form>
+      <span class="text-muted small ms-2">Share the link with clients to collect testimonials.</span>
+    </div>
+
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Photo</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th style="width: 220px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!testimonials || testimonials.length === 0) { %>
+        <tr><td colspan="6" class="text-muted">No testimonials yet.</td></tr>
+        <% } else { %>
+        <% testimonials.forEach(function(t, i) { %>
+        <tr>
+          <td>
+            <form method="post" action="/admin/testimonials/<%= t.id %>/move-up" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-outline-secondary py-0" <%= i === 0 ? 'disabled' : '' %> title="Move up">↑</button>
+            </form>
+            <form method="post" action="/admin/testimonials/<%= t.id %>/move-down" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-outline-secondary py-0" <%= i === testimonials.length - 1 ? 'disabled' : '' %> title="Move down">↓</button>
+            </form>
+          </td>
+          <td><%= t.image_path ? '<img src="/' + t.image_path + '" alt="" style="max-height:40px; border-radius:50%;">' : '-' %></td>
+          <td><%= t.name %></td>
+          <td><%= t.role || '' %></td>
+          <td>
+            <% if (t.status === 'pending') { %><span class="badge bg-warning">Pending</span><% } %>
+            <% if (t.status === 'approved') { %><span class="badge bg-success">Approved</span><% } %>
+            <% if (t.status === 'rejected') { %><span class="badge bg-secondary">Rejected</span><% } %>
+          </td>
+          <td>
+            <% if (t.status === 'pending') { %>
+            <form method="post" action="/admin/testimonials/<%= t.id %>/approve" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-success">Approve</button>
+            </form>
+            <form method="post" action="/admin/testimonials/<%= t.id %>/reject" style="display:inline">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Reject</button>
+            </form>
+            <% } %>
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/testimonials/<%= t.id %>">Edit</a>
+            <form method="post" action="/admin/testimonials/<%= t.id %>/delete" style="display:inline" onsubmit="return confirm('Delete?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Del</button>
+            </form>
+          </td>
+        </tr>
+        <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <div class="col-lg-4">
+    <h2 class="h5 mb-3">Add New Testimonial (direct)</h2>
+    <form method="post" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" id="name" name="name" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label for="role" class="form-label">Role / Title</label>
+        <input type="text" id="role" name="role" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label for="message" class="form-label">Message</label>
+        <textarea id="message" name="message" rows="4" class="form-control" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="image" class="form-label">Photo (optional)</label>
+        <input type="file" id="image" name="image" class="form-control" accept="image/*">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Add Testimonial</button>
+    </form>
+    <p class="text-muted small mt-2">Or use "Generate invite link" to let clients submit their own.</p>
+  </div>
+</div>

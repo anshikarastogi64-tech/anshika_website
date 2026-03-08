@@ -1,0 +1,180 @@
+<section class="portfolio-detail">
+  <div class="container py-4" data-aos="fade-up">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/portfolio">Portfolio</a></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= project.name || 'Project' %></li>
+      </ol>
+    </nav>
+
+    <% const media = (typeof projectMedia !== 'undefined' && Array.isArray(projectMedia)) ? projectMedia : []; %>
+
+    <% const testimonialList = (typeof testimonials !== 'undefined' && Array.isArray(testimonials)) ? testimonials : []; %>
+
+    <div class="row mb-3 align-items-start project-top-row">
+      <div class="col-lg-5 col-md-6 mb-4 mb-md-0 project-top-left">
+        <% if (project.cover_image_path && project.cover_image_path.trim()) { %>
+        <div class="project-cover-wrap">
+        <img loading="lazy" src="/<%= project.cover_image_path %>" class="img-fluid rounded shadow-sm" alt="<%= (project.name || '').replace(/"/g, '&quot;') %>">
+        </div>
+        <% } else { %>
+        <div class="bg-light rounded d-flex align-items-center justify-content-center project-cover-placeholder"><span class="text-muted">No image</span></div>
+        <% } %>
+      </div>
+      <div class="col-lg-7 col-md-6 project-top-right">
+        <div class="project-info project-info-compact">
+          <h2 class="h4 mb-1"><%= project.name || 'Project' %></h2>
+          <% if (project.category_name) { %><p class="text-muted small mb-1"><%= project.category_name %></p><% } %>
+          <% if ((project.location && project.location.trim()) || (project.city && project.city.trim())) { %>
+          <p class="mb-1 small"><i class="bx bx-map-pin me-1"></i>
+            <% if (project.location && project.location.trim()) { %><%= project.location %><% } %>
+            <% if (project.city && project.city.trim()) { %><% if (project.location && project.location.trim()) { %>, <% } %><%= project.city %><% } %>
+          </p>
+          <% } %>
+          <% if (project.initial_text && project.initial_text.trim()) { %>
+          <div class="about-project mb-2">
+            <h6 class="mb-1">About Project</h6>
+            <p class="text-muted small mb-0"><%= project.initial_text %></p>
+          </div>
+          <% } %>
+          <% if (project.details && project.details.trim()) { %>
+          <div class="project-details-section mb-2">
+            <h6 class="mb-1">Project Details</h6>
+            <% const br = '\x3cbr\x3e'; %>
+            <div class="project-details text-muted"><%- (project.details || '').replace(/\n/g, br) %></div>
+          </div>
+          <% } %>
+          <% if (testimonialList.length > 0) { %>
+          <div class="mt-2 pt-2 border-top">
+            <% testimonialList.forEach(function(t) { %>
+            <div class="testimonial-teaser mb-2">
+              <p class="text-muted small mb-1"><i class="bx bxs-quote-alt-left me-1" style="color:#c8efea;"></i><%= (t.message || '').length > 80 ? (t.message || '').substring(0, 80) + '...' : (t.message || '') %><i class="bx bxs-quote-alt-right ms-1" style="color:#c8efea;"></i></p>
+              <a href="/testimonials/<%= t.id %>" class="btn btn-sm btn-outline-primary">Read full testimonial</a>
+            </div>
+            <% }); %>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <% if (media.length > 0) { %>
+    <div class="row mb-4 project-gallery-section py-3 px-3" id="project-gallery">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <h3 class="h4 mb-0 text-primary">Gallery</h3>
+          <ul class="media-filters list-unstyled d-flex gap-2 mb-0">
+            <li><button type="button" class="btn btn-sm btn-outline-secondary filter-media active" data-filter="*">All</button></li>
+            <li><button type="button" class="btn btn-sm btn-outline-secondary filter-media" data-filter="image">Images</button></li>
+            <li><button type="button" class="btn btn-sm btn-outline-secondary filter-media" data-filter="video">Videos</button></li>
+          </ul>
+        </div>
+        <div class="project-gallery-grid">
+          <% media.forEach(function(m) { %>
+          <div class="project-gallery-item media-item" data-type="<%= m.type %>">
+            <% if (m.type === 'image') { %>
+            <a href="/<%= m.path %>" class="portfolio-lightbox project-gallery-img-wrap" data-gallery="project-gallery">
+              <img loading="lazy" src="/<%= m.path %>" alt="">
+            </a>
+            <% } else if (m.type === 'video') { %>
+            <div class="project-gallery-video-wrap">
+              <iframe src="<%= m.path %>" allowfullscreen></iframe>
+            </div>
+            <% } %>
+          </div>
+          <% }); %>
+        </div>
+        <style>
+        .project-gallery-section { scroll-margin-top: 80px; background: rgba(52,183,167,0.05); border-radius: 8px; }
+        .project-gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 10px;
+        }
+        @media (min-width: 576px) { .project-gallery-grid { gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); } }
+        @media (min-width: 992px) { .project-gallery-grid { gap: 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
+        .project-gallery-item {
+          overflow: hidden;
+          border-radius: 6px;
+          background: #f8f9fa;
+        }
+        .project-gallery-img-wrap {
+          display: block;
+          aspect-ratio: 4/3;
+          overflow: hidden;
+        }
+        .project-gallery-img-wrap img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.3s ease;
+        }
+        .project-gallery-img-wrap:hover img {
+          transform: scale(1.03);
+        }
+        .project-gallery-video-wrap {
+          aspect-ratio: 16/9;
+          overflow: hidden;
+          position: relative;
+        }
+        .project-gallery-video-wrap iframe {
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%;
+          height: 100%;
+          border: 0;
+        }
+        </style>
+      </div>
+    </div>
+    <style>
+    .portfolio-detail .project-top-row {
+      align-items: flex-start;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .portfolio-detail .project-top-left,
+    .portfolio-detail .project-top-right {
+      flex-shrink: 0;
+    }
+    .portfolio-detail .project-cover-wrap {
+      height: 200px;
+      max-height: 200px;
+      overflow: hidden;
+      border-radius: 0.25rem;
+    }
+    .portfolio-detail .project-cover-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .portfolio-detail .project-cover-placeholder { min-height: 150px; }
+    .portfolio-detail .project-details { font-size: 0.9rem; }
+    </style>
+    <script>
+    (function() {
+      var btns = document.querySelectorAll('.filter-media');
+      var items = document.querySelectorAll('.media-item');
+      if (!btns.length || !items.length) return;
+      btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          btns.forEach(function(b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          var f = this.getAttribute('data-filter');
+          items.forEach(function(it) {
+            var show = f === '*' || it.getAttribute('data-type') === f;
+            it.style.display = show ? '' : 'none';
+          });
+        });
+      });
+    })();
+    </script>
+    <% } %>
+
+    <div class="mt-5">
+      <a href="/portfolio" class="btn btn-outline-primary">&larr; Back to Portfolio</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,162 @@
+<style>
+.about-new .profile-top { min-height: calc(100vh - 140px); display: flex; align-items: center; padding: 2rem 0; }
+.about-new .profile-container { width: 100%; max-width: 960px; margin: 0 auto; }
+.about-new .profile-layout { display: flex; align-items: center; gap: 40px; }
+.about-new .profile-photo { flex-shrink: 0; width: 280px; }
+.about-new .profile-photo img { width: 100%; height: auto; border-radius: 16px; object-fit: cover; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12); }
+.about-new .profile-content { flex: 1; min-width: 0; }
+.about-new .profile-name { font-size: 28px; font-weight: 700; color: #222; margin: 0 0 4px 0; }
+.about-new .profile-title { font-size: 16px; color: #34b7a7; font-weight: 600; margin: 0 0 12px 0; }
+.about-new .profile-bio { font-size: 14px; line-height: 1.55; color: #555; margin: 0 0 16px 0; }
+.about-new .profile-details { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-bottom: 14px; }
+.about-new .profile-detail { font-size: 13px; color: #444; display: flex; align-items: center; gap: 6px; }
+.about-new .profile-detail i { color: #34b7a7; }
+.about-new .profile-skills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.about-new .profile-skills .skill-pill { padding: 4px 12px; font-size: 11px; }
+.about-new .profile-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.about-new .profile-actions .btn-about { padding: 8px 24px; font-size: 12px; }
+.about-new .profile-actions .btn-outline { background: transparent; color: #34b7a7; border: 2px solid #34b7a7; }
+.about-new .profile-actions .btn-outline:hover { background: #34b7a7; color: #fff; }
+.about-new .profile-scroll { padding: 3rem 0; }
+.about-new .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(52,183,167,0.3), transparent); margin: 2rem 0; }
+.about-new .philosophy-section { background: rgba(248,249,250,0.8); border-radius: 12px; padding: 1.5rem; }
+.about-new .project-type-card { background: linear-gradient(135deg, rgba(52,183,167,0.06) 0%, rgba(52,183,167,0.02) 100%); border: 1px solid rgba(52,183,167,0.15); border-radius: 12px; padding: 1rem 1.25rem; transition: all 0.3s ease; }
+.about-new .project-type-card:hover { background: rgba(52,183,167,0.1); border-color: rgba(52,183,167,0.3); transform: translateY(-2px); }
+.about-new .project-type-card i { color: #34b7a7; font-size: 1.5rem; }
+.about-new .featured-project-card { border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.08); transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.06); }
+.about-new .featured-project-card:hover { box-shadow: 0 12px 32px rgba(52,183,167,0.2); transform: translateY(-4px); }
+.about-new .featured-project-card img { height: 200px; object-fit: cover; width: 100%; }
+.about-new .featured-project-card .card-body { padding: 1rem; }
+@media (max-width: 991px) {
+  .about-new .profile-top { min-height: auto; padding: 1.5rem 0; }
+  .about-new .profile-layout { flex-direction: column; gap: 24px; }
+  .about-new .profile-photo { width: 180px; }
+  .about-new .profile-name { font-size: 24px; text-align: center; }
+  .about-new .profile-title { text-align: center; }
+  .about-new .profile-bio { text-align: center; }
+  .about-new .profile-details { justify-content: center; }
+  .about-new .profile-skills { justify-content: center; }
+  .about-new .profile-actions { justify-content: center; }
+}
+@media (max-width: 576px) { .about-new .profile-photo { width: 140px; } .about-new .profile-name { font-size: 20px; } }
+</style>
+
+<section id="about" class="about about-new">
+  <div class="container">
+    <!-- Profile block - fills initial viewport -->
+    <div class="profile-top" data-aos="fade-up">
+      <div class="profile-container">
+        <div class="profile-layout">
+          <div class="profile-photo">
+            <img loading="lazy" src="/assets/img/me.png" class="img-fluid" alt="Anshika Rastogi - Interior Designer">
+          </div>
+          <div class="profile-content">
+            <h2 class="profile-name">Anshika Rastogi</h2>
+            <h3 class="profile-title">Interior Designer & Consultant</h3>
+            <p class="profile-bio">Experienced in Modern & Modular Interior design. Specializing in space planning, color & material selection. I bring creativity to produce the best outcome for your space—style meets function.</p>
+            <div class="profile-details">
+              <div class="profile-detail"><i class="bi bi-briefcase"></i> 7 Years Experience</div>
+              <div class="profile-detail"><i class="bi bi-mortarboard"></i> Master in Design (IIFT)</div>
+              <div class="profile-detail"><i class="bi bi-geo-alt"></i> Hyderabad & Global</div>
+              <div class="profile-detail"><i class="bi bi-envelope"></i> anshika@designersvision.com</div>
+              <div class="profile-detail"><i class="bi bi-telephone"></i> +91 9557058902</div>
+            </div>
+            <div class="profile-skills">
+              <span class="skill-pill">Sketch UP</span>
+              <span class="skill-pill">Photoshop</span>
+              <span class="skill-pill">AutoCAD</span>
+              <span class="skill-pill">Space Planning</span>
+              <span class="skill-pill">Project Management</span>
+              <span class="skill-pill">Residential & Commercial</span>
+            </div>
+            <div class="profile-actions">
+              <a href="/experience" class="btn-about">Experience</a>
+              <a href="/portfolio" class="btn-about">Portfolio</a>
+              <a href="/contact" class="btn-about btn-outline">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable details section -->
+    <div class="profile-scroll">
+      <div class="section-divider" data-aos="fade"></div>
+
+      <div class="philosophy-section mb-4" data-aos="fade-up">
+        <h4 class="mb-3" style="color: #34b7a7;"><i class="bi bi-lightbulb me-2"></i>Design Philosophy</h4>
+        <p class="mb-0" style="text-align: justify;">
+          I believe great interior design balances aesthetics with functionality. Every space tells a story—I aim to create
+          environments that reflect your personality while maximizing comfort and usability. From concept to execution, I focus
+          on quality materials, thoughtful layout, and seamless project delivery.
+        </p>
+      </div>
+
+      <div class="row g-3 mb-4" data-aos="fade-up">
+        <div class="col-md-4">
+          <div class="project-type-card">
+            <i class="bi bi-house-door me-2"></i>
+            <strong>Residential</strong>
+            <p class="mb-0 small text-muted mt-1">Homes, apartments & villas—creating personalized, livable spaces.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="project-type-card">
+            <i class="bi bi-building me-2"></i>
+            <strong>Commercial</strong>
+            <p class="mb-0 small text-muted mt-1">Offices, retail & workspaces—designs that boost productivity.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="project-type-card">
+            <i class="bi bi-cup-hot me-2"></i>
+            <strong>Hospitality</strong>
+            <p class="mb-0 small text-muted mt-1">Restaurants, bars & hotels—memorable guest experiences.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider" data-aos="fade"></div>
+
+      <section id="skills" class="skills skills-compact pt-2">
+        <div class="section-title" data-aos="fade-up"><h2>Skills</h2></div>
+        <div class="skills-pills" data-aos="fade-up">
+          <span class="skill-pill">Sketch UP</span>
+          <span class="skill-pill">Photoshop</span>
+          <span class="skill-pill">AutoCAD</span>
+          <span class="skill-pill">Technical Drawing</span>
+          <span class="skill-pill">Illustration</span>
+          <span class="skill-pill">Project Management</span>
+          <span class="skill-pill">Space Planning</span>
+          <span class="skill-pill">Design Process</span>
+          <span class="skill-pill">Image Manipulation</span>
+          <span class="skill-pill">Color Sense</span>
+          <span class="skill-pill">Compusoft</span>
+          <span class="skill-pill">Residential & Commercial Design</span>
+        </div>
+      </section>
+
+      <% if (typeof featuredProject !== 'undefined' && featuredProject) { %>
+      <div class="section-divider" data-aos="fade"></div>
+      <div class="mb-4" data-aos="fade-up">
+        <div class="section-title"><h2>Featured Project</h2></div>
+        <div class="row">
+          <div class="col-lg-6 mx-auto">
+            <a href="/portfolio/project/<%= featuredProject.id %>" class="text-decoration-none text-dark">
+              <div class="featured-project-card">
+                <img src="/<%= featuredProject.cover_image_path %>" alt="<%= featuredProject.name %>" loading="lazy">
+                <div class="card-body">
+                  <h5 class="mb-1" style="color: #34b7a7;"><%= featuredProject.name %></h5>
+                  <% if (featuredProject.city) { %><p class="text-muted small mb-0"><i class="bi bi-geo-alt"></i> <%= featuredProject.city %></p><% } %>
+                  <% if (featuredProject.initial_text) { %><p class="small mt-2 mb-0"><%= featuredProject.initial_text.length > 100 ? featuredProject.initial_text.substring(0,100) + '...' : featuredProject.initial_text %></p><% } %>
+                  <span class="text-primary small fw-semibold mt-2 d-inline-block">View project →</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</section>

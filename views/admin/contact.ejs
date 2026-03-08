@@ -1,0 +1,24 @@
+<%- include('layout', { body: `
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="h3 mb-4">Edit Contact Information</h1>
+      ${message ? `<div class="alert alert-success">${message}</div>` : ''}
+      <form method="post">
+        <div class="mb-3">
+          <label for="address" class="form-label">Address</label>
+          <textarea id="address" name="address" rows="3" class="form-control">${contactInfo.address || ''}</textarea>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" name="email" class="form-control" value="${contactInfo.email || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="phone" class="form-label">Phone</label>
+          <input type="text" id="phone" name="phone" class="form-control" value="${contactInfo.phone || ''}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Contact Info</button>
+      </form>
+    </div>
+  </div>
+` }) %>
+

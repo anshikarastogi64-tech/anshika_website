@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.deploy
+data.sqlite
+*.log
+logs/
+Kelly/assets/uploads/recordings/*
+Kelly/assets/uploads/womens-day/*
+!Kelly/assets/uploads/recordings/.gitkeep
+!Kelly/assets/uploads/womens-day/.gitkeep

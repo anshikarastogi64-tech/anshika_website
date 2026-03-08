@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-CP36RKRQC2"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-CP36RKRQC2');
+    </script>
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3675353381196861"
+      crossorigin="anonymous"
+    ></script>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <title>Anshika Rastogi - Interior Designer | Hyderabad |</title>
+
+    <!-- Favicons -->
+    <link href="/assets/img/favicon.png" rel="icon" />
+    <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+
+    <!-- Preconnect for faster external loads -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts - display=swap prevents FOIT, reduced weights for speed -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
+
+    <!-- Critical CSS - Bootstrap first for above-the-fold -->
+    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+    <link href="/assets/css/style.css" rel="stylesheet" />
+    <!-- Deferred CSS - load after critical render -->
+    <link href="/assets/vendor/aos/aos.css" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet" media="print" onload="this.media='all'" />
+  </head>
+
+  <body class="<%= typeof bodyClass !== 'undefined' && bodyClass ? bodyClass : '' %>">
+    <!-- ======= Header ======= -->
+    <header id="header" class="fixed-top">
+      <div class="container-fluid d-flex justify-content-between align-items-center">
+        <h1 class="logo me-auto me-lg-0"><a href="/">Anshika</a></h1>
+
+        <nav id="navbar" class="navbar order-last order-lg-0">
+          <ul>
+            <li><a class="<%= (active === 'home') ? 'active' : '' %>" href="/">Home</a></li>
+            <li>
+              <a class="<%= (active === 'about') ? 'active' : '' %>" href="/about-new">About</a>
+            </li>
+            <li>
+              <a class="<%= (active === 'experience') ? 'active' : '' %>" href="/experience"
+                >Experience</a
+              >
+            </li>
+            <li>
+              <a class="<%= (active === 'services') ? 'active' : '' %>" href="/services"
+                >Services</a
+              >
+            </li>
+            <li>
+              <a class="<%= (active === 'portfolio') ? 'active' : '' %>" href="/portfolio"
+                >Portfolio</a
+              >
+            </li>
+            <li>
+              <a class="<%= (active === 'testimonials') ? 'active' : '' %>" href="/testimonials"
+                >Testimonials</a
+              >
+            </li>
+            <li>
+              <a class="<%= (active === 'contact') ? 'active' : '' %>" href="/contact"
+                >Contact</a
+              >
+            </li>
+            <li>
+              <a href="/womens-day">Women's Day</a>
+            </li>
+            <li>
+              <a href="https://anshikarastogi.blogspot.com/" target="_blank">Blog</a>
+            </li>
+          </ul>
+          <i class="bi bi-list mobile-nav-toggle"></i>
+        </nav>
+
+        <div class="header-social-links">
+          <a
+            href="https://www.instagram.com/anshikarastogi07/"
+            target="_blank"
+            class="instagram"
+            ><i class="bi bi-instagram"></i
+          ></a>
+          <a
+            href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/"
+            target="_blank"
+            class="linkedin"
+            ><i class="bi bi-linkedin"></i
+          ></a>
+          <a
+            href="https://wa.me/message/IQKYV6MCXW5XM1"
+            target="_blank"
+            class="linkedin"
+            ><i class="bi bi-whatsapp"></i
+          ></a>
+          <a href="tel:+919557058902" target="_blank" class="linkedin"
+            ><i class="bi bi-telephone"></i
+          ></a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="<%= typeof mainClass !== 'undefined' && mainClass ? mainClass : '' %>">
+      <% if (typeof contentView !== 'undefined' && contentView) { %>
+        <%- include(contentView, typeof contentData !== 'undefined' ? contentData : {}) %>
+      <% } else if (typeof body !== 'undefined' && body) { %>
+        <%- body %>
+      <% } %>
+    </main>
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer">
+      <div class="container">
+        <div class="copyright">
+          &copy; Copyright
+          <strong><span><%= footerName || 'Anshika Rastogi' %></span></strong>. All Rights Reserved
+        </div>
+        <div class="credits">
+          <a href="/Kelly/sitemap.html" target="_blank">Sitemap</a>
+        </div>
+      </div>
+    </footer>
+
+    <div id="preloader"></div>
+    <a
+      href="#"
+      class="back-to-top d-flex align-items-center justify-content-center"
+      ><i class="bi bi-arrow-up-short"></i
+    ></a>
+
+    <!-- Critical: Bootstrap for nav/interactivity -->
+    <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Deferred vendor JS - load after HTML parsed -->
+    <script src="/assets/vendor/aos/aos.js" defer></script>
+    <script src="/assets/vendor/purecounter/purecounter_vanilla.js" defer></script>
+    <script src="/assets/vendor/glightbox/js/glightbox.min.js" defer></script>
+    <script src="/assets/vendor/isotope-layout/isotope.pkgd.min.js" defer></script>
+    <script src="/assets/vendor/swiper/swiper-bundle.min.js" defer></script>
+    <script src="/assets/vendor/waypoints/noframework.waypoints.js" defer></script>
+    <script src="/assets/vendor/php-email-form/validate.js" defer></script>
+    <script src="/assets/js/main.js" defer></script>
+  </body>
+</html>
+

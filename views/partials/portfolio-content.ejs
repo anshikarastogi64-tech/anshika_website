@@ -1,0 +1,44 @@
+<section id="portfolio" class="portfolio">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>Portfolio</h2>
+    </div>
+    <% const cats = (typeof categories !== 'undefined' && Array.isArray(categories)) ? categories : []; %>
+    <% const projs = (typeof projects !== 'undefined' && Array.isArray(projects)) ? projects : []; %>
+    <% if (cats.length > 0) { %>
+    <div class="row" data-aos="fade-up" data-aos-delay="100">
+      <div class="col-lg-12 d-flex justify-content-center">
+        <ul id="portfolio-flters">
+          <li data-filter="*" class="filter-active">All</li>
+          <% cats.forEach(function(c) { %>
+          <li data-filter=".filter-cat-<%= c.id %>"><%= (c.name || '').toUpperCase() %></li>
+          <% }); %>
+        </ul>
+      </div>
+    </div>
+    <% } %>
+    <div class="row portfolio-container" data-aos="fade-up" data-aos-delay="200">
+      <% if (projs.length === 0) { %>
+      <div class="col-12 text-center text-muted py-5">No projects yet. Check back later.</div>
+      <% } else { %>
+      <% projs.forEach(function(p) { %>
+      <div class="col-lg-4 col-md-6 portfolio-item filter-cat-<%= p.category_id %>">
+        <div class="portfolio-wrap">
+          <a href="/portfolio/project/<%= p.id %>">
+            <img src="/<%= p.cover_image_path || 'assets/img/portfolio/portfolio-1.jpg' %>" class="img-fluid" alt="<%= (p.name || '').replace(/"/g, '&quot;') %>" loading="lazy" width="400" height="300">
+            <div class="portfolio-info">
+              <h4><%= p.name || 'Project' %></h4>
+              <% if (p.location && p.location.trim()) { %><p class="mb-0"><small><i class="bx bx-map-pin"></i> <%= p.location %><% if (p.city && p.city.trim()) { %>, <%= p.city %><% } %></small></p><% } %>
+              <p><%= (p.initial_text || '').substring(0, 80) %><%= (p.initial_text && p.initial_text.length > 80) ? '...' : '' %></p>
+              <div class="portfolio-links">
+                <a href="/portfolio/project/<%= p.id %>" title="<%= (p.name || '').replace(/"/g, '&quot;') %>">Explore</a>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+      <% }); %>
+      <% } %>
+    </div>
+  </div>
+</section>

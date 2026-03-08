@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Listen – <%= recording.title || 'Audio Recording' %></title>
+  <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      color: #2d1b2e;
+      font-family: 'Quicksand', sans-serif;
+      background: url('/assets/img/womens-day-bg.jpeg') center/cover no-repeat fixed;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(232,164,184,0.7) 0%, rgba(214,51,132,0.5) 30%, rgba(115,61,70,0.6) 70%, rgba(201,177,189,0.5) 100%);
+      z-index: 0;
+    }
+    body > * { position: relative; z-index: 1; }
+    .listen-card {
+      max-width: 420px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.92);
+      border-radius: 24px;
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 20px 60px rgba(115,61,70,0.25);
+    }
+    .listen-card h1 { font-family: 'Cormorant Garamond', serif; color: #723d46; }
+    .audio-wrapper { border-radius: 16px; overflow: hidden; background: rgba(248,187,217,0.3); }
+    audio { width: 100%; height: 54px; }
+    .brand { font-size: 0.9rem; color: #d63384; font-weight: 500; }
+  </style>
+</head>
+<body class="d-flex align-items-center justify-content-center p-4">
+  <div class="text-center w-100">
+    <div class="listen-card p-4 p-md-5 shadow-lg">
+      <div class="mb-4">
+        <i class="bi bi-music-note-beamed display-4" style="color: #d63384;"></i>
+        <h1 class="h4 mt-2 mb-0"><%= recording.title || 'Audio Recording' %></h1>
+        <p class="brand mt-1 mb-0">Designers Vision</p>
+      </div>
+      <div class="audio-wrapper mb-3">
+        <audio controls preload="metadata" class="w-100">
+          <source src="/<%= recording.file_path %>">
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+        <p class="small mb-0" style="color: #8b5a6b;">Enjoy listening! ♀</p>
+    </div>
+    <a href="/" class="btn btn-sm mt-3 px-3 py-2" style="background: rgba(255,255,255,0.9); color: #723d46; border-radius: 12px;">← Back to Home</a>
+  </div>
+</body>
+</html>

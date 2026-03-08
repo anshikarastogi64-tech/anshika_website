@@ -1,0 +1,87 @@
+<style>
+  .qr-card { background: linear-gradient(135deg, #fff 0%, #fce4ec 100%); border-radius: 16px; padding: 12px; display: inline-block; box-shadow: 0 4px 20px rgba(214,51,132,0.15); border: 1px solid rgba(232,164,184,0.5); }
+  .qr-card img { border-radius: 8px; display: block; }
+  .qr-download-btn { background: linear-gradient(135deg, #d63384, #e8a4b8); color: #fff !important; border: none; font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; margin-top: 6px; }
+  .qr-download-btn:hover { background: linear-gradient(135deg, #723d46, #d63384); color: #fff !important; }
+</style>
+<div class="row">
+  <div class="col-12">
+    <h1 class="h3 mb-4">Audio Recordings & QR Codes</h1>
+    <p class="mb-4">
+      Upload audio recordings. Each gets a unique QR code. Share it with users—when they scan it, they can listen.
+    </p>
+    <% if (message) { %>
+      <div class="alert alert-success"><%= message %></div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-5 mb-4">
+    <div class="card">
+      <div class="card-header"><strong>Upload New Recording</strong></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label">Title (optional)</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Special Message">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Audio File (MP3, WAV, OGG, M4A – max 50 MB)</label>
+            <input type="file" name="audio_file" class="form-control" accept="audio/*" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Upload & Generate QR Code</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><strong>Your Recordings</strong></div>
+      <div class="card-body p-0">
+        <% if (!recordings || recordings.length === 0) { %>
+          <p class="p-4 text-muted mb-0">No recordings yet. Upload one above.</p>
+        <% } else { %>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Date</th>
+                  <th>Views</th>
+                  <th>QR Code</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recordings.forEach(function(r) { %>
+                <tr>
+                  <td><%= r.title || 'Recording' %></td>
+                  <td><%= new Date(r.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <span class="badge bg-success" title="Link opened <%= r.view_count || 0 %> time(s)"><i class="bi bi-eye me-1"></i><%= r.view_count || 0 %></span>
+                  </td>
+                  <td>
+                    <div class="qr-card text-center">
+                      <a href="<%= r.listenUrl %>" target="_blank" title="Open link">
+                        <img src="<%= r.qrUrl %>" alt="QR Code" width="160" height="160">
+                      </a>
+                      <a href="/admin/recordings/<%= r.id %>/qr-download" class="btn qr-download-btn d-block" download>↓ Download QR</a>
+                    </div>
+                  </td>
+                  <td>
+                    <a href="<%= r.listenUrl %>" target="_blank" class="btn btn-sm btn-outline-primary">Link</a>
+                    <a href="/admin/recordings/delete/<%= r.id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this recording?');">Del</a>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

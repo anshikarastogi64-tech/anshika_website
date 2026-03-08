@@ -1,0 +1,93 @@
+<%- include('layout', { body: `
+  <div class="row">
+    <div class="col-lg-12">
+      <h1 class="h3 mb-4">Portfolio</h1>
+      ${typeof message !== 'undefined' && message ? `<div class="alert alert-info">${message}</div>` : ''}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-5">
+      <h2 class="h5 mb-3">Categories</h2>
+      <form method="post" action="/admin/portfolio/categories">
+        <div class="input-group mb-3">
+          <input type="text" name="name" class="form-control" placeholder="New category (e.g. Kitchens)" required>
+          <button type="submit" class="btn btn-primary">Add Category</button>
+        </div>
+      </form>
+      <ul class="list-group mb-4">
+        ${(typeof categories !== 'undefined' ? categories : []).map(cat => `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>${cat.name}</span>
+          <form method="post" action="/admin/portfolio/categories/${cat.id}/delete" class="d-inline" onsubmit="return confirm('Delete category and all its projects?');">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </li>
+        `).join('')}
+        ${typeof categories === 'undefined' || categories.length === 0 ? `<li class="list-group-item text-muted">No categories yet. Add one above.</li>` : ''}
+      </ul>
+    </div>
+
+    <div class="col-lg-7">
+      <h2 class="h5 mb-3">Projects by Category</h2>
+      ${typeof categories === 'undefined' || categories.length === 0 ? `<p class="text-muted">Add a category first, then add projects below.</p>` : (typeof categories !== 'undefined' ? categories : []).map(cat => {
+        const projs = (typeof projectsByCategory !== 'undefined' && projectsByCategory[cat.id]) ? projectsByCategory[cat.id] : [];
+        return `
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>${cat.name}</strong>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#cat-${cat.id}">Toggle</button>
+          </div>
+          <div class="collapse show" id="cat-${cat.id}">
+            <div class="card-body">
+              <h6 class="text-muted mb-2">Add Project</h6>
+              <form method="post" action="/admin/portfolio/projects" enctype="multipart/form-data" class="mb-4">
+                <input type="hidden" name="category_id" value="${cat.id}">
+                <div class="row g-2 mb-2">
+                  <div class="col-md-6">
+                    <input type="text" name="name" class="form-control form-control-sm" placeholder="Project name" required>
+                  </div>
+                  <div class="col-md-6">
+                    <input type="text" name="location" class="form-control form-control-sm" placeholder="Location">
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" name="city" class="form-control form-control-sm" placeholder="City">
+                  </div>
+                  <div class="col-md-4">
+                    <input type="text" name="initial_text" class="form-control form-control-sm" placeholder="About Project (brief)">
+                  </div>
+                  <div class="col-md-4">
+                    <input type="file" name="cover_image" class="form-control form-control-sm" accept="image/*">
+                  </div>
+                  <div class="col-12">
+                    <textarea name="details" class="form-control form-control-sm" rows="2" placeholder="Project Details (full text)"></textarea>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Add Project</button>
+              </form>
+
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead><tr><th>Preview</th><th>Name</th><th>Actions</th></tr></thead>
+                <tbody>
+                  ${projs.length === 0 ? `<tr><td colspan="3" class="text-muted">No projects in this category.</td></tr>` : projs.map(p => `
+                  <tr>
+                    <td>${p.cover_image_path ? `<img src="/${p.cover_image_path}" alt="" style="max-height:36px;">` : '-'}</td>
+                    <td>${p.name}</td>
+                    <td>
+                      <a class="btn btn-sm btn-outline-secondary" href="/admin/portfolio/projects/${p.id}">Edit</a>
+                      <form method="post" action="/admin/portfolio/projects/${p.id}/delete" class="d-inline" onsubmit="return confirm('Delete this project?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Del</button>
+                      </form>
+                    </td>
+                  </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+` }) %>

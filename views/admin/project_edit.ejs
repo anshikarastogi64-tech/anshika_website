@@ -1,0 +1,101 @@
+<%- include('layout', { body: `
+  <div class="mb-4">
+    <a href="/admin/portfolio" class="btn btn-outline-secondary btn-sm">&larr; Back to Portfolio</a>
+  </div>
+  <h1 class="h3 mb-4">Edit Project: ${typeof project !== 'undefined' ? project.name : ''}</h1>
+  ${typeof message !== 'undefined' && message ? `<div class="alert alert-info">${(message+'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+
+  <form method="post" action="/admin/portfolio/projects/${typeof project !== 'undefined' ? project.id : ''}" enctype="multipart/form-data">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="mb-3">
+          <label for="name" class="form-label">Project Name</label>
+          <input type="text" id="name" name="name" class="form-control" value="${typeof project !== 'undefined' ? (project.name || '').replace(/"/g, '&quot;') : ''}" required>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="location" class="form-label">Project Location</label>
+            <input type="text" id="location" name="location" class="form-control" value="${typeof project !== 'undefined' ? (project.location || '').replace(/"/g, '&quot;') : ''}">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="city" class="form-label">Project City</label>
+            <input type="text" id="city" name="city" class="form-control" value="${typeof project !== 'undefined' ? (project.city || '').replace(/"/g, '&quot;') : ''}">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="initial_text" class="form-label">About Project (shown on card)</label>
+          <textarea id="initial_text" name="initial_text" class="form-control" rows="2">${typeof project !== 'undefined' ? (project.initial_text || '') : ''}</textarea>
+        </div>
+        <div class="mb-3">
+          <label for="details" class="form-label">Project Details (full text on project page)</label>
+          <textarea id="details" name="details" class="form-control" rows="6">${typeof project !== 'undefined' ? (project.details || '') : ''}</textarea>
+        </div>
+        <div class="mb-3">
+          <label for="cover_image" class="form-label">Cover Image (card thumbnail)</label>
+          <input type="file" id="cover_image" name="cover_image" class="form-control" accept="image/*">
+          ${typeof project !== 'undefined' && project.cover_image_path ? `<small class="text-muted">Current: <img src="/${project.cover_image_path}" alt="" style="max-height:40px;"></small>` : ''}
+        </div>
+        <div class="mb-3">${typeof testimonialsHtml !== 'undefined' ? testimonialsHtml : '<em class="text-muted">No testimonials yet.</em>'}</div>
+        <button type="submit" class="btn btn-primary">Save Project</button>
+      </div>
+    </div>
+  </form>
+
+  <hr class="my-4">
+  <h2 class="h5 mb-3">Project Media (Images & Videos)</h2>
+  <p class="text-muted">Add images or videos to display on the project detail page.</p>
+
+  <div class="row mb-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">Add Multiple Photos</div>
+        <div class="card-body">
+          <form method="post" action="/admin/portfolio/projects/${typeof project !== 'undefined' ? project.id : ''}/media" enctype="multipart/form-data">
+            <input type="hidden" name="media_type" value="image">
+            <div class="mb-2">
+              <input type="file" name="media_files" class="form-control" accept="image/*" multiple>
+              <small class="text-muted">Select multiple images at once</small>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">Add Photos</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">Add Multiple Videos</div>
+        <div class="card-body">
+          <form method="post" action="/admin/portfolio/projects/${typeof project !== 'undefined' ? project.id : ''}/media">
+            <input type="hidden" name="media_type" value="video">
+            <div class="mb-2">
+              <textarea name="video_urls" class="form-control" rows="3" placeholder="One YouTube or Vimeo URL per line&#10;https://youtube.com/watch?v=xxx&#10;https://vimeo.com/123456"></textarea>
+              <small class="text-muted">Enter multiple URLs, one per line</small>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">Add Videos</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead><tr><th>Type</th><th>Preview</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${(typeof projectMedia !== 'undefined' ? projectMedia : []).length === 0 ? `<tr><td colspan="3" class="text-muted">No media yet.</td></tr>` : (typeof projectMedia !== 'undefined' ? projectMedia : []).map(m => `
+        <tr>
+          <td><span class="badge bg-secondary">${m.type}</span></td>
+          <td>
+            ${m.type === 'image' ? `<img src="/${m.path}" alt="" style="max-height:50px;">` : `<a href="${m.path}" target="_blank">${m.path}</a>`}
+          </td>
+          <td>
+            <form method="post" action="/admin/portfolio/projects/${typeof project !== 'undefined' ? project.id : ''}/media/${m.id}/delete" class="d-inline" onsubmit="return confirm('Remove this?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+            </form>
+          </td>
+        </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+` }) %>

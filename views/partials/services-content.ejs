@@ -1,0 +1,114 @@
+<style>
+.services-compact { padding: 28px 0 32px !important; min-height: calc(100vh - 130px); display: flex; flex-direction: column; justify-content: center; }
+.services-compact .services-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.services-compact .services-header h2 { font-size: 26px; font-weight: 700; margin: 0; color: #222; }
+.services-compact .services-header p { color: #6f6f6f; font-size: 14px; margin: 0 0 0 8px; flex: 1; }
+.services-compact .btn-services-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; font-size: 13px; font-weight: 600; color: #fff; background: #34b7a7; border-radius: 50px; transition: all 0.3s ease; }
+.services-compact .btn-services-cta:hover { background: #2a9d8f; color: #fff; transform: translateY(-2px); }
+.services-categories { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 18px; }
+.services-categories .cat-btn { padding: 8px 18px; font-size: 12px; font-weight: 600; color: #555; background: #fff; border: 1px solid #e0e0e0; border-radius: 50px; cursor: pointer; transition: all 0.25s ease; }
+.services-categories .cat-btn:hover, .services-categories .cat-btn.active { color: #fff; background: #34b7a7; border-color: #34b7a7; }
+.services-carousel-wrap { position: relative; padding: 0 40px; }
+.services-swiper { overflow: hidden; padding-bottom: 32px; }
+.service-card-compact { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); transition: all 0.35s ease; height: 100%; }
+.service-card-compact:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.service-img-wrap { position: relative; overflow: hidden; height: 100px; }
+.service-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.service-card-compact:hover .service-img-wrap img { transform: scale(1.06); }
+.service-card-compact .service-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(34,34,34,0.85), transparent 60%); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity 0.3s ease; }
+.service-card-compact:hover .service-overlay { opacity: 1; }
+.service-card-compact .service-overlay a { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.25); color: #fff; border-radius: 50%; font-size: 18px; transition: all 0.25s ease; }
+.service-card-compact .service-overlay a:hover { background: #34b7a7; transform: scale(1.1); }
+.service-card-compact h4 { margin: 10px 12px 4px; font-size: 14px; }
+.service-card-compact h4 a { color: #222; transition: color 0.2s; }
+.service-card-compact h4 a:hover { color: #34b7a7 !important; }
+.service-card-compact p { margin: 0 12px 10px; font-size: 11px; color: #666; line-height: 1.35; }
+.services-swiper .swiper-button-prev, .services-swiper .swiper-button-next { color: #34b7a7; }
+.services-swiper .swiper-button-prev:after, .services-swiper .swiper-button-next:after { font-size: 22px; font-weight: bold; }
+.services-swiper .swiper-pagination-bullet { background: #34b7a7; opacity: 0.4; }
+.services-swiper .swiper-pagination-bullet-active { opacity: 1; transform: scale(1.2); }
+@media (max-width: 768px) { .services-carousel-wrap { padding: 0 36px; } .services-compact .services-header { flex-direction: column; align-items: flex-start; } }
+</style>
+
+<section id="services" class="services services-page services-compact">
+  <div class="container" data-aos="fade-up">
+    <div class="services-header">
+      <h2>Services</h2>
+      <p>Interior design solutions—residential to commercial</p>
+      <a href="/contact" class="btn-services-cta">Get a Quote <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="services-categories">
+      <button type="button" class="cat-btn active" data-category="all">All</button>
+      <button type="button" class="cat-btn" data-category="commercial">Commercial</button>
+      <button type="button" class="cat-btn" data-category="residential">Residential</button>
+      <button type="button" class="cat-btn" data-category="hospitality">Hospitality</button>
+      <button type="button" class="cat-btn" data-category="more">More</button>
+    </div>
+
+    <div class="services-carousel-wrap">
+      <div class="swiper services-swiper">
+        <div class="swiper-wrapper">
+          <% services.forEach(function(s) { 
+            const cat = (s.title || '').toLowerCase();
+            let category = 'more';
+            if (cat.includes('commercial') || cat.includes('office') || cat.includes('showroom')) category = 'commercial';
+            else if (cat.includes('residential') || cat.includes('villa') || cat.includes('modular') || cat.includes('kitchen')) category = 'residential';
+            else if (cat.includes('hospitality') || cat.includes('hotel') || cat.includes('restaurant') || cat.includes('cafe')) category = 'hospitality';
+          %>
+          <div class="swiper-slide" data-category="<%= category %>">
+            <div class="service-card-compact">
+              <div class="service-img-wrap">
+                <% if (s.image_path) { %>
+                <img src="/<%= s.image_path %>" alt="<%= (s.title || '').replace(/"/g, '&quot;') %>" loading="lazy" width="280" height="100">
+                <div class="service-overlay">
+                  <a href="/<%= s.image_path %>" class="portfolio-lightbox" title="<%= (s.title || '').replace(/"/g, '&quot;') %>"><i class="bi bi-plus-lg"></i></a>
+                  <a href="/contact" class="service-link"><i class="bi bi-arrow-right"></i></a>
+                </div>
+                <% } else { %>
+                <div style="height:100%; background: linear-gradient(135deg, rgba(52,183,167,0.15), rgba(52,183,167,0.05)); display:flex; align-items:center; justify-content:center;">
+                  <i class="bi bi-brush" style="font-size: 2rem; color: #34b7a7;"></i>
+                </div>
+                <% } %>
+              </div>
+              <h4><a href="/contact"><%= s.title || 'Service' %></a></h4>
+              <p>Get a quote for this service</p>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-pagination"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var swiper = new Swiper('.services-swiper', {
+    slidesPerView: 1,
+    spaceBetween: 16,
+    loop: true,
+    autoplay: { delay: 4000, disableOnInteraction: false },
+    navigation: { nextEl: '.services-swiper .swiper-button-next', prevEl: '.services-swiper .swiper-button-prev' },
+    pagination: { el: '.services-swiper .swiper-pagination', clickable: true },
+    breakpoints: { 480: { slidesPerView: 2 }, 768: { slidesPerView: 3 }, 992: { slidesPerView: 4 }, 1400: { slidesPerView: 5 } }
+  });
+  document.querySelectorAll('.cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      var cat = this.dataset.category;
+      var slides = document.querySelectorAll('.services-swiper .swiper-slide');
+      for (var i = 0; i < slides.length; i++) {
+        if (cat === 'all' || slides[i].dataset.category === cat) {
+          swiper.slideToLoop(i);
+          break;
+        }
+      }
+    });
+  });
+});
+</script>

@@ -1,0 +1,778 @@
+{
+  "testimonials": [
+    {
+      "name": "Geetika",
+      "role": "Engineer",
+      "message": "Anshika's attention to detail is phenomenal. She understands the customer requirement thoroughly and plan the interior within budget.",
+      "image_path": "assets/img/testimonials/geetika.jpg"
+    },
+    {
+      "name": "Garima",
+      "role": "House Maker",
+      "message": "Anshika is most creative and experienced interior designer. She renovate and design my house with grand look with great innovations. Finally, good and right decision to get support from her and worth spending on our interiors work done by her. Anshika you are doing very well...Best of luck",
+      "image_path": "assets/img/testimonials/garima.jpg"
+    },
+    {
+      "name": "Ekta",
+      "role": "House Maker",
+      "message": "I would like to express my sincerest gratitude for Anshika' s superb decorating services . One of the thing that makes her great is that she is able to grasp her clients style instead of pushing her own.",
+      "image_path": "assets/img/testimonials/ekta.jpg"
+    },
+    {
+      "name": "Kanupriya",
+      "role": "Human Resourse Manager",
+      "message": "Anshika is a very talented designer, she always comes with innovative ideas and always try to put her best. She decorated my 1bhk, and I still say thankyou to her whenever someone gives compliment to my house interior.",
+      "image_path": "assets/img/testimonials/kanupriya.jpeg"
+    },
+    {
+      "name": "Devanshi",
+      "role": "Business Development Manager",
+      "message": "Have done my interior work with anshika rastogi.. she’s awesome.. done it so well. Im really satisfied with the work she has done for my home.",
+      "image_path": "assets/img/testimonials/devianshi.jpg"
+    },
+    {
+      "name": "Diya",
+      "role": "Business Development Manager",
+      "message": "I would like to express my sincerest gratitude for your superb decorating services.You are the consummate professional and I am in awe of your designs abilities and seamless coordination skills. One of the things that make you so great is that you are able to grasp your clients style instead of pushing your own.I am absolutely adore my new space and I am forever grateful to you and your team.",
+      "image_path": "assets/img/testimonials/diya.jpg"
+    },
+    {
+      "name": "Kashish",
+      "role": "Human Resourse Manager",
+      "message": "She is a very good and budget friend interior desighner ... also very understanding ... She designed my dream home .. her deisgns are unique and classy",
+      "image_path": "assets/img/testimonials/kashish.png"
+    }
+  ],
+  "services": [
+    {
+      "title": "COMMERCIAL INTERIOR",
+      "image_path": "assets/img/services/File 10.jpg"
+    },
+    {
+      "title": "HOSPATILITY INTERIOR",
+      "image_path": "assets/img/services/File 18.jpg"
+    },
+    {
+      "title": "SUSTAINABLE INTERIOR",
+      "image_path": "assets/img/services/File 19.jpg"
+    },
+    {
+      "title": "RESIDENCIAL INTERIOR",
+      "image_path": "assets/img/services/File 4.jpeg"
+    },
+    {
+      "title": "LOOSE FURNITURE",
+      "image_path": "assets/img/services/File 6.jpg"
+    },
+    {
+      "title": "CAFES INTERIOR",
+      "image_path": "assets/img/services/File 2.jpg"
+    },
+    {
+      "title": "OFFICE INTERIOR",
+      "image_path": "assets/img/services/File 11.jpeg"
+    },
+    {
+      "title": "VILLA INTERIOR",
+      "image_path": "assets/img/services/File 1.jpeg"
+    },
+    {
+      "title": "HOTEL INTERIOR",
+      "image_path": "assets/img/services/File 15.jpg"
+    },
+    {
+      "title": "SHOWROOMS INTERIOR",
+      "image_path": "assets/img/services/File 8.jpg"
+    },
+    {
+      "title": "MODULAR KITCHENS",
+      "image_path": "assets/img/services/File 9.jpg"
+    },
+    {
+      "title": "RESTAURANT INTERIOR",
+      "image_path": "assets/img/services/File 16.jpg"
+    },
+    {
+      "title": "RENOVATIONS",
+      "image_path": "assets/img/services/File 17.jpeg"
+    }
+  ],
+  "portfolioItems": [
+    {
+      "title": "app portfolio-1",
+      "category": "filter-app",
+      "image_path": "assets/img/portfolio/portfolio-1.jpg"
+    },
+    {
+      "title": "web portfolio-2",
+      "category": "filter-web",
+      "image_path": "assets/img/portfolio/portfolio-2.jpg"
+    },
+    {
+      "title": "app portfolio-3",
+      "category": "filter-app",
+      "image_path": "assets/img/portfolio/portfolio-3.jpg"
+    },
+    {
+      "title": "hospital File 1",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 1.jpeg"
+    },
+    {
+      "title": "hospital File 2",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 2.jpeg"
+    },
+    {
+      "title": "hospital File 3",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 3.jpeg"
+    },
+    {
+      "title": "hospital File 4",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 4.jpeg"
+    },
+    {
+      "title": "hospital File 5",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 5.jpeg"
+    },
+    {
+      "title": "hospital File 6",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 6.jpeg"
+    },
+    {
+      "title": "hospital File 7",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 7.jpeg"
+    },
+    {
+      "title": "hospital File 8",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 8.jpeg"
+    },
+    {
+      "title": "hospital File 9",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 9.jpeg"
+    },
+    {
+      "title": "hospital File 10",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 10.jpeg"
+    },
+    {
+      "title": "hospital File 11",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 11.jpeg"
+    },
+    {
+      "title": "hospital File 12",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 12.jpeg"
+    },
+    {
+      "title": "hospital File 13",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 13.jpeg"
+    },
+    {
+      "title": "hospital File 14",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 14.jpeg"
+    },
+    {
+      "title": "hospital File 15",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 15.jpeg"
+    },
+    {
+      "title": "hospital File 16",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 16.jpeg"
+    },
+    {
+      "title": "hospital File 17",
+      "category": "filter-hospital",
+      "image_path": "assets/img/project/hospital/File 17.jpeg"
+    },
+    {
+      "title": "office File 1",
+      "category": "filter-office",
+      "image_path": "assets/img/project/office/File 1.jpg"
+    },
+    {
+      "title": "office File 2",
+      "category": "filter-office",
+      "image_path": "assets/img/project/office/File 2.jpg"
+    },
+    {
+      "title": "dining File 1",
+      "category": "filter-dining",
+      "image_path": "assets/img/project/dining/File 1.jpg"
+    },
+    {
+      "title": "bar File 1",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 1.jpg"
+    },
+    {
+      "title": "bar File 2",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 2.jpg"
+    },
+    {
+      "title": "bar File 3",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 3.jpg"
+    },
+    {
+      "title": "bar File 4",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 4.jpg"
+    },
+    {
+      "title": "bar File 5",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 5.jpg"
+    },
+    {
+      "title": "bar File 6",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 6.jpg"
+    },
+    {
+      "title": "bar File 7",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 7.jpg"
+    },
+    {
+      "title": "bar File 8",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 8.jpg"
+    },
+    {
+      "title": "bar File 9",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 9.jpg"
+    },
+    {
+      "title": "bar File 10",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 10.jpg"
+    },
+    {
+      "title": "bar File 11",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 11.jpg"
+    },
+    {
+      "title": "bar File 12",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 12.jpg"
+    },
+    {
+      "title": "bar File 13",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 13.jpg"
+    },
+    {
+      "title": "bar File 14",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 14.jpg"
+    },
+    {
+      "title": "bar File 15",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 15.jpg"
+    },
+    {
+      "title": "bar File 16",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 16.jpg"
+    },
+    {
+      "title": "bar File 17",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 17.jpg"
+    },
+    {
+      "title": "bar File 18",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 18.jpg"
+    },
+    {
+      "title": "bar File 19",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 19.jpg"
+    },
+    {
+      "title": "bar File 20",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 20.jpg"
+    },
+    {
+      "title": "bar File 21",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 21.jpg"
+    },
+    {
+      "title": "bar File 22",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 22.jpg"
+    },
+    {
+      "title": "bar File 23",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 23.jpg"
+    },
+    {
+      "title": "bar File 24",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 24.jpg"
+    },
+    {
+      "title": "bar File 25",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 25.jpg"
+    },
+    {
+      "title": "bar File 26",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 26.jpg"
+    },
+    {
+      "title": "bar File 27",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 27.jpg"
+    },
+    {
+      "title": "bar File 28",
+      "category": "filter-bar",
+      "image_path": "assets/img/project/bar/File 28.jpg"
+    },
+    {
+      "title": "wardrobe File 1",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 1.jpg"
+    },
+    {
+      "title": "wardrobe File 2",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 2.jpg"
+    },
+    {
+      "title": "wardrobe File 3",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 3.jpg"
+    },
+    {
+      "title": "wardrobe File 4",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 4.jpg"
+    },
+    {
+      "title": "wardrobe File 5",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 5.jpg"
+    },
+    {
+      "title": "wardrobe File 6",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 6.jpg"
+    },
+    {
+      "title": "wardrobe File 7",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 7.jpg"
+    },
+    {
+      "title": "wardrobe File 8",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 8.jpg"
+    },
+    {
+      "title": "wardrobe File 9",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 9.jpg"
+    },
+    {
+      "title": "wardrobe File 10",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 10.jpg"
+    },
+    {
+      "title": "wardrobe File 11",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 11.jpg"
+    },
+    {
+      "title": "wardrobe File 12",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 12.jpg"
+    },
+    {
+      "title": "wardrobe File 13",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 13.jpg"
+    },
+    {
+      "title": "wardrobe File 14",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 14.jpg"
+    },
+    {
+      "title": "wardrobe File 15",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 15.jpg"
+    },
+    {
+      "title": "wardrobe File 16",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 16.jpg"
+    },
+    {
+      "title": "wardrobe File 17",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 17.jpg"
+    },
+    {
+      "title": "wardrobe File 18",
+      "category": "filter-wardrobe",
+      "image_path": "assets/img/project/wardrobe/File 18.jpg"
+    },
+    {
+      "title": "livingarea File 1",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 1.jpeg"
+    },
+    {
+      "title": "livingarea File 2",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 2.jpeg"
+    },
+    {
+      "title": "livingarea File 3",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 3.jpeg"
+    },
+    {
+      "title": "livingarea File 4",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 4.jpeg"
+    },
+    {
+      "title": "livingarea File 5",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 5.png"
+    },
+    {
+      "title": "livingarea File 6",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 6.png"
+    },
+    {
+      "title": "livingarea File 7",
+      "category": "filter-livingarea",
+      "image_path": "assets/img/render/living/File 7.jpeg"
+    },
+    {
+      "title": "kitchen File 1",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 1.PNG"
+    },
+    {
+      "title": "kitchen File 2",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 2.PNG"
+    },
+    {
+      "title": "kitchen File 3",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 3.PNG"
+    },
+    {
+      "title": "kitchen File 4",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 4.PNG"
+    },
+    {
+      "title": "kitchen File 5",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 5.PNG"
+    },
+    {
+      "title": "kitchen File 6",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 6.PNG"
+    },
+    {
+      "title": "kitchen File 7",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 7.PNG"
+    },
+    {
+      "title": "kitchen File 8",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 8.PNG"
+    },
+    {
+      "title": "kitchen File 9",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 9.PNG"
+    },
+    {
+      "title": "kitchen File 10",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 10.jpg"
+    },
+    {
+      "title": "kitchen File 11",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 11.jpg"
+    },
+    {
+      "title": "kitchen File 12",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 12.jpg"
+    },
+    {
+      "title": "kitchen File 13",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 13.jpg"
+    },
+    {
+      "title": "kitchen File 14",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 14.jpg"
+    },
+    {
+      "title": "kitchen File 15",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 15.jpg"
+    },
+    {
+      "title": "kitchen File 16",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 16.jpg"
+    },
+    {
+      "title": "kitchen File 17",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 17.jpg"
+    },
+    {
+      "title": "kitchen File 18",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 18.jpg"
+    },
+    {
+      "title": "kitchen File 19",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 19.png"
+    },
+    {
+      "title": "kitchen File 20",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 20.PNG"
+    },
+    {
+      "title": "kitchen File 21",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 21.PNG"
+    },
+    {
+      "title": "kitchen File 22",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 22.PNG"
+    },
+    {
+      "title": "kitchen File 23",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 23.jpg"
+    },
+    {
+      "title": "kitchen File 24",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 24.jpg"
+    },
+    {
+      "title": "kitchen File 25",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 25.jpg"
+    },
+    {
+      "title": "kitchen File 26",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 26.jpg"
+    },
+    {
+      "title": "kitchen File 27",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 27.jpg"
+    },
+    {
+      "title": "kitchen File 28",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 28.jpg"
+    },
+    {
+      "title": "kitchen File 29",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 29.jpg"
+    },
+    {
+      "title": "kitchen File 30",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 30.JPG"
+    },
+    {
+      "title": "kitchen File 31",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 31.JPG"
+    },
+    {
+      "title": "kitchen File 32",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 32.JPG"
+    },
+    {
+      "title": "kitchen File 33",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 33.JPG"
+    },
+    {
+      "title": "kitchen File 34",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 34.JPG"
+    },
+    {
+      "title": "kitchen File 35",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 35.JPG"
+    },
+    {
+      "title": "kitchen File 36",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 36.JPG"
+    },
+    {
+      "title": "kitchen File 37",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 37.jpg"
+    },
+    {
+      "title": "kitchen File 38",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 38.jpg"
+    },
+    {
+      "title": "kitchen File 39",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 39.jpg"
+    },
+    {
+      "title": "kitchen File 40",
+      "category": "filter-kitchen",
+      "image_path": "assets/img/render/kitchen/File 40.jpg"
+    },
+    {
+      "title": "bedroom File 1",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 1.jpeg"
+    },
+    {
+      "title": "bedroom File 2",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 2.png"
+    },
+    {
+      "title": "bedroom File 3",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 3.png"
+    },
+    {
+      "title": "bedroom File 4",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 4.png"
+    },
+    {
+      "title": "bedroom File 5",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 5.jpg"
+    },
+    {
+      "title": "bedroom File 6",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 6.jpg"
+    },
+    {
+      "title": "bedroom File 7",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 7.jpg"
+    },
+    {
+      "title": "bedroom File 8",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 8.jpg"
+    },
+    {
+      "title": "bedroom File 9",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 9.jpeg"
+    },
+    {
+      "title": "bedroom File 10",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 10.jpeg"
+    },
+    {
+      "title": "bedroom File 11",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 11.jpeg"
+    },
+    {
+      "title": "bedroom File 12",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 12.jpeg"
+    },
+    {
+      "title": "bedroom File 13",
+      "category": "filter-bedroom",
+      "image_path": "assets/img/render/bedroom/File 13.jpeg"
+    },
+    {
+      "title": "web portfolio-5",
+      "category": "filter-web",
+      "image_path": "assets/img/portfolio/portfolio-5.jpg"
+    },
+    {
+      "title": "app portfolio-6",
+      "category": "filter-app",
+      "image_path": "assets/img/portfolio/portfolio-6.jpg"
+    },
+    {
+      "title": "card portfolio-7",
+      "category": "filter-card",
+      "image_path": "assets/img/portfolio/portfolio-7.jpg"
+    },
+    {
+      "title": "card portfolio-8",
+      "category": "filter-card",
+      "image_path": "assets/img/portfolio/portfolio-8.jpg"
+    },
+    {
+      "title": "web portfolio-9",
+      "category": "filter-web",
+      "image_path": "assets/img/portfolio/portfolio-9.jpg"
+    }
+  ],
+  "facts": {
+    "clients": "156",
+    "projects": "309",
+    "hours": "1463",
+    "workers": "15"
+  }
+}

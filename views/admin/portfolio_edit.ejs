@@ -1,0 +1,38 @@
+<%- include('layout', { body: `
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="h3 mb-4">Edit Portfolio Item</h1>
+      ${message ? `<div class="alert alert-info">${message}</div>` : ''}
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label">Title</label>
+          <input type="text" name="title" class="form-control" value="${(item.title || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-select">
+            <option value="filter-kitchen" ${item.category === 'filter-kitchen' ? 'selected' : ''}>KITCHENS</option>
+            <option value="filter-bedroom" ${item.category === 'filter-bedroom' ? 'selected' : ''}>BEDROOMS</option>
+            <option value="filter-livingarea" ${item.category === 'filter-livingarea' ? 'selected' : ''}>LIVING AREA</option>
+            <option value="filter-hospital" ${item.category === 'filter-hospital' ? 'selected' : ''}>HOSPITAL</option>
+            <option value="filter-office" ${item.category === 'filter-office' ? 'selected' : ''}>OFFICE</option>
+            <option value="filter-dining" ${item.category === 'filter-dining' ? 'selected' : ''}>DINING</option>
+            <option value="filter-bar" ${item.category === 'filter-bar' ? 'selected' : ''}>BAR</option>
+            <option value="filter-wardrobe" ${item.category === 'filter-wardrobe' ? 'selected' : ''}>WARDROBE</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Upload New Image</label>
+          <input type="file" name="image" class="form-control" accept="image/*">
+          ${item.image_path ? `<p class="mt-1 small">Current: <img src="/${item.image_path}" alt="" style="max-height:60px;"></p>` : ''}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Or image path</label>
+          <input type="text" name="image_path" class="form-control" value="${(item.image_path || '').replace(/"/g, '&quot;')}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="/admin/portfolio" class="btn btn-secondary">Back</a>
+      </form>
+    </div>
+  </div>
+` }) %>

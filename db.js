@@ -1,0 +1,374 @@
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcryptjs');
+
+const DB_PATH = path.join(__dirname, 'data.sqlite');
+
+const db = new sqlite3.Database(DB_PATH);
+
+// Initialise schema and seed data the first time.
+db.serialize(() => {
+  db.run('PRAGMA foreign_keys = ON');
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS admins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS content_blocks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      page TEXT NOT NULL,
+      section TEXT NOT NULL,
+      block_key TEXT NOT NULL,
+      content TEXT NOT NULL DEFAULT '',
+      UNIQUE(page, section, block_key)
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS testimonial_invites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      used_at TEXT
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS testimonials (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      role TEXT DEFAULT '',
+      message TEXT NOT NULL,
+      image_path TEXT DEFAULT '',
+      rating INTEGER DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'approved',
+      invite_id INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (invite_id) REFERENCES testimonial_invites(id)
+    )`
+  );
+  db.run("ALTER TABLE testimonials ADD COLUMN rating INTEGER DEFAULT 0", () => {});
+  db.run("ALTER TABLE testimonials ADD COLUMN status TEXT DEFAULT 'approved'", () => {});
+  db.run("ALTER TABLE testimonials ADD COLUMN invite_id INTEGER", () => {});
+  // Ensure existing testimonials have status
+  db.run("UPDATE testimonials SET status = 'approved' WHERE status IS NULL OR status = ''", () => {});
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS testimonial_media (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      testimonial_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      path TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (testimonial_id) REFERENCES testimonials(id)
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS services (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      image_path TEXT DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portfolio_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      image_path TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portfolio_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portfolio_projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      location TEXT DEFAULT '',
+      city TEXT DEFAULT '',
+      initial_text TEXT DEFAULT '',
+      cover_image_path TEXT DEFAULT '',
+      details TEXT DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (category_id) REFERENCES portfolio_categories(id)
+    )`
+  );
+  db.run("ALTER TABLE portfolio_projects ADD COLUMN location TEXT DEFAULT ''", () => {});
+  db.run("ALTER TABLE portfolio_projects ADD COLUMN city TEXT DEFAULT ''", () => {});
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS project_media (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      path TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portfolio_projects(id)
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS project_testimonials (
+      project_id INTEGER NOT NULL,
+      testimonial_id INTEGER NOT NULL,
+      PRIMARY KEY (project_id, testimonial_id),
+      FOREIGN KEY (project_id) REFERENCES portfolio_projects(id),
+      FOREIGN KEY (testimonial_id) REFERENCES testimonials(id)
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS site_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      setting_key TEXT NOT NULL UNIQUE,
+      setting_value TEXT NOT NULL
+    )`
+  );
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS audio_recordings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT DEFAULT '',
+      file_path TEXT NOT NULL,
+      view_count INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+  db.run('ALTER TABLE audio_recordings ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0', () => {});
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS womens_day_submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      mobile TEXT DEFAULT '',
+      image_path TEXT DEFAULT '',
+      testimonial TEXT DEFAULT '',
+      approved INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+  db.run('ALTER TABLE womens_day_submissions ADD COLUMN mobile TEXT DEFAULT ""', () => {});
+
+  db.run(
+    `CREATE TABLE IF NOT EXISTS site_stats (
+      stat_key TEXT PRIMARY KEY,
+      stat_value INTEGER NOT NULL DEFAULT 0
+    )`
+  );
+  db.run("INSERT OR IGNORE INTO site_stats (stat_key, stat_value) VALUES ('total_visits', 0)", () => {});
+
+  // Seed default admin if none exists
+  db.get('SELECT COUNT(*) AS cnt FROM admins', (err, row) => {
+    if (err) return;
+    if (!row || row.cnt === 0) {
+      const username = 'admin';
+      const passwordPlain = 'Admin@123';
+      const passwordHash = bcrypt.hashSync(passwordPlain, 10);
+      db.run(
+        'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
+        [username, passwordHash]
+      );
+    }
+  });
+
+  // Helper to seed a content block if it does not exist
+  const seedBlock = (page, section, key, content) => {
+    db.run(
+      `INSERT OR IGNORE INTO content_blocks (page, section, block_key, content)
+       VALUES (?, ?, ?, ?)`,
+      [page, section, key, content]
+    );
+  };
+
+  // Hero defaults
+  seedBlock('home', 'hero', 'greeting', 'Hi, I am');
+  seedBlock('home', 'hero', 'name', 'Anshika Rastogi');
+  seedBlock(
+    'home',
+    'hero',
+    'line1',
+    'A professional Interior Designer and Interior Consultant from India'
+  );
+  seedBlock(
+    'home',
+    'hero',
+    'line2',
+    'A creative Artist, Love to paint my thoughts on Canvas and Walls'
+  );
+  seedBlock('home', 'hero', 'line3', 'A beautiful Classical Dancer');
+
+  // About intro
+  seedBlock('about', 'intro', 'title', 'About');
+  seedBlock(
+    'about',
+    'intro',
+    'paragraph',
+    'Interior design is the art and science of enhancing interior spaces to achieve a more aesthetically pleasing and functional environment.'
+  );
+
+  // Contact info
+  seedBlock(
+    'contact',
+    'info',
+    'address',
+    'Honer Vivantis, Tellapur Road, Hyderabad, India, 500019'
+  );
+  seedBlock('contact', 'info', 'email', 'info@designersvision.com');
+  seedBlock('contact', 'info', 'phone', '+91 9557058902');
+
+  // Footer owner name
+  seedBlock('global', 'footer', 'owner_name', 'Anshika Rastogi');
+
+  // Facts (About page stats)
+  seedBlock('about', 'facts', 'clients', '156');
+  seedBlock('about', 'facts', 'projects', '309');
+  seedBlock('about', 'facts', 'hours', '1463');
+  seedBlock('about', 'facts', 'workers', '15');
+
+  // Seed testimonials, services, portfolio from static site (only when empty)
+  const { testimonials, services, facts } = require('./seed-data');
+  db.get('SELECT COUNT(*) AS cnt FROM testimonials', (err, row) => {
+    if (!err && row && row.cnt === 0) {
+      const stmt = db.prepare('INSERT INTO testimonials (name, role, message, image_path, sort_order) VALUES (?, ?, ?, ?, ?)');
+      testimonials.forEach((t, i) => stmt.run(t.name, t.role, t.message, t.image_path || '', i));
+      stmt.finalize();
+    }
+  });
+  db.get('SELECT COUNT(*) AS cnt FROM services', (err, row) => {
+    if (!err && row && row.cnt === 0) {
+      const stmt = db.prepare('INSERT INTO services (title, image_path, sort_order) VALUES (?, ?, ?)');
+      services.forEach((s, i) => stmt.run(s.title, s.image_path || '', i));
+      stmt.finalize();
+    }
+  });
+  db.get('SELECT COUNT(*) AS cnt FROM portfolio_items', (err, row) => {
+    if (!err && row && row.cnt === 0) {
+      const portfolioItems = require('./seed-data').getPortfolioItems();
+      const stmt = db.prepare('INSERT INTO portfolio_items (title, category, image_path, sort_order) VALUES (?, ?, ?, ?)');
+      portfolioItems.forEach((p, i) => stmt.run(p.title, p.category, p.image_path, i));
+      stmt.finalize();
+    }
+  });
+  db.get('SELECT COUNT(*) AS cnt FROM portfolio_categories', (err, row) => {
+    if (!err && row && row.cnt === 0) {
+      const defaultCats = ['Kitchens', 'Bedrooms', 'Living Area', 'Office', 'Hospital', 'Dining', 'Bar', 'Wardrobe', 'Crockery'];
+      const stmt = db.prepare('INSERT INTO portfolio_categories (name, sort_order) VALUES (?, ?)');
+      defaultCats.forEach((name, i) => stmt.run(name, i));
+      stmt.finalize();
+    }
+  });
+  db.get('SELECT content FROM content_blocks WHERE page = ? AND section = ? AND block_key = ?', ['about', 'facts', 'clients'], (err, row) => {
+    if (!err && (!row || !row.content)) {
+      seedBlock('about', 'facts', 'clients', facts.clients);
+      seedBlock('about', 'facts', 'projects', facts.projects);
+      seedBlock('about', 'facts', 'hours', facts.hours);
+      seedBlock('about', 'facts', 'workers', facts.workers);
+    }
+  });
+});
+
+function getBlock(page, section, key, defaultValue) {
+  return new Promise((resolve) => {
+    db.get(
+      'SELECT content FROM content_blocks WHERE page = ? AND section = ? AND block_key = ? LIMIT 1',
+      [page, section, key],
+      (err, row) => {
+        if (err || !row || !row.content) {
+          resolve(defaultValue);
+        } else {
+          resolve(row.content);
+        }
+      }
+    );
+  });
+}
+
+function getBlocksForHome() {
+  return new Promise((resolve) => {
+    db.all(
+      "SELECT section, block_key, content FROM content_blocks WHERE page = 'home' AND (section, block_key) IN (('hero','greeting'),('hero','name'),('hero','line1'),('hero','line2'),('hero','line3'))",
+      [],
+      (err, rows) => {
+        const map = {};
+        if (!err && rows) rows.forEach(r => { map[r.section + '.' + r.block_key] = r.content || ''; });
+        resolve({
+          greeting: map['hero.greeting'] || 'Hi, I am',
+          name: map['hero.name'] || 'Anshika Rastogi',
+          line1: map['hero.line1'] || 'A professional Interior Designer and Interior Consultant from India',
+          line2: map['hero.line2'] || 'A creative Artist, Love to paint my thoughts on Canvas and Walls',
+          line3: map['hero.line3'] || 'A beautiful Classical Dancer',
+        });
+      }
+    );
+  });
+}
+
+function saveBlock(page, section, key, content) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO content_blocks (page, section, block_key, content)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(page, section, block_key)
+       DO UPDATE SET content = excluded.content`,
+      [page, section, key, content],
+      (err) => {
+        if (err) reject(err);
+        else resolve();
+      }
+    );
+  });
+}
+
+function incrementVisitCount() {
+  return new Promise((resolve, reject) => {
+    db.run('UPDATE site_stats SET stat_value = stat_value + 1 WHERE stat_key = ?', ['total_visits'], (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
+function getVisitCount() {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT stat_value FROM site_stats WHERE stat_key = ?', ['total_visits'], (err, row) => {
+      if (err) reject(err);
+      else resolve(row ? row.stat_value : 0);
+    });
+  });
+}
+
+module.exports = {
+  db,
+  getBlock,
+  getBlocksForHome,
+  saveBlock,
+  incrementVisitCount,
+  getVisitCount,
+};
+

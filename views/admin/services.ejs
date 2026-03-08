@@ -1,0 +1,65 @@
+<%- include('layout', { body: `
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="h3 mb-4">Services</h1>
+      ${message ? `<div class="alert alert-info">${message}</div>` : ''}
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Preview</th>
+            <th>Title</th>
+            <th style="width: 180px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            services.length === 0
+              ? `<tr><td colspan="4" class="text-muted">No services yet. Add from the form.</td></tr>`
+              : services
+                  .map(
+                    (s, i) => `
+            <tr>
+              <td>
+                <form method="post" action="/admin/services/${s.id}/move-up" style="display:inline" ${i === 0 ? 'disabled' : ''}>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary py-0" ${i === 0 ? 'disabled' : ''} title="Move up">↑</button>
+                </form>
+                <form method="post" action="/admin/services/${s.id}/move-down" style="display:inline">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary py-0" ${i === services.length - 1 ? 'disabled' : ''} title="Move down">↓</button>
+                </form>
+              </td>
+              <td>${s.image_path ? `<img src="/${s.image_path}" alt="" style="max-height:40px;">` : '-'}</td>
+              <td>${s.title}</td>
+              <td>
+                <a class="btn btn-sm btn-outline-secondary" href="/admin/services/${s.id}">Edit</a>
+                <form method="post" action="/admin/services/${s.id}/delete" style="display:inline" onsubmit="return confirm('Delete this service?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Del</button>
+                </form>
+              </td>
+            </tr>`
+                  )
+                  .join('')
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="col-lg-4">
+      <h2 class="h5 mb-3">Add New Service</h2>
+      <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="title" class="form-label">Title</label>
+          <input type="text" id="title" name="title" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="image" class="form-label">Upload Image</label>
+          <input type="file" id="image" name="image" class="form-control" accept="image/*">
+        </div>
+        <div class="mb-3">
+          <label for="image_path" class="form-label">Or paste existing path</label>
+          <input type="text" id="image_path" name="image_path" class="form-control" placeholder="assets/img/services/File 10.jpg">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Add Service</button>
+      </form>
+    </div>
+  </div>
+` }) %>

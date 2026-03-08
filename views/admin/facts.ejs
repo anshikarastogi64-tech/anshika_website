@@ -1,0 +1,27 @@
+<%- include('layout', { body: `
+  <div class="row">
+    <div class="col-lg-6">
+      <h1 class="h3 mb-4">Facts (About Page Stats)</h1>
+      ${message ? `<div class="alert alert-success">${message}</div>` : ''}
+      <form method="post">
+        <div class="mb-3">
+          <label for="clients" class="form-label">Clients</label>
+          <input type="number" id="clients" name="clients" class="form-control" value="${facts.clients || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="projects" class="form-label">Projects</label>
+          <input type="number" id="projects" name="projects" class="form-control" value="${facts.projects || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="hours" class="form-label">Hours Of Support</label>
+          <input type="number" id="hours" name="hours" class="form-control" value="${facts.hours || ''}">
+        </div>
+        <div class="mb-3">
+          <label for="workers" class="form-label">Hard Workers</label>
+          <input type="number" id="workers" name="workers" class="form-control" value="${facts.workers || ''}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Facts</button>
+      </form>
+    </div>
+  </div>
+` }) %>

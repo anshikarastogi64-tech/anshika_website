@@ -1,0 +1,107 @@
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card bg-primary text-white">
+      <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <h5 class="card-title mb-1"><i class="bi bi-graph-up me-2"></i>Website Traffic</h5>
+          <p class="card-text small mb-0 opacity-90">Total number of times the site has been visited</p>
+        </div>
+        <div class="display-4 fw-bold"><%= typeof totalVisits !== 'undefined' ? totalVisits.toLocaleString() : '0' %></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12">
+    <h1 class="h3 mb-4">Admin Dashboard</h1>
+    <p class="mb-4">
+      Use these sections to update the content that appears on your public website.
+    </p>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Home Hero</h2>
+        <p class="card-text">Edit the main hero text on the home page.</p>
+        <a href="/admin/hero" class="btn btn-sm btn-primary">Manage Hero</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">About</h2>
+        <p class="card-text">Control the About page title and intro text.</p>
+        <a href="/admin/about" class="btn btn-sm btn-primary">Manage About</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Contact Info</h2>
+        <p class="card-text">Update the address, email, and phone number.</p>
+        <a href="/admin/contact" class="btn btn-sm btn-primary">Manage Contact Info</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Services</h2>
+        <p class="card-text">Add, edit, or remove services shown on the Services page.</p>
+        <a href="/admin/services" class="btn btn-sm btn-primary">Manage Services</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 border-primary">
+      <div class="card-body">
+        <h2 class="h5 card-title"><i class="bi bi-mic-fill me-1"></i> Audio Recordings & QR</h2>
+        <p class="card-text">Upload audio recordings and generate unique QR codes to share with users.</p>
+        <a href="/admin/recordings" class="btn btn-sm btn-primary">Upload Audio & Get QR</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Testimonials</h2>
+        <p class="card-text">Manage testimonials. Generate a link for clients to submit their own.</p>
+        <a href="/admin/testimonials" class="btn btn-sm btn-primary">Manage Testimonials</a>
+        <form method="post" action="/admin/testimonials/invite" class="d-inline ms-1">
+          <button type="submit" class="btn btn-sm btn-outline-primary">Generate testimonial link</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Portfolio</h2>
+        <p class="card-text">Add, edit, reorder portfolio project images.</p>
+        <a href="/admin/portfolio" class="btn btn-sm btn-primary">Manage Portfolio</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Women's Day</h2>
+        <p class="card-text">View photos and testimonials submitted for the Women's Day special.</p>
+        <a href="/admin/womens-day" class="btn btn-sm btn-primary">View Submissions</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title">Facts</h2>
+        <p class="card-text">Edit the stats (Clients, Projects, etc.) on the About page.</p>
+        <a href="/admin/facts" class="btn btn-sm btn-primary">Manage Facts</a>
+      </div>
+    </div>
+  </div>
+</div>

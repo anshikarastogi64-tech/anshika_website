@@ -1,0 +1,28 @@
+{
+  "name": "kelly-2",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "deploy": "git push",
+    "deploy:direct": "pwsh -File scripts/deploy-to-ec2.ps1",
+    "seed:portfolio": "node seed-portfolio.js",
+    "test:portfolio": "node test-portfolio.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}

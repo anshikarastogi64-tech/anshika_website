@@ -1,0 +1,16 @@
+<label class="form-label">Link Testimonials (optional)</label>
+<p class="text-muted small">Select testimonials to display on this project page.</p>
+<div class="border rounded p-2" style="max-height:200px; overflow-y:auto;">
+<% const list = (typeof projectTestimonials !== 'undefined' && Array.isArray(projectTestimonials)) ? projectTestimonials : []; %>
+<% const linked = (typeof linkedTestimonialIds !== 'undefined' && Array.isArray(linkedTestimonialIds)) ? linkedTestimonialIds : []; %>
+<% if (list.length === 0) { %>
+<em class="text-muted">No testimonials yet. Add them under Admin → Content.</em>
+<% } else { %>
+<% list.forEach(function(t) { %>
+<div class="form-check">
+  <input type="checkbox" class="form-check-input" name="testimonial_ids[]" value="<%= t.id %>" id="tid_<%= t.id %>" <%= linked.indexOf(t.id) !== -1 ? 'checked' : '' %>>
+  <label class="form-check-label" for="tid_<%= t.id %>"><%= (t.name || 'Untitled').replace(/</g,'&lt;') %><%= t.role ? ' - ' + (t.role+'').replace(/</g,'&lt;') : '' %></label>
+</div>
+<% }); %>
+<% } %>
+</div>
