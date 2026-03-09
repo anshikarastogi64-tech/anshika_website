@@ -6,7 +6,7 @@
           <h5 class="card-title mb-1"><i class="bi bi-graph-up me-2"></i>Website Traffic</h5>
           <p class="card-text small mb-0 opacity-90">Total number of times the site has been visited</p>
         </div>
-        <div class="display-4 fw-bold"><%= typeof totalVisits !== 'undefined' ? totalVisits.toLocaleString() : '0' %></div>
+        <div class="display-4 fw-bold"><%= (typeof totalVisits === 'number' && !isNaN(totalVisits) ? totalVisits : 0).toLocaleString() %></div>
       </div>
     </div>
   </div>

@@ -413,11 +413,11 @@ app.get('/admin', requireAdmin, async (req, res) => {
   let totalVisits = 0;
   try { totalVisits = await getVisitCount(); } catch (_) {}
   try {
-    const body = await ejs.renderFile(path.join(__dirname, 'views', 'admin', '_dashboard_body.ejs'), { totalVisits });
-    res.render('admin/dashboard', { body });
+    const body = await ejs.renderFile(path.join(__dirname, 'views', 'admin', '_dashboard_body.ejs'), { totalVisits: totalVisits ?? 0 });
+    res.render('admin/dashboard', { body: body || '' });
   } catch (e) {
     console.error('Dashboard render:', e);
-    res.status(500).send('Error loading dashboard');
+    res.status(500).send('Error loading dashboard: ' + (e && e.message ? e.message : String(e)));
   }
 });
 
