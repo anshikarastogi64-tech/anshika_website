@@ -1,0 +1,12 @@
+<h1 class="serif text-warning mb-4">Convert Lead: <%= lead.name %></h1>
+<form method="post" action="/portal/designer/leads/<%= lead.id %>/convert">
+  <div class="mb-3">
+    <label class="form-label">Select Client (existing user)</label>
+    <select name="client_id" class="form-select bg-dark text-light border-secondary" required>
+      <option value="">– Select client –</option>
+      <% clients.forEach(function(c) { %><option value="<%= c.id %>"><%= c.full_name %> (<%= c.email %>)</option><% }); %>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-gold">Create Project & Convert</button>
+  <a href="/portal/designer/leads/<%= lead.id %>" class="btn btn-outline-gold ms-2">Cancel</a>
+</form>

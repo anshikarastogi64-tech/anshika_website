@@ -1,0 +1,42 @@
+<h1 class="serif text-warning mb-4"><%= lead.name %></h1>
+<div class="card card-portal mb-4">
+  <div class="card-header">Update lead</div>
+  <div class="card-body">
+    <form method="post" action="/portal/designer/leads/<%= lead.id %>/update" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <label class="form-label small mb-0">Status</label>
+        <select name="status" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:140px">
+          <option value="NEW" <%= lead.status === 'NEW' ? 'selected' : '' %>>NEW</option>
+          <option value="CONTACTED" <%= lead.status === 'CONTACTED' ? 'selected' : '' %>>CONTACTED</option>
+          <option value="FOLLOW_UP" <%= lead.status === 'FOLLOW_UP' ? 'selected' : '' %>>FOLLOW_UP</option>
+          <option value="CLOSED_WON" <%= lead.status === 'CLOSED_WON' ? 'selected' : '' %>>CLOSED_WON</option>
+          <option value="CONVERTED" <%= lead.status === 'CONVERTED' ? 'selected' : '' %>>CONVERTED</option>
+          <option value="CLOSED_LOST" <%= lead.status === 'CLOSED_LOST' ? 'selected' : '' %>>CLOSED_LOST</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small mb-0">Next follow-up</label>
+        <input type="datetime-local" name="next_follow_up" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= lead.next_follow_up ? lead.next_follow_up.slice(0,16) : '' %>" />
+      </div>
+      <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Update</button></div>
+    </form>
+    <p class="mt-2 mb-0 small text-muted"><strong>Phone:</strong> <%= lead.phone_number %> | <strong>Email:</strong> <%= lead.email || '–' %></p>
+    <% if (lead.status !== 'CONVERTED' && lead.status !== 'CLOSED_LOST') { %>
+    <a href="/portal/designer/leads/<%= lead.id %>/convert" class="btn btn-gold btn-sm mt-2">Convert to Project</a>
+    <% } %>
+  </div>
+</div>
+<div class="card card-portal mb-4">
+  <div class="card-header">Activity</div>
+  <div class="card-body">
+    <form method="post" action="/portal/designer/leads/<%= lead.id %>/note" class="mb-3">
+      <textarea name="note" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Add note..."></textarea>
+      <button type="submit" class="btn btn-gold btn-sm mt-2">Add Note</button>
+    </form>
+    <ul class="list-unstyled">
+      <% activities.forEach(function(a) { %>
+      <li class="border-start border-secondary ps-3 mb-2"><small class="text-muted"><%= a.created_at %></small><br/><%= a.note %></li>
+      <% }); %>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,139 @@
+<h1 class="serif text-warning mb-4"><%= project.title %></h1>
+<p class="mb-4">Stage: <strong><%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></strong></p>
+
+<!-- Progress stepper (11 stages) -->
+<div class="card card-portal mb-4">
+  <div class="card-header">Progress</div>
+  <div class="card-body">
+    <div class="d-flex flex-wrap gap-2">
+      <% LIFECYCLE_STAGES.forEach(function(s) { %>
+      <span class="badge <%= s.index <= project.current_stage ? 'bg-warning text-dark' : 'bg-secondary' %>" title="<%= s.description %>"><%= s.name %></span>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<!-- Financials -->
+<div class="card card-portal mb-4">
+  <div class="card-header">Financials</div>
+  <div class="card-body">
+    <p class="serif h4 text-warning mb-4" id="projectTotal">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
+    <% if (quotation) { %>
+    <p>Quotation (base): ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
+    <% if (!readOnly && quotation.status === 'PENDING') { %>
+    <button type="button" class="btn btn-gold btn-sm" data-quotation-id="<%= quotation.id %>" onclick="approveQuotation(this)">Approve Quotation</button>
+    <% } %>
+    <h6 class="mt-4">Extra costs / Variations</h6>
+    <ul class="list-unstyled">
+      <% extraCosts.forEach(function(ec) { %>
+      <li class="border-bottom border-secondary py-2">
+        <%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong><%= ec.status %></strong>
+        <% if (!readOnly && ec.status === 'PENDING') { %>
+        <button type="button" class="btn btn-gold btn-sm ms-2" data-id="<%= ec.id %>" data-amount="<%= ec.amount %>" onclick="approveExtra(this)">Approve</button>
+        <button type="button" class="btn btn-outline-gold btn-sm" data-id="<%= ec.id %>" onclick="rejectExtra(this)">Reject</button>
+        <% } %>
+      </li>
+      <% }); %>
+    </ul>
+    <% } else { %>
+    <p class="text-muted">No quotation yet.</p>
+    <% } %>
+  </div>
+</div>
+
+<!-- CCTV / Live stream (Imou or RTSP) -->
+<div class="card card-portal mb-4">
+  <div class="card-header">Live Site View</div>
+  <div class="card-body">
+    <% if (project.rtsp_link) { %>
+    <div id="cctv-container" class="ratio ratio-16x9 bg-dark rounded">
+      <p class="text-muted d-flex align-items-center justify-content-center m-0">Loading stream…</p>
+    </div>
+    <script>
+(function(){
+  var projectId = '<%= project.id %>';
+  fetch('/portal/api/cctv/' + projectId, { credentials: 'same-origin' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var el = document.getElementById('cctv-container');
+      if (d.url && !d.useRtsp && d.token) {
+        if (typeof ImouPlayer !== 'undefined') {
+          new ImouPlayer({ id: 'cctv-container', url: d.url, token: d.token, width: el.offsetWidth, height: el.offsetHeight });
+        } else {
+          el.innerHTML = '<p class="text-muted m-0">Stream ready. Add Imou H5 Player SDK for playback.</p>';
+        }
+      } else if (d.url && d.useRtsp) {
+        el.innerHTML = '<p class="text-muted m-0">Live stream (RTSP) is configured. Use Imou cloud or a compatible player to view.</p>';
+      } else {
+        el.innerHTML = '<p class="text-muted m-0">Live stream offline</p>';
+      }
+    })
+    .catch(function(){ document.getElementById('cctv-container').innerHTML = '<p class="text-muted m-0">Live stream offline</p>'; });
+})();
+    </script>
+    <% } else { %>
+    <p class="text-muted mb-0">Live stream not configured. Your designer can add a camera link to this project.</p>
+    <% } %>
+  </div>
+</div>
+
+<!-- Design Vault (structured: categories + Site Log by Year/Month) -->
+<% if (media && media.length > 0) { %>
+<div class="card card-portal mb-4">
+  <div class="card-header">Design Vault</div>
+  <div class="card-body">
+    <% if (typeof byYearMonth !== 'undefined' && Object.keys(byYearMonth).length > 0) { %>
+    <h6 class="serif text-warning">Site Progress</h6>
+    <p class="small text-muted">Organized by year and month.</p>
+    <% Object.keys(byYearMonth).sort().reverse().forEach(function(year) { %>
+      <% Object.keys(byYearMonth[year]).forEach(function(month) { %>
+    <p class="mb-1"><strong><%= year %> – <%= month %></strong></p>
+    <ul class="list-unstyled mb-3">
+      <% byYearMonth[year][month].forEach(function(m) { %>
+      <li class="border-bottom border-secondary py-1">
+        <a href="<%= m.url %>" target="_blank" class="text-warning"><%= m.file_name || m.url %></a>
+        <small class="text-muted"><%= m.created_at %></small>
+      </li>
+      <% }); %>
+    </ul>
+      <% }); %>
+    <% }); %>
+    <% } %>
+    <% if (typeof otherByCat !== 'undefined') { Object.keys(otherByCat).forEach(function(cat) { %>
+    <h6 class="serif text-warning mt-3"><%= cat.replace(/_/g, ' ') %></h6>
+    <ul class="list-unstyled">
+      <% otherByCat[cat].forEach(function(m) { %>
+      <li class="border-bottom border-secondary py-1">
+        <a href="<%= m.url %>" target="_blank" class="text-warning"><%= m.file_name || m.url %></a>
+        <small class="text-muted"><%= m.created_at %></small>
+      </li>
+      <% }); %>
+    </ul>
+    <% }); } %>
+  </div>
+</div>
+<% } %>
+
+<% if (!readOnly) { %>
+<script>
+function projectId() { return '<%= project.id %>'; }
+function approveQuotation(btn) {
+  var id = btn.getAttribute('data-quotation-id');
+  fetch('/portal/api/quotation/' + id + '/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+    .then(function(r) { return r.json(); })
+    .then(function() { location.reload(); });
+}
+function approveExtra(btn) {
+  var id = btn.getAttribute('data-id');
+  fetch('/portal/api/extra-cost/' + id + '/approve', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function() { location.reload(); });
+}
+function rejectExtra(btn) {
+  var id = btn.getAttribute('data-id');
+  fetch('/portal/api/extra-cost/' + id + '/reject', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function() { location.reload(); });
+}
+</script>
+<% } %>

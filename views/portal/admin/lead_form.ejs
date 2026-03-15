@@ -1,0 +1,24 @@
+<h1 class="serif text-warning mb-4">Add Lead</h1>
+<form method="post" action="/portal/admin/leads/new">
+  <div class="mb-3">
+    <label class="form-label">Name</label>
+    <input type="text" name="name" class="form-control bg-dark text-light border-secondary" required />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Phone</label>
+    <input type="text" name="phone_number" class="form-control bg-dark text-light border-secondary" required />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" name="email" class="form-control bg-dark text-light border-secondary" />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Assign Designer</label>
+    <select name="assigned_designer_id" class="form-select bg-dark text-light border-secondary">
+      <option value="">– None –</option>
+      <% designers.forEach(function(d) { %><option value="<%= d.id %>"><%= d.full_name %></option><% }); %>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-gold">Create Lead</button>
+  <a href="/portal/admin/leads" class="btn btn-outline-gold ms-2">Cancel</a>
+</form>

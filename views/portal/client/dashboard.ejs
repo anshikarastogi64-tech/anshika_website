@@ -1,0 +1,42 @@
+<h1 class="serif text-warning mb-4">My Dashboard</h1>
+<% if (typeof query !== 'undefined' && query && query.msg) { %><div class="alert alert-success"><%= query.msg %></div><% } %>
+<div class="card card-portal mb-4">
+  <div class="card-body">
+    <p class="mb-0">DV Points balance: <strong class="text-warning"><%= dvPoints %></strong></p>
+  </div>
+</div>
+<p><a href="/portal/client/refer" class="btn btn-gold">Refer friends & family</a></p>
+<h2 class="serif h5 text-warning mt-4">My Referrals</h2>
+<% if (typeof referrals !== 'undefined' && referrals.length > 0) { %>
+<div class="table-responsive mb-4">
+  <table class="table table-dark table-striped table-bordered border-secondary">
+    <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Status</th><th>Referred on</th></tr></thead>
+    <tbody>
+      <% referrals.forEach(function(r) { %>
+      <tr>
+        <td><%= r.name %></td>
+        <td><%= r.phone_number %></td>
+        <td><%= r.email || '–' %></td>
+        <td><%= r.status %></td>
+        <td><%= r.created_at %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+<% } else { %>
+<p class="text-muted">No referrals yet. Use the button above to refer someone.</p>
+<% } %>
+<h2 class="serif h5 text-warning mt-4">My Projects</h2>
+<% if (projects.length === 0) { %>
+<p class="text-muted">No projects yet.</p>
+<% } else { %>
+<div class="list-group">
+  <% projects.forEach(function(p) { %>
+  <a href="/portal/client/projects/<%= p.id %>" class="list-group-item list-group-item-dark list-group-item-action d-flex justify-content-between align-items-center border-secondary">
+    <span><%= p.title %></span>
+    <span class="badge bg-secondary"><%= typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES[p.current_stage] ? LIFECYCLE_STAGES[p.current_stage].name : 'Stage ' + p.current_stage %></span>
+  </a>
+  <% }); %>
+</div>
+<% } %>

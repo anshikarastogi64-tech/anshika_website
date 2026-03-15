@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Style Discovery – Luxury Interior</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    :root { --gold: #d4af37; --bg: #0a0a0a; --glass: rgba(255, 255, 255, 0.05); }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card-wrap { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); border-radius: 12px; max-width: 420px; width: 100%; }
+    .card-wrap h1 { font-family: 'Playfair Display', serif; color: var(--gold); }
+    .form-control { background: rgba(0,0,0,0.4); border: 1px solid rgba(212,175,55,0.3); color: #fff; }
+    .form-control:focus { border-color: var(--gold); background: rgba(0,0,0,0.5); color: #fff; }
+    .btn-gold { background: var(--gold); color: #0a0a0a; border: none; font-weight: 600; }
+    .btn-gold:hover { background: #c5a030; color: #0a0a0a; }
+  </style>
+</head>
+<body>
+  <div class="card-wrap p-4">
+    <h1 class="mb-4">Style Discovery</h1>
+    <% if (step === 'otp') { %>
+    <p class="text-muted">Enter the 6-digit code sent to your mobile.</p>
+    <% if (error) { %><div class="alert alert-warning"><%= error %></div><% } %>
+    <form method="post" action="/style-discovery/verify">
+      <input type="text" name="otp" class="form-control form-control-lg mb-3" placeholder="000000" maxlength="6" pattern="[0-9]*" autocomplete="one-time-code" />
+      <button type="submit" class="btn btn-gold w-100">Continue</button>
+    </form>
+    <% } else { %>
+    <p class="text-muted">Start your design journey. We'll help you discover your style.</p>
+    <% if (error) { %><div class="alert alert-warning"><%= error %></div><% } %>
+    <form method="post" action="/style-discovery/start">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" name="name" class="form-control" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Mobile</label>
+        <input type="tel" name="mobile" class="form-control" required placeholder="e.g. 9876543210" />
+      </div>
+      <button type="submit" class="btn btn-gold w-100">Get started</button>
+    </form>
+    <% } %>
+  </div>
+</body>
+</html>

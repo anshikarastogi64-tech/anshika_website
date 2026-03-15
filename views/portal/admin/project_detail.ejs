@@ -1,0 +1,35 @@
+<h1 class="serif text-warning mb-4"><%= project.title %></h1>
+<p>Client: <%= project.client_name %> | Designer: <strong><%= project.designer_name %></strong> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %> | Status: <%= project.status %></p>
+<div class="card card-portal mb-4">
+  <div class="card-header">Assign designer</div>
+  <div class="card-body">
+    <form method="post" action="/portal/admin/projects/<%= project.id %>/assign" class="d-flex gap-2 align-items-end flex-wrap">
+      <select name="designer_id" class="form-select bg-dark text-light border-secondary" style="max-width:220px" required>
+        <% if (typeof designers !== 'undefined' && designers) { designers.forEach(function(d) { %>
+        <option value="<%= d.id %>" <%= project.designer_id === d.id ? 'selected' : '' %>><%= d.full_name %></option>
+        <% }); } %>
+      </select>
+      <button type="submit" class="btn btn-gold btn-sm">Assign</button>
+    </form>
+  </div>
+</div>
+<p>
+  <a href="/portal/mirror/<%= project.id %>" class="btn btn-gold">View as Client (Mirror)</a>
+  <% if (project.status !== 'COMPLETED') { %>
+  <form method="post" action="/portal/admin/projects/<%= project.id %>/complete" class="d-inline ms-2">
+    <button type="submit" class="btn btn-outline-gold">Mark Completed</button>
+  </form>
+  <% } %>
+</p>
+<div class="card card-portal mb-4">
+  <div class="card-header">Financials</div>
+  <div class="card-body">
+    <p class="serif h4 text-warning">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
+    <% if (quotation) { %>
+    <p>Quotation base: ₹<%= quotation.base_total.toLocaleString() %> – Status: <%= quotation.status %></p>
+    <p>Extra costs: <%= extraCosts.length %> (<%= extraCosts.filter(e => e.status === 'APPROVED').length %> approved)</p>
+    <% } else { %>
+    <p>No quotation yet.</p>
+    <% } %>
+  </div>
+</div>

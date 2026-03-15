@@ -1,0 +1,45 @@
+<h1 class="serif text-warning mb-4"><%= lead.name %></h1>
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card card-portal mb-4">
+      <div class="card-header">Details</div>
+      <div class="card-body">
+        <p><strong>Phone:</strong> <%= lead.phone_number %></p>
+        <p><strong>Email:</strong> <%= lead.email || '–' %></p>
+        <p><strong>Status:</strong> <%= lead.status %></p>
+        <p><strong>Next follow-up:</strong> <%= lead.next_follow_up || '–' %></p>
+        <p><strong>Designer:</strong> <%= lead.designer_name || 'Unassigned' %></p>
+        <p><strong>Referred by:</strong> <%= typeof lead.referrer_name !== 'undefined' ? lead.referrer_name : '–' %></p>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header">Assign Designer</div>
+      <div class="card-body">
+        <form method="post" action="/portal/admin/leads/<%= lead.id %>/assign" class="d-flex gap-2 align-items-end">
+          <select name="designer_id" class="form-select bg-dark text-light border-secondary" style="max-width:200px">
+            <option value="">– None –</option>
+            <% designers.forEach(function(d) { %><option value="<%= d.id %>" <%= lead.assigned_designer_id === d.id ? 'selected' : '' %>><%= d.full_name %></option><% }); %>
+          </select>
+          <button type="submit" class="btn btn-gold btn-sm">Assign</button>
+        </form>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header">Activity Timeline</div>
+      <div class="card-body">
+        <form method="post" action="/portal/admin/leads/<%= lead.id %>/note" class="mb-3">
+          <textarea name="note" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Add a note..."></textarea>
+          <button type="submit" class="btn btn-gold btn-sm mt-2">Add Note</button>
+        </form>
+        <ul class="list-unstyled">
+          <% activities.forEach(function(a) { %>
+          <li class="border-start border-secondary ps-3 mb-2"><small class="text-muted"><%= a.created_at %></small><br/><%= a.note %></li>
+          <% }); %>
+        </ul>
+      </div>
+    </div>
+    <% if (lead.status !== 'CONVERTED' && lead.status !== 'CLOSED_LOST') { %>
+    <a href="/portal/designer/leads/<%= lead.id %>/convert" class="btn btn-gold">Convert to Project</a>
+    <% } %>
+  </div>
+</div>

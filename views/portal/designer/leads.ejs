@@ -1,0 +1,22 @@
+<h1 class="serif text-warning mb-4">Leads</h1>
+<div class="table-responsive">
+  <table class="table table-dark table-striped table-bordered border-secondary">
+    <thead><tr><th>Name</th><th>Phone</th><th>Status</th><th>Follow-up</th><th>Actions</th></tr></thead>
+    <tbody>
+      <% leads.forEach(function(l) { %>
+      <tr>
+        <td><%= l.name %></td>
+        <td><%= l.phone_number %></td>
+        <td><%= l.status %></td>
+        <td><%= l.next_follow_up || '–' %></td>
+        <td>
+          <a href="/portal/designer/leads/<%= l.id %>" class="btn btn-outline-gold btn-sm">View</a>
+          <% if (l.status !== 'CONVERTED' && l.status !== 'CLOSED_LOST' && l.assigned_designer_id) { %>
+          <a href="/portal/designer/leads/<%= l.id %>/convert" class="btn btn-gold btn-sm">Convert</a>
+          <% } %>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>

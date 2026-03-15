@@ -1,0 +1,30 @@
+<h1 class="serif text-warning mb-4">Admin Dashboard</h1>
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card card-portal">
+      <div class="card-body">
+        <h5 class="card-title serif text-warning">Users</h5>
+        <p class="display-6 mb-0"><%= counts.users %></p>
+        <a href="/portal/admin/users" class="btn btn-gold btn-sm mt-2">Manage</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card card-portal">
+      <div class="card-body">
+        <h5 class="card-title serif text-warning">Leads</h5>
+        <p class="display-6 mb-0"><%= counts.leads %></p>
+        <a href="/portal/admin/leads" class="btn btn-gold btn-sm mt-2">Manage</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card card-portal">
+      <div class="card-body">
+        <h5 class="card-title serif text-warning">Projects</h5>
+        <p class="display-6 mb-0"><%= counts.projects %></p>
+        <a href="/portal/admin/projects" class="btn btn-gold btn-sm mt-2">Manage</a>
+      </div>
+    </div>
+  </div>
+</div>

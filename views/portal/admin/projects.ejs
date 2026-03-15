@@ -1,0 +1,22 @@
+<h1 class="serif text-warning mb-4">Projects</h1>
+<p><a href="/portal/admin/projects/new" class="btn btn-gold">Add Project</a></p>
+<div class="table-responsive">
+  <table class="table table-dark table-striped table-bordered border-secondary">
+    <thead><tr><th>Title</th><th>Client</th><th>Designer</th><th>Stage</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      <% projects.forEach(function(p) { %>
+      <tr>
+        <td><%= p.title %></td>
+        <td><%= p.client_name %></td>
+        <td><%= p.designer_name %></td>
+        <td><%= typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES[p.current_stage] ? LIFECYCLE_STAGES[p.current_stage].name : p.current_stage %></td>
+        <td><%= p.status %></td>
+        <td>
+          <a href="/portal/admin/projects/<%= p.id %>" class="btn btn-outline-gold btn-sm">View</a>
+          <a href="/portal/mirror/<%= p.id %>" class="btn btn-outline-gold btn-sm">View as Client</a>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>

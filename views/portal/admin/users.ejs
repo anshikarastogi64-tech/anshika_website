@@ -1,0 +1,17 @@
+<h1 class="serif text-warning mb-4">Users</h1>
+<p><a href="/portal/admin/users/new" class="btn btn-gold">Add User</a></p>
+<div class="table-responsive">
+  <table class="table table-dark table-striped table-bordered border-secondary">
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>DV Points</th></tr></thead>
+    <tbody>
+      <% users.forEach(function(u) { %>
+      <tr>
+        <td><%= u.full_name %></td>
+        <td><%= u.email %></td>
+        <td><%= u.role %></td>
+        <td><%= u.dv_points_balance %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>

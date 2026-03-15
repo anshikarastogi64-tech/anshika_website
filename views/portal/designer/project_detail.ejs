@@ -1,0 +1,53 @@
+<h1 class="serif text-warning mb-4"><%= project.title %></h1>
+<p>Client: <%= project.client_name %> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></p>
+<div class="card card-portal mb-4">
+  <div class="card-header">Update project</div>
+  <div class="card-body">
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label small mb-0">Stage</label>
+          <select name="current_stage" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:180px">
+            <% LIFECYCLE_STAGES.forEach(function(s) { %>
+            <option value="<%= s.index %>" <%= project.current_stage === s.index ? 'selected' : '' %>><%= s.name %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Update stage</button></div>
+      </div>
+    </form>
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-0">
+      <div class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label small mb-0">CCTV / RTSP URL</label>
+          <input type="url" name="rtsp_link" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:280px" placeholder="https:// or rtsp://" value="<%= project.rtsp_link || '' %>" />
+        </div>
+        <div class="col-auto"><button type="submit" class="btn btn-outline-gold btn-sm">Save URL</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+<p><a href="/portal/mirror/<%= project.id %>" class="btn btn-gold">View as Client (Mirror)</a></p>
+<div class="card card-portal mb-4">
+  <div class="card-header">Financials</div>
+  <div class="card-body">
+    <p class="serif h4 text-warning">Total: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
+    <% if (quotation) { %><p>Quotation: <%= quotation.status %> | Extra costs: <%= extraCosts.length %></p><% } %>
+  </div>
+</div>
+<div class="card card-portal mb-4">
+  <div class="card-header">Design Vault – Upload</div>
+  <div class="card-body">
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/media" enctype="multipart/form-data">
+      <input type="file" name="file" class="form-control bg-dark text-light border-secondary mb-2" accept="image/*,video/*" />
+      <select name="category" class="form-select bg-dark text-light border-secondary mb-2" style="max-width:200px">
+        <option value="SITE_LOG">Site Progress</option>
+        <option value="ARCHITECTURAL_PLANS">Architectural Plans</option>
+        <option value="VISUALIZATIONS">Visualizations</option>
+        <option value="OFFICIAL_DOCS">Official Docs</option>
+      </select>
+      <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+    </form>
+    <% if (media && media.length > 0) { %><p class="text-muted mt-2 mb-0">Files: <%= media.length %></p><% } %>
+  </div>
+</div>

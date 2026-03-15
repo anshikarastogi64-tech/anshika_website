@@ -183,6 +183,143 @@ db.serialize(() => {
   );
   db.run("INSERT OR IGNORE INTO site_stats (stat_key, stat_value) VALUES ('total_visits', 0)", () => {});
 
+  // ----- Portal (Luxury Interior CRM) -----
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'CLIENT',
+      dv_points_balance REAL NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_leads (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone_number TEXT NOT NULL,
+      email TEXT,
+      status TEXT NOT NULL DEFAULT 'NEW',
+      notes TEXT,
+      next_follow_up TEXT,
+      referrer_id TEXT,
+      assigned_designer_id TEXT,
+      converted_project_id TEXT UNIQUE,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (referrer_id) REFERENCES portal_users(id),
+      FOREIGN KEY (assigned_designer_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS lead_activities (
+      id TEXT PRIMARY KEY,
+      lead_id TEXT NOT NULL,
+      note TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (lead_id) REFERENCES portal_leads(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_projects (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      budget REAL NOT NULL DEFAULT 0,
+      current_stage INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'ACTIVE',
+      rtsp_link TEXT,
+      personality_pdf_url TEXT,
+      client_id TEXT NOT NULL,
+      designer_id TEXT NOT NULL,
+      final_total_cost REAL,
+      dv_points_processed INTEGER NOT NULL DEFAULT 0,
+      invoice_locked INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (client_id) REFERENCES portal_users(id),
+      FOREIGN KEY (designer_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_quotations (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      base_total REAL NOT NULL,
+      items TEXT,
+      status TEXT NOT NULL DEFAULT 'PENDING',
+      client_comments TEXT,
+      approved_at TEXT,
+      is_final INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_extra_costs (
+      id TEXT PRIMARY KEY,
+      quotation_id TEXT NOT NULL,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PENDING',
+      comment TEXT,
+      client_note TEXT,
+      approved_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (quotation_id) REFERENCES portal_quotations(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_invoices (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      total_amount REAL NOT NULL,
+      pdf_url TEXT NOT NULL,
+      is_paid INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_media (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      url TEXT NOT NULL,
+      type TEXT NOT NULL,
+      category TEXT NOT NULL,
+      file_name TEXT,
+      file_size INTEGER,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_complaints (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      description TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'OPEN',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS style_discovery_leads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      mobile TEXT NOT NULL,
+      otp TEXT,
+      persona_name TEXT,
+      persona_essence TEXT,
+      persona_elements TEXT,
+      hero_image_url TEXT,
+      pdf_url TEXT,
+      step_reached INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`
+  );
+
   // Seed default admin if none exists
   db.get('SELECT COUNT(*) AS cnt FROM admins', (err, row) => {
     if (err) return;

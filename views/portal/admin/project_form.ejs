@@ -1,0 +1,25 @@
+<h1 class="serif text-warning mb-4">Add Project</h1>
+<form method="post" action="/portal/admin/projects/new">
+  <div class="mb-3">
+    <label class="form-label">Title</label>
+    <input type="text" name="title" class="form-control bg-dark text-light border-secondary" required />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Budget (₹)</label>
+    <input type="number" name="budget" class="form-control bg-dark text-light border-secondary" step="0.01" value="0" />
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Client</label>
+    <select name="client_id" class="form-select bg-dark text-light border-secondary" required>
+      <% clients.forEach(function(c) { %><option value="<%= c.id %>"><%= c.full_name %> (<%= c.email %>)</option><% }); %>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Designer</label>
+    <select name="designer_id" class="form-select bg-dark text-light border-secondary" required>
+      <% designers.forEach(function(d) { %><option value="<%= d.id %>"><%= d.full_name %></option><% }); %>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-gold">Create Project</button>
+  <a href="/portal/admin/projects" class="btn btn-outline-gold ms-2">Cancel</a>
+</form>

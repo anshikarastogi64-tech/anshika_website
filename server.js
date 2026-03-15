@@ -46,6 +46,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // Trust proxy when behind nginx/ALB on EC2
 if (process.env.NODE_ENV === 'production') {
@@ -63,6 +64,7 @@ app.use(
 
 // Static files for uploads
 app.use('/assets/uploads', express.static(path.join(__dirname, 'Kelly', 'assets', 'uploads')));
+app.use('/assets/uploads/portal', express.static(path.join(__dirname, 'Kelly', 'assets', 'uploads', 'portal')));
 app.use('/assets', express.static(path.join(__dirname, 'Kelly', 'assets')));
 
 app.use((req, res, next) => {
@@ -70,6 +72,27 @@ app.use((req, res, next) => {
   res.locals.adminUsername = req.session.adminUsername || '';
   next();
 });
+
+// Luxury Interior Portal (from md files specs)
+const portalRouter = require('./routes/portal');
+
+// Explicit portal routes so "new" and "refer" are never matched as :id (fixes 404 on some setups)
+function forwardPortal(req, res, next, subPath) {
+  const savedUrl = req.url;
+  const savedPath = req.path;
+  req.url = subPath;
+  req.path = subPath;
+  portalRouter(req, res, (err) => {
+    req.url = savedUrl;
+    req.path = savedPath;
+    next(err);
+  });
+}
+app.get('/portal/admin/leads/new', (req, res, next) => forwardPortal(req, res, next, '/admin/leads/new'));
+app.get('/portal/admin/projects/new', (req, res, next) => forwardPortal(req, res, next, '/admin/projects/new'));
+app.get('/portal/client/refer', (req, res, next) => forwardPortal(req, res, next, '/client/refer'));
+
+app.use('/portal', portalRouter);
 
 // Count public page visits (GET only, exclude admin & static)
 app.use((req, res, next) => {
@@ -1202,6 +1225,117 @@ app.post('/admin/facts', requireAdmin, async (req, res) => {
   await saveBlock('about', 'facts', 'hours', hours || '');
   await saveBlock('about', 'facts', 'workers', workers || '');
   res.render('admin/facts', { facts: { clients, projects, hours, workers }, message: 'Facts updated.' });
+});
+
+// ----- Style Discovery (from ai-style-discovery-engine.md) -----
+app.get('/style-discovery', (req, res) => {
+  res.render('style-discovery/landing', { error: '', step: 'capture' });
+});
+
+function styleDiscoveryOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+app.post('/style-discovery/start', express.urlencoded({ extended: false }), (req, res) => {
+  const name = (req.body?.name || '').trim();
+  const mobile = (req.body?.mobile || '').trim();
+  if (!name || !mobile) {
+    return res.render('style-discovery/landing', { error: 'Name and mobile required.', step: 'capture' });
+  }
+  const otp = styleDiscoveryOtp();
+  db.run(
+    'INSERT INTO style_discovery_leads (name, mobile, otp, step_reached) VALUES (?, ?, ?, 0)',
+    [name, mobile, otp],
+    function (err) {
+      if (err) return res.render('style-discovery/landing', { error: 'Could not save. Try again.', step: 'capture' });
+      req.session.styleDiscoveryLeadId = this.lastID;
+      req.session.styleDiscoveryOtp = otp;
+      if (process.env.ADMIN_BYPASS_OTP === 'true') {
+        return res.redirect('/style-discovery/quiz?step=1');
+      }
+      res.render('style-discovery/landing', { step: 'otp', leadId: this.lastID, error: '' });
+    }
+  );
+});
+
+app.post('/style-discovery/verify', express.urlencoded({ extended: false }), (req, res) => {
+  const code = (req.body?.otp || '').trim();
+  const leadId = req.session.styleDiscoveryLeadId;
+  if (!leadId) return res.redirect('/style-discovery');
+  const valid = process.env.ADMIN_BYPASS_OTP === 'true' || code === req.session.styleDiscoveryOtp;
+  if (!valid) {
+    return res.render('style-discovery/landing', { step: 'otp', leadId, error: 'Invalid OTP.' });
+  }
+  res.redirect('/style-discovery/quiz?step=1');
+});
+
+app.get('/style-discovery/quiz', (req, res) => {
+  if (!req.session.styleDiscoveryLeadId) return res.redirect('/style-discovery');
+  const step = Math.min(10, Math.max(1, parseInt(req.query.step, 10) || 1));
+  res.render('style-discovery/quiz', { step, totalSteps: 10 });
+});
+
+app.get('/style-discovery/result', (req, res) => {
+  if (!req.session.styleDiscoveryLeadId) return res.redirect('/style-discovery');
+  const leadId = req.session.styleDiscoveryLeadId;
+  db.get('SELECT * FROM style_discovery_leads WHERE id = ?', [leadId], (err, row) => {
+    const lead = err ? null : row;
+    res.render('style-discovery/result', {
+      personaName: lead?.persona_name || 'Your Design Persona',
+      personaEssence: lead?.persona_essence || 'A reflection of your style choices.',
+      calendlyLink: process.env.CALENDLY_LINK || 'https://calendly.com',
+    });
+  });
+});
+
+// ----- Imou CCTV stream (from imou-integration.md) -----
+app.get('/portal/api/cctv/:projectId', (req, res) => {
+  const projectId = req.params.projectId;
+  const uid = req.session.portalUserId;
+  if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+  const db = require('./db').db;
+  db.get('SELECT rtsp_link, client_id, designer_id FROM portal_projects WHERE id = ?', [projectId], (err, row) => {
+    if (err || !row) return res.status(404).json({ error: 'Project not found' });
+    const isAdmin = req.session.portalUserRole === 'ADMIN';
+    const canAccess = isAdmin || row.client_id === uid || row.designer_id === uid;
+    if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+    const rtspLink = row.rtsp_link;
+    if (!rtspLink || rtspLink.trim() === '') {
+      return res.json({ url: null, token: null, message: 'Live stream offline' });
+    }
+    const imouAppId = process.env.IMOU_APP_ID;
+    const imouAppSecret = process.env.IMOU_APP_SECRET;
+    if (!imouAppId || !imouAppSecret) {
+      return res.json({ url: rtspLink, token: null, useRtsp: true });
+    }
+    const https = require('https');
+    const time = Math.floor(Date.now() / 1000);
+    const nonce = crypto.randomBytes(8).toString('hex');
+    const signStr = [imouAppSecret, time, nonce].sort().join('');
+    const sign = require('crypto').createHash('md5').update(signStr).digest('hex');
+    const body = JSON.stringify({
+      params: { appId: imouAppId, appSecret: imouAppSecret },
+      id: '1',
+      system: { ver: '1.1', appId: imouAppId, time, nonce, sign },
+    });
+    const reqOpt = { hostname: 'openapi.lechange.cn', path: '/openapi/accessToken', method: 'POST', headers: { 'Content-Type': 'application/json' } };
+    const extReq = https.request(reqOpt, (extRes) => {
+      let data = '';
+      extRes.on('data', (ch) => (data += ch));
+      extRes.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          const token = j.result?.data?.accessToken || null;
+          res.json({ url: rtspLink, token, useRtsp: !token });
+        } catch (_) {
+          res.json({ url: rtspLink, token: null, useRtsp: true });
+        }
+      });
+    });
+    extReq.on('error', () => res.json({ url: rtspLink, token: null, useRtsp: true }));
+    extReq.write(body);
+    extReq.end();
+  });
 });
 
 app.use((req, res) => {

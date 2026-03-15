@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your Result – Style Discovery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    :root { --gold: #d4af37; --bg: #0a0a0a; --glass: rgba(255, 255, 255, 0.05); }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; min-height: 100vh; padding: 20px; }
+    .result-wrap { max-width: 600px; margin: 0 auto; }
+    .result-wrap h1 { font-family: 'Playfair Display', serif; color: var(--gold); }
+    .card-wrap { background: var(--glass); border: 1px solid rgba(212,175,55,0.3); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; }
+    .btn-gold { background: var(--gold); color: #0a0a0a; border: none; font-weight: 600; }
+    .btn-gold:hover { background: #c5a030; color: #0a0a0a; }
+    iframe { width: 100%; height: 700px; border: none; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="result-wrap">
+    <h1 class="mb-2">Your Design Persona</h1>
+    <p class="h4 text-warning mb-4"><%= personaName %></p>
+    <p class="text-muted"><%= personaEssence %></p>
+    <div class="card-wrap">
+      <p class="mb-2">Download your Design Manifesto (PDF).</p>
+      <a href="#" class="btn btn-gold">Download PDF</a>
+      <p class="small text-muted mt-3">PDF generation can be enabled with Puppeteer + AI summary.</p>
+    </div>
+    <div class="card-wrap">
+      <p class="mb-3">Book a free 15-minute consultation.</p>
+      <iframe src="<%= calendlyLink %>" title="Book a call"></iframe>
+    </div>
+  </div>
+</body>
+</html>
