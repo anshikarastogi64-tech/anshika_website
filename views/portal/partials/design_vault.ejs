@@ -469,7 +469,7 @@
 <% } %>
 
 <!-- Gallery lightbox: shows only the selected category; arrows move within that category -->
-<div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-fullscreen p-0 m-0">
     <div class="modal-content bg-black border-0">
       <div class="modal-header border-0 position-absolute top-0 start-0 end-0 z-2 bg-dark bg-opacity-75 py-2">
@@ -522,6 +522,7 @@
   })) %>;
   var dailyUpdateList = <%- JSON.stringify(dailyUpdateFlatMedia.map(function(m) { return { url: m.url, type: (m.type || m.media_type) || 'PHOTO', file_name: m.file_name || m.url }; })) %>;
   var modalEl = document.getElementById('vaultGalleryModal');
+  var modalInstance = null;
   var contentEl = modalEl ? modalEl.querySelector('.vault-gallery-content') : null;
   var captionEl = document.getElementById('vaultGalleryCaption');
   var sourceLabelEl = document.getElementById('vaultGallerySourceLabel');
@@ -600,7 +601,12 @@
     if (currentList.length === 0) return;
     currentIdx = (index + currentList.length) % currentList.length;
     renderCurrent();
-    if (modalEl && window.bootstrap) new bootstrap.Modal(modalEl, { backdrop: 'static' }).show();
+    if (modalEl && window.bootstrap) {
+      if (!modalInstance) {
+        modalInstance = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+      }
+      modalInstance.show();
+    }
   }
 
   function switchToLinked(targetType) {
@@ -628,10 +634,13 @@
       renderCurrent();
     });
     document.addEventListener('keydown', function(e) {
-      if (!modalEl.classList.contains('show')) return;
+      if (!modalEl || !modalEl.classList.contains('show')) return;
       if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + currentList.length) % currentList.length; renderCurrent(); }
       if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % currentList.length; renderCurrent(); }
-      if (e.key === 'Escape') { var m = bootstrap.Modal.getInstance(modalEl); if (m) m.hide(); }
+      if (e.key === 'Escape') {
+        var m = modalInstance || (window.bootstrap && window.bootstrap.Modal.getInstance(modalEl));
+        if (m) m.hide();
+      }
     });
   }
 
