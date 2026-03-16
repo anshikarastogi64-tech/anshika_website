@@ -56,7 +56,7 @@ if ($rsync) {
 }
 
 # Restart PM2 on EC2
-$remoteCmd = "cd $REMOTE_PATH && npm ci --omit=dev 2>/dev/null || npm install --omit=dev && mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day && pm2 restart kelly-designers-vision 2>/dev/null || pm2 start ecosystem.config.cjs --env production && pm2 save"
+$remoteCmd = "cd $REMOTE_PATH && npm ci --omit=dev 2>/dev/null || npm install --omit=dev && mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day Kelly/assets/uploads/portal && pm2 restart kelly-designers-vision 2>/dev/null || pm2 start ecosystem.config.cjs --env production && pm2 save"
 $sshArgs = @("-o", "StrictHostKeyChecking=no", "$target", $remoteCmd)
 if ($EC2_KEY) { $sshArgs = @("-i", $EC2_KEY) + $sshArgs }
 & ssh @sshArgs

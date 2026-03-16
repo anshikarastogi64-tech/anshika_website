@@ -29,6 +29,6 @@ jobs:
             git fetch origin
             git reset --hard origin/main
             npm ci --omit=dev
-            mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day
+            mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day Kelly/assets/uploads/portal
             pm2 restart kelly-designers-vision || pm2 start ecosystem.config.cjs --env production
             pm2 save

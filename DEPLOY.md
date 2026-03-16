@@ -32,7 +32,7 @@ Deploy automatically to EC2 whenever you push to `main`.
    cd kelly-app
    cp .env.example .env && nano .env
    npm install --production
-   mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day
+   mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day Kelly/assets/uploads/portal
    pm2 start ecosystem.config.cjs --env production
    pm2 save
    pm2 startup
@@ -142,7 +142,7 @@ Generate a secret: `openssl rand -hex 32`
 
 ```bash
 npm install --production
-mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day
+mkdir -p logs Kelly/assets/uploads/recordings Kelly/assets/uploads/womens-day Kelly/assets/uploads/portal
 pm2 start ecosystem.config.cjs --env production
 pm2 save
 pm2 startup   # run the command it outputs to survive reboots
@@ -214,3 +214,41 @@ Set `SESSION_SECURE=true` in `.env` when using HTTPS.
 
 After first run: **admin** / **Admin@123**  
 Change the password via admin panel after deployment.
+
+---
+
+## Updating the Portal on the web (anshikarastogi.com)
+
+No **new** installations are required to update the portal. The same stack runs both the main site and the portal.
+
+### What you need on the server (already there if the site is live)
+
+| Requirement | Notes |
+|-------------|--------|
+| **Node.js** | v18 or higher (v20 recommended). Check: `node -v` |
+| **npm dependencies** | Same as main app: `npm install --production` or `npm ci --omit=dev` |
+| **Database** | Single SQLite file `data.sqlite` in the project root. New portal tables are created automatically on startup. |
+| **Uploads directory** | `Kelly/assets/uploads/portal` — created by the app on first portal upload, or create manually: `mkdir -p Kelly/assets/uploads/portal` |
+
+### Environment variables (in `.env` on the server)
+
+- **Required for sessions:** `SESSION_SECRET` (use a long random string in production).
+- **If the site uses HTTPS:** `SESSION_SECURE=true`.
+- **Optional (portal emails):** `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM` (or `SMTP_*` equivalents).
+
+No new env vars are required for recent portal features (daily updates, mobile layout, etc.).
+
+### How to deploy the update
+
+1. **If you use GitHub Actions:** Push your changes to `main`. The workflow will pull on EC2, run `npm ci --omit=dev`, ensure upload dirs exist, and restart PM2.
+2. **If you deploy manually:**  
+   - Pull the latest code (or rsync/scp the project).  
+   - On the server: `cd /home/ubuntu/kelly-app` (or your app path), then:
+     ```bash
+     npm ci --omit=dev
+     mkdir -p Kelly/assets/uploads/portal
+     pm2 restart kelly-designers-vision
+     pm2 save
+     ```
+
+The portal is served under the same domain (e.g. **anshikarastogi.com/portal/login**). No separate installation or subdomain is needed.
