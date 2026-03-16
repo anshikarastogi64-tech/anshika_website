@@ -307,6 +307,8 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS'),
   };
   const vaultMediaList = buildVaultMediaList(mediaList);
+  const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE');
+  const vastuDocs = mediaList.filter((m) => m.category === 'VASTU');
   const [projectDesigns, pendingDesignVersions, dailyUpdates] = await Promise.all([
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
     portalDb.getPendingDesignVersionsForProject(project.id),
@@ -325,6 +327,8 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     projectDesigns,
     pendingDesignVersions,
     dailyUpdates: dailyUpdates || [],
+    warrantyDocs,
+    vastuDocs,
     isMirror: false,
   });
 });
@@ -358,15 +362,20 @@ router.post('/admin/projects/:id/media', requirePortalAuth, requireAdmin, portal
   const project = await portalDb.getProjectById(projectId);
   if (!project) return res.status(404).send('Project not found');
   const category = (req.body?.category || 'SITE_LOG').toUpperCase();
-  if (!req.file) return res.redirect('/portal/admin/projects/' + projectId + '?msg=No+file#tab-vault');
+  if (!req.file) {
+    const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=No+file' + redirectTab);
+  }
   const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
-  const mediaId = await portalDb.addProjectMedia(projectId, url, req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO', category, req.file.originalname, req.file.size);
+  const vastuCategoryName = category === 'VASTU' ? (req.body?.vastu_category_name || '').trim() || null : null;
+  const mediaId = await portalDb.addProjectMedia(projectId, url, req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO', category, req.file.originalname, req.file.size, vastuCategoryName);
   if (category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS') {
     const areaTag = (req.body?.area_tag || '').trim() || (req.body?.area_tag_custom || '').trim() || 'General';
     const designId = await portalDb.createDesign(projectId, category, areaTag);
     await portalDb.createDesignVersion(designId, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
   }
-  res.redirect('/portal/admin/projects/' + projectId + '#tab-vault');
+  const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+  res.redirect('/portal/admin/projects/' + projectId + redirectTab);
 });
 
 router.post('/admin/projects/:id/daily-updates', requirePortalAuth, requireAdmin, portalUpload.array('files', 20), async (req, res) => {
@@ -552,6 +561,43 @@ router.post('/admin/projects/:id/design-version/:versionId/delete', requirePorta
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
 });
 
+// Admin: approve/delete warranty & guarantee documents
+router.post('/admin/projects/:id/warranty/:mediaId/approve', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  await portalDb.run('UPDATE portal_media SET approved = 1 WHERE id = ? AND project_id = ? AND category = ?', [req.params.mediaId, project.id, 'WARRANTY_GUARANTEE']);
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-warranty');
+});
+
+router.post('/admin/projects/:id/warranty/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-warranty');
+});
+
+// Admin: approve/delete Vastu documents
+router.post('/admin/projects/:id/vastu/:mediaId/approve', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  await portalDb.run('UPDATE portal_media SET approved = 1 WHERE id = ? AND project_id = ? AND category = ?', [req.params.mediaId, project.id, 'VASTU']);
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vastu');
+});
+
+router.post('/admin/projects/:id/vastu/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vastu');
+});
+
+router.post('/admin/projects/:id/warranty/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-warranty');
+});
+
 // Admin: add new version to existing design (upload) – same behavior as designer route but under /admin
 router.post('/admin/projects/:id/design/:designId/version', requirePortalAuth, requireAdmin, portalUpload.single('file'), async (req, res) => {
   const projectId = req.params.id;
@@ -687,6 +733,7 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS'),
   };
   const vaultMediaList = buildVaultMediaList(mediaList.filter((m) => m.category !== 'ARCHITECTURAL_PLANS' && m.category !== 'VISUALIZATIONS'));
+  const vastuDocs = mediaList.filter((m) => m.category === 'VASTU');
   const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
   const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false });
   renderPortal(req, res, 'portal/designer/project_detail', {
@@ -700,6 +747,7 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     vaultMediaList,
     dailyUpdates: dailyUpdates || [],
     projectDesigns,
+    vastuDocs,
   });
 });
 
@@ -723,15 +771,20 @@ router.post('/designer/projects/:id/media', requirePortalAuth, requireDesigner, 
     return res.status(403).send('Forbidden');
   }
   const category = (req.body?.category || 'SITE_LOG').toUpperCase();
-  if (!req.file) return res.redirect('/portal/designer/projects/' + projectId + '?msg=No+file#tab-vault');
+  if (!req.file) {
+    const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+    return res.redirect('/portal/designer/projects/' + projectId + '?msg=No+file' + redirectTab);
+  }
   const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
-  const mediaId = await portalDb.addProjectMedia(projectId, url, req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO', category, req.file.originalname, req.file.size);
+  const vastuCategoryName = category === 'VASTU' ? (req.body?.vastu_category_name || '').trim() || null : null;
+  const mediaId = await portalDb.addProjectMedia(projectId, url, req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO', category, req.file.originalname, req.file.size, vastuCategoryName);
   if (category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS') {
     const areaTag = (req.body?.area_tag || '').trim() || (req.body?.area_tag_custom || '').trim() || 'General';
     const designId = await portalDb.createDesign(projectId, category, areaTag);
     await portalDb.createDesignVersion(designId, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
   }
-  res.redirect('/portal/designer/projects/' + projectId + '#tab-vault');
+  const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+  res.redirect('/portal/designer/projects/' + projectId + redirectTab);
 });
 
 router.post('/designer/projects/:id/daily-updates', requirePortalAuth, requireDesigner, portalUpload.array('files', 20), async (req, res) => {
@@ -998,6 +1051,8 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const vaultMediaList = buildVaultMediaList(mediaList.filter((m) => m.category !== 'ARCHITECTURAL_PLANS' && m.category !== 'VISUALIZATIONS'));
   const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
   const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true });
+  const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE' && m.approved === 1);
+  const vastuDocs = mediaList.filter((m) => m.category === 'VASTU' && m.approved === 1);
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
@@ -1009,6 +1064,8 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     vaultMediaList,
     dailyUpdates: dailyUpdates || [],
     projectDesigns,
+    warrantyDocs,
+    vastuDocs,
     readOnly: false,
   });
 });

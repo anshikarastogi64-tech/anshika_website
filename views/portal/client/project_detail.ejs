@@ -14,6 +14,12 @@
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-warranty-btn" data-bs-toggle="tab" data-bs-target="#tab-warranty" type="button" role="tab">Warranty &amp; Guarantee</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+  </li>
 </ul>
 <div class="tab-content" id="projectTabsContent">
   <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
@@ -124,7 +130,285 @@
       </div>
     </div>
   </div>
+  <div class="tab-pane fade" id="tab-warranty" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Warranty &amp; Guarantee</div>
+      <div class="card-body">
+        <% if (typeof warrantyDocs !== 'undefined' && warrantyDocs.length > 0) { %>
+        <ul class="list-unstyled mb-0">
+          <% warrantyDocs.forEach(function(m) { %>
+          <li class="mb-2">
+            <a href="<%= m.url %>" target="_blank" class="text-warning text-decoration-none">
+              <i class="bi bi-file-earmark-text me-1"></i><%= m.file_name || m.url %>
+            </a>
+          </li>
+          <% }); %>
+        </ul>
+        <% } else { %>
+        <p class="text-muted mb-0">No warranty/guarantee documents have been uploaded yet.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="tab-vastu" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Vastu Documents</div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">View approved Vastu documents organized by category.</p>
+        <% if (typeof vastuDocs !== 'undefined' && vastuDocs.length > 0) { %>
+        <div id="vastuDocumentsList">
+          <% 
+          const vastuByCategory = {};
+          vastuDocs.forEach(function(doc) {
+            const catName = doc.vastu_category_name || 'Uncategorized';
+            if (!vastuByCategory[catName]) vastuByCategory[catName] = [];
+            vastuByCategory[catName].push(doc);
+          });
+          Object.keys(vastuByCategory).sort().forEach(function(catName) {
+          %>
+          <div class="mb-4">
+            <h6 class="text-warning mb-2"><%= catName %></h6>
+            <div class="vault-grid">
+              <% vastuByCategory[catName].forEach(function(m) { %>
+              <div class="vault-item rounded overflow-hidden" data-gallery-source="vastu" data-gallery-index="<%= vastuDocs.indexOf(m) %>" role="button" tabindex="0">
+                <% const isVideo = (m.type || 'PHOTO') === 'VIDEO'; %>
+                <% const isPdf = (m.url || '').toLowerCase().indexOf('.pdf') !== -1; %>
+                <% if (isVideo) { %>
+                <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                  <i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i>
+                </div>
+                <% } else if (isPdf) { %>
+                <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                  <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size:2rem"></i>
+                </div>
+                <% } else { %>
+                <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                  <img src="<%= m.url %>" alt="" loading="lazy" />
+                </div>
+                <% } %>
+                <div class="vault-caption small text-muted text-truncate"><%= m.file_name || m.url || 'Item' %></div>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <% } else { %>
+        <p class="text-muted mb-0">No Vastu documents uploaded yet.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Gallery Modal for Vastu Documents -->
+<div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen p-0 m-0">
+    <div class="modal-content bg-black border-0">
+      <div class="modal-header border-0 position-absolute top-0 start-0 end-0 z-2 bg-dark bg-opacity-75 py-2">
+        <span class="text-muted small me-2" id="vaultGallerySourceLabel"></span>
+        <h6 class="modal-title text-warning text-truncate me-2" id="vaultGalleryCaption"></h6>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center position-relative p-0" style="min-height:100vh">
+        <button type="button" class="btn btn-link text-warning position-absolute start-0 top-50 translate-middle-y ms-2 vault-nav vault-prev" aria-label="Previous" style="font-size:2rem;z-index:2"><i class="bi bi-chevron-left"></i></button>
+        <div class="vault-gallery-content flex-grow-1 d-flex align-items-center justify-content-center p-4" style="min-height:80vh"></div>
+        <button type="button" class="btn btn-link text-warning position-absolute end-0 top-50 translate-middle-y me-2 vault-nav vault-next" aria-label="Next" style="font-size:2rem;z-index:2"><i class="bi bi-chevron-right"></i></button>
+      </div>
+      <div class="position-absolute bottom-0 start-0 end-0 text-center py-2 bg-dark bg-opacity-75 text-muted small z-2" id="vaultGalleryCounter"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var vastuList = <%- JSON.stringify((typeof vastuDocs !== 'undefined' && vastuDocs) ? vastuDocs.map(function(m) { return { url: m.url, type: (m.type || 'PHOTO'), file_name: m.file_name || m.url, vastu_category_name: m.vastu_category_name || '' }; }) : []) %>;
+  if (vastuList.length === 0) return;
+  
+  // Store vastuList globally for access
+  window.vastuList = vastuList;
+  
+  function openVastuGallery(index) {
+    var modalEl = document.getElementById('vaultGalleryModal');
+    if (!modalEl) {
+      console.error('vaultGalleryModal not found. Checking if design_vault partial is loaded...');
+      modalEl = document.querySelector('#vaultGalleryModal');
+      if (!modalEl) {
+        alert('Gallery viewer not available. Please refresh the page.');
+        return;
+      }
+    }
+    var contentEl = modalEl.querySelector('.vault-gallery-content');
+    var captionEl = document.getElementById('vaultGalleryCaption');
+    var sourceLabelEl = document.getElementById('vaultGallerySourceLabel');
+    var counterEl = document.getElementById('vaultGalleryCounter');
+    if (!contentEl) {
+      console.error('vault-gallery-content not found in modal');
+      return;
+    }
+    
+    var currentList = vastuList;
+    var currentSourceLabel = 'Vastu Documents';
+    if (currentList.length === 0) return;
+    
+    var currentIdx = (index + currentList.length) % currentList.length;
+    var prevBtn = modalEl.querySelector('.vault-prev');
+    var nextBtn = modalEl.querySelector('.vault-next');
+    
+    function renderCurrent() {
+      if (currentList.length === 0) return;
+      var m = currentList[currentIdx];
+      if (!m) return;
+      var html = '';
+      var fileType = (m.type || 'PHOTO').toUpperCase();
+      var urlLower = (m.url || '').toLowerCase();
+      
+      if (fileType === 'VIDEO' || urlLower.indexOf('.mp4') !== -1 || urlLower.indexOf('.mov') !== -1 || urlLower.indexOf('.webm') !== -1) {
+        html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded" style="max-width:100%;max-height:85vh;"></video>';
+      } else if (urlLower.indexOf('.pdf') !== -1) {
+        var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+        html = '<div class="text-center"><a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold btn-lg">Open PDF</a><p class="text-muted small mt-3">' + fn + '</p></div>';
+      } else {
+        html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded" style="max-width:100%;max-height:85vh;object-fit:contain;">';
+      }
+      contentEl.innerHTML = html;
+      if (captionEl) captionEl.textContent = m.file_name || m.url || ('Item ' + (currentIdx + 1));
+      if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
+      if (counterEl) counterEl.textContent = (currentIdx + 1) + ' / ' + currentList.length;
+    }
+    
+    function setupNav() {
+      if (prevBtn) {
+        prevBtn.onclick = function() { 
+          currentIdx = (currentIdx - 1 + currentList.length) % currentList.length; 
+          renderCurrent(); 
+        };
+      }
+      if (nextBtn) {
+        nextBtn.onclick = function() { 
+          currentIdx = (currentIdx + 1) % currentList.length; 
+          renderCurrent(); 
+        };
+      }
+    }
+    
+    renderCurrent();
+    setupNav();
+    
+    // Use direct fallback method
+    showModalFallback(modalEl);
+    
+    function showModalFallback(el) {
+      console.log('=== showModalFallback START ===');
+      var oldBackdrop = document.getElementById('vaultGalleryBackdrop');
+      if (oldBackdrop) oldBackdrop.remove();
+      var existingBackdrops = document.querySelectorAll('.modal-backdrop');
+      existingBackdrops.forEach(function(b) { b.remove(); });
+      
+      if (el.parentNode !== document.body) {
+        document.body.appendChild(el);
+      }
+      
+      el.classList.add('show');
+      el.style.display = 'block';
+      el.style.visibility = 'visible';
+      el.style.opacity = '1';
+      el.style.position = 'fixed';
+      el.style.top = '0';
+      el.style.left = '0';
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.zIndex = '1055';
+      el.setAttribute('aria-hidden', 'false');
+      el.setAttribute('aria-modal', 'true');
+      el.setAttribute('role', 'dialog');
+      
+      var backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      backdrop.id = 'vaultGalleryBackdrop';
+      backdrop.style.position = 'fixed';
+      backdrop.style.top = '0';
+      backdrop.style.left = '0';
+      backdrop.style.width = '100%';
+      backdrop.style.height = '100%';
+      backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      backdrop.style.zIndex = '1050';
+      backdrop.onclick = function() { hideModalFallback(el); };
+      document.body.appendChild(backdrop);
+      
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+      
+      var closeBtn = el.querySelector('.btn-close');
+      if (closeBtn) {
+        closeBtn.onclick = function(e) {
+          e.preventDefault();
+          hideModalFallback(el);
+        };
+      }
+      
+      var escHandler = function(e) {
+        if (e.key === 'Escape') {
+          hideModalFallback(el);
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+    }
+    
+    function hideModalFallback(el) {
+      el.classList.remove('show');
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.setAttribute('aria-hidden', 'true');
+      el.removeAttribute('aria-modal');
+      var backdrop = document.getElementById('vaultGalleryBackdrop');
+      if (backdrop) backdrop.remove();
+      var allBackdrops = document.querySelectorAll('.modal-backdrop');
+      allBackdrops.forEach(function(b) { b.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    }
+  }
+  
+  window.openVastuGallery = openVastuGallery;
+  
+  function attachVastuHandlers() {
+    var vastuItems = document.querySelectorAll('#tab-vastu .vault-item[data-gallery-source="vastu"]');
+    console.log('Found', vastuItems.length, 'Vastu items');
+    vastuItems.forEach(function(item) {
+      item.style.cursor = 'pointer';
+      var newItem = item.cloneNode(true);
+      item.parentNode.replaceChild(newItem, item);
+      newItem.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var idx = parseInt(this.getAttribute('data-gallery-index') || '0', 10);
+        console.log('Vastu item clicked, index:', idx);
+        openVastuGallery(idx);
+        return false;
+      });
+      var children = newItem.querySelectorAll('*');
+      children.forEach(function(child) {
+        child.style.pointerEvents = 'none';
+      });
+    });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachVastuHandlers);
+  } else {
+    attachVastuHandlers();
+  }
+  
+  var vastuTabBtn = document.getElementById('tab-vastu-btn');
+  if (vastuTabBtn) {
+    vastuTabBtn.addEventListener('shown.bs.tab', function() {
+      setTimeout(attachVastuHandlers, 100);
+    });
+  }
+})();
+</script>
 
 <!-- Reject reason modal -->
 <% if (!readOnly) { %>

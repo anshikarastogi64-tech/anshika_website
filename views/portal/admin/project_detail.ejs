@@ -14,6 +14,12 @@
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-warranty-btn" data-bs-toggle="tab" data-bs-target="#tab-warranty" type="button" role="tab">Warranty &amp; Guarantee</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+  </li>
 </ul>
 <div class="tab-content" id="projectTabsContent">
   <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
@@ -88,71 +94,546 @@
     </form>
     <% } %>
   </div>
-</div>
-
-<div class="card card-portal mb-4">
-  <div class="card-header">Additional costs (variations)</div>
-  <div class="card-body">
-    <p class="small text-muted mb-2">Client comments are notified to you and the designer. You can comment back or edit the cost (edit creates a new version; previous stays in history; only approved costs count toward the final invoice).</p>
-    <% if (quotation) { %>
-    <form method="post" action="/portal/admin/projects/<%= project.id %>/extra-cost" class="mb-3">
-      <div class="row g-2 flex-wrap align-items-end">
-        <div class="col-auto"><input type="text" name="description" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Description" style="min-width:180px" required /></div>
-        <div class="col-auto"><input type="number" name="amount" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Amount (₹)" style="width:100px" required /></div>
-        <div class="col-auto"><input type="text" name="comment" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Reason (optional)" style="min-width:140px" /></div>
-        <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Add extra cost</button></div>
-      </div>
-    </form>
-    <ul class="list-unstyled small mb-0">
-      <% extraCosts.forEach(function(ec) { %>
-      <li class="border-bottom border-secondary py-2">
-        <% if (ec.status === 'SUPERSEDED') { %>
-        <span class="text-muted"><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong>Superseded</strong> (replaced by updated cost below)</span>
-        <% if (ec.comments && ec.comments.length) { %>
-        <span class="ms-2" title="Comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header">Additional costs (variations)</div>
+      <div class="card-body">
+        <p class="small text-muted mb-2">Client comments are notified to you and the designer. You can comment back or edit the cost (edit creates a new version; previous stays in history; only approved costs count toward the final invoice).</p>
+        <% if (quotation) { %>
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/extra-cost" class="mb-3">
+          <div class="row g-2 flex-wrap align-items-end">
+            <div class="col-auto"><input type="text" name="description" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Description" style="min-width:180px" required /></div>
+            <div class="col-auto"><input type="number" name="amount" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Amount (₹)" style="width:100px" required /></div>
+            <div class="col-auto"><input type="text" name="comment" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Reason (optional)" style="min-width:140px" /></div>
+            <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Add extra cost</button></div>
+          </div>
+        </form>
+        <ul class="list-unstyled small mb-0">
+          <% extraCosts.forEach(function(ec) { %>
+          <li class="border-bottom border-secondary py-2">
+            <% if (ec.status === 'SUPERSEDED') { %>
+            <span class="text-muted"><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong>Superseded</strong> (replaced by updated cost below)</span>
+            <% if (ec.comments && ec.comments.length) { %>
+            <span class="ms-2" title="Comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+            <% } %>
+            <% } else { %>
+            <span><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong><%= ec.status %></strong></span>
+            <% if (ec.status === 'APPROVED' && ec.comments && ec.comments.length) { %>
+            <span class="ms-2" title="View comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+            <% } else if (ec.status !== 'APPROVED' && ec.comments && ec.comments.length) { %>
+            <div class="mt-1 text-muted">
+              <% ec.comments.forEach(function(c) { %>
+              <div><strong><%= c.author_type %>:</strong> <%= c.message %> <small>(<%= c.created_at %>)</small></div>
+              <% }); %>
+            </div>
+            <% } %>
+            <form method="post" action="/portal/admin/projects/<%= project.id %>/extra-cost/<%= ec.id %>/respond" class="mt-2">
+              <input type="text" name="response_note" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block mb-1" placeholder="Comment back to client" style="min-width:220px" />
+              <button type="submit" class="btn btn-outline-gold btn-sm">Send reply</button>
+            </form>
+            <form method="post" action="/portal/admin/projects/<%= project.id %>/extra-cost/<%= ec.id %>/edit" class="mt-1">
+              <input type="text" name="description" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block" placeholder="New description" style="min-width:140px" value="<%= ec.description %>" required />
+              <input type="number" name="amount" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block" style="width:90px" value="<%= ec.amount %>" required />
+              <button type="submit" class="btn btn-outline-secondary btn-sm">Edit cost (new version)</button>
+            </form>
+            <% } %>
+          </li>
+          <% }); %>
+        </ul>
         <% } %>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header">Financials</div>
+      <div class="card-body">
+        <p class="serif h4 text-warning">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
+        <% if (quotation) { %>
+        <p>Quotation base: ₹<%= quotation.base_total.toLocaleString() %> – Status: <%= quotation.status %></p>
+        <p>Extra costs: <%= extraCosts.length %> (<%= extraCosts.filter(e => e.status === 'APPROVED').length %> approved)</p>
         <% } else { %>
-        <span><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong><%= ec.status %></strong></span>
-        <% if (ec.status === 'APPROVED' && ec.comments && ec.comments.length) { %>
-        <span class="ms-2" title="View comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
-        <% } else if (ec.status !== 'APPROVED' && ec.comments && ec.comments.length) { %>
-        <div class="mt-1 text-muted">
-          <% ec.comments.forEach(function(c) { %>
-          <div><strong><%= c.author_type %>:</strong> <%= c.message %> <small>(<%= c.created_at %>)</small></div>
+        <p>No quotation yet.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="tab-warranty" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Warranty &amp; Guarantee</div>
+      <div class="card-body">
+        <% if (typeof warrantyDocs !== 'undefined' && warrantyDocs.length > 0) { %>
+        <ul class="list-unstyled mb-0">
+          <% warrantyDocs.forEach(function(m) { %>
+          <li class="mb-2">
+            <a href="<%= m.url %>" target="_blank" class="text-warning text-decoration-none">
+              <i class="bi bi-file-earmark-text me-1"></i><%= m.file_name || m.url %>
+            </a>
+            <% if (!m.approved) { %>
+            <form method="post" action="/portal/admin/projects/<%= project.id %>/warranty/<%= m.id %>/approve" class="d-inline ms-2">
+              <button type="submit" class="btn btn-sm btn-gold">Approve</button>
+            </form>
+            <% } else { %>
+            <span class="badge bg-success ms-2">Approved</span>
+            <% } %>
+            <form method="post" action="/portal/admin/projects/<%= project.id %>/warranty/<%= m.id %>/delete" class="d-inline ms-2" onsubmit="return confirm('Delete this document?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </li>
+          <% }); %>
+        </ul>
+        <% } else { %>
+        <p class="text-muted mb-0">No warranty/guarantee documents yet.</p>
+        <% } %>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header">Upload warranty / guarantee documents</div>
+      <div class="card-body">
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/media" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end">
+          <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:260px" accept=".pdf,image/*" required />
+          <input type="hidden" name="category" value="WARRANTY_GUARANTEE" />
+          <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+        </form>
+        <p class="small text-muted mt-2 mb-0">Clients will see only approved documents.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="tab-vastu" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Vastu Documents</div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">Upload Vastu-related documents (images, videos, PDFs) and organize them by category. Documents must be approved before clients can view them.</p>
+        <p class="small text-warning mb-3"><strong>Note:</strong> All uploaded documents require admin approval. Click "Approve" on each document to make it visible to clients.</p>
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/media" enctype="multipart/form-data" class="mb-4">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small mb-0">Category name</label>
+              <input type="text" name="vastu_category_name" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g., North Direction, Entrance" style="min-width:180px" required />
+            </div>
+            <div class="col-auto">
+              <label class="form-label small mb-0">File</label>
+              <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*,video/*,.pdf" required />
+            </div>
+            <div class="col-auto">
+              <input type="hidden" name="category" value="VASTU" />
+              <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+            </div>
+          </div>
+        </form>
+        <% if (typeof vastuDocs !== 'undefined' && vastuDocs.length > 0) { %>
+        <div id="vastuDocumentsList">
+          <% 
+          const vastuByCategory = {};
+          vastuDocs.forEach(function(doc) {
+            const catName = doc.vastu_category_name || 'Uncategorized';
+            if (!vastuByCategory[catName]) vastuByCategory[catName] = [];
+            vastuByCategory[catName].push(doc);
+          });
+          Object.keys(vastuByCategory).sort().forEach(function(catName) {
+          %>
+          <div class="mb-4">
+            <h6 class="text-warning mb-2"><%= catName %></h6>
+            <div class="vault-grid">
+              <% vastuByCategory[catName].forEach(function(m) { %>
+              <div class="vault-item-wrapper mb-3">
+                <div class="vault-item rounded overflow-hidden" data-gallery-source="vastu" data-gallery-index="<%= vastuDocs.indexOf(m) %>" role="button" tabindex="0" style="cursor:pointer">
+                  <% const isVideo = (m.type || 'PHOTO') === 'VIDEO'; %>
+                  <% const isPdf = (m.url || '').toLowerCase().indexOf('.pdf') !== -1; %>
+                  <% if (isVideo) { %>
+                  <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                    <i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i>
+                  </div>
+                  <% } else if (isPdf) { %>
+                  <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                    <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size:2rem"></i>
+                  </div>
+                  <% } else { %>
+                  <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                    <img src="<%= m.url %>" alt="" loading="lazy" />
+                  </div>
+                  <% } %>
+                  <div class="vault-caption small text-muted text-truncate"><%= m.file_name || m.url || 'Item' %></div>
+                </div>
+                <div class="mt-2 d-flex align-items-center gap-2">
+                  <% if (!m.approved) { %>
+                  <form method="post" action="/portal/admin/projects/<%= project.id %>/vastu/<%= m.id %>/approve" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-gold">Approve</button>
+                  </form>
+                  <% } else { %>
+                  <span class="badge bg-success">Approved</span>
+                  <% } %>
+                  <form method="post" action="/portal/admin/projects/<%= project.id %>/vastu/<%= m.id %>/delete" class="d-inline" onsubmit="return confirm('Delete this document?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+          </div>
           <% }); %>
         </div>
+        <% } else { %>
+        <p class="text-muted mb-0">No Vastu documents uploaded yet.</p>
         <% } %>
-        <form method="post" action="/portal/admin/projects/<%= project.id %>/extra-cost/<%= ec.id %>/respond" class="mt-2">
-          <input type="text" name="response_note" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block mb-1" placeholder="Comment back to client" style="min-width:220px" />
-          <button type="submit" class="btn btn-outline-gold btn-sm">Send reply</button>
-        </form>
-        <form method="post" action="/portal/admin/projects/<%= project.id %>/extra-cost/<%= ec.id %>/edit" class="mt-1">
-          <input type="text" name="description" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block" placeholder="New description" style="min-width:140px" value="<%= ec.description %>" required />
-          <input type="number" name="amount" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block" style="width:90px" value="<%= ec.amount %>" required />
-          <button type="submit" class="btn btn-outline-secondary btn-sm">Edit cost (new version)</button>
-        </form>
-        <% } %>
-      </li>
-      <% }); %>
-    </ul>
-    <% } %>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="card card-portal mb-4">
-  <div class="card-header">Financials</div>
-  <div class="card-body">
-    <p class="serif h4 text-warning">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
-    <% if (quotation) { %>
-    <p>Quotation base: ₹<%= quotation.base_total.toLocaleString() %> – Status: <%= quotation.status %></p>
-    <p>Extra costs: <%= extraCosts.length %> (<%= extraCosts.filter(e => e.status === 'APPROVED').length %> approved)</p>
-    <% } else { %>
-    <p>No quotation yet.</p>
-    <% } %>
-  </div>
-</div>
-  </div>
-</div>
+<!-- Gallery Modal: Reuses vaultGalleryModal from design_vault partial if available, otherwise creates one -->
+
+<script>
+(function() {
+  var vastuList = <%- JSON.stringify((typeof vastuDocs !== 'undefined' && vastuDocs) ? vastuDocs.map(function(m) { return { url: m.url, type: (m.type || 'PHOTO'), file_name: m.file_name || m.url, vastu_category_name: m.vastu_category_name || '' }; }) : []) %>;
+  if (vastuList.length === 0) return;
+  
+  // Store vastuList globally for access
+  window.vastuList = vastuList;
+  
+  function openVastuGallery(index) {
+    console.log('openVastuGallery called with index:', index);
+    console.log('vastuList length:', vastuList.length);
+    
+    // Wait for modal to be available
+    var modalEl = document.getElementById('vaultGalleryModal');
+    console.log('Modal element found:', !!modalEl);
+    if (!modalEl) {
+      console.error('vaultGalleryModal not found. Checking if design_vault partial is loaded...');
+      // Try to find modal anywhere on page
+      modalEl = document.querySelector('#vaultGalleryModal');
+      if (!modalEl) {
+        console.error('Modal still not found anywhere on page');
+        alert('Gallery viewer not available. Please refresh the page.');
+        return;
+      }
+    }
+    
+    var contentEl = modalEl.querySelector('.vault-gallery-content');
+    var captionEl = document.getElementById('vaultGalleryCaption');
+    var sourceLabelEl = document.getElementById('vaultGallerySourceLabel');
+    var counterEl = document.getElementById('vaultGalleryCounter');
+    console.log('Content elements found:', {
+      contentEl: !!contentEl,
+      captionEl: !!captionEl,
+      sourceLabelEl: !!sourceLabelEl,
+      counterEl: !!counterEl
+    });
+    
+    if (!contentEl) {
+      console.error('vault-gallery-content not found in modal');
+      return;
+    }
+    
+    var currentList = vastuList;
+    var currentSourceLabel = 'Vastu Documents';
+    if (currentList.length === 0) {
+      console.error('vastuList is empty');
+      return;
+    }
+    
+    var currentIdx = (index + currentList.length) % currentList.length;
+    console.log('Current index:', currentIdx, 'Media:', currentList[currentIdx]);
+    var prevBtn = modalEl.querySelector('.vault-prev');
+    var nextBtn = modalEl.querySelector('.vault-next');
+    console.log('Navigation buttons found:', { prevBtn: !!prevBtn, nextBtn: !!nextBtn });
+    
+    function renderCurrent() {
+      if (currentList.length === 0) return;
+      var m = currentList[currentIdx];
+      if (!m) {
+        console.error('No media at index', currentIdx);
+        return;
+      }
+      console.log('Rendering media:', m);
+      var html = '';
+      var fileType = (m.type || 'PHOTO').toUpperCase();
+      var urlLower = (m.url || '').toLowerCase();
+      
+      if (fileType === 'VIDEO' || urlLower.indexOf('.mp4') !== -1 || urlLower.indexOf('.mov') !== -1 || urlLower.indexOf('.webm') !== -1) {
+        html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded" style="max-width:100%;max-height:85vh;"></video>';
+      } else if (urlLower.indexOf('.pdf') !== -1) {
+        var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+        html = '<div class="text-center"><a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold btn-lg">Open PDF</a><p class="text-muted small mt-3">' + fn + '</p></div>';
+      } else {
+        html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded" style="max-width:100%;max-height:85vh;object-fit:contain;" onerror="console.error(\'Image failed to load:\', this.src);">';
+      }
+      if (contentEl) {
+        contentEl.innerHTML = html;
+        console.log('Content rendered');
+      } else {
+        console.error('contentEl not found');
+      }
+      if (captionEl) captionEl.textContent = m.file_name || m.url || ('Item ' + (currentIdx + 1));
+      if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
+      if (counterEl) counterEl.textContent = (currentIdx + 1) + ' / ' + currentList.length;
+    }
+    
+    // Setup navigation
+    function setupNav() {
+      if (prevBtn) {
+        prevBtn.onclick = function() { 
+          currentIdx = (currentIdx - 1 + currentList.length) % currentList.length; 
+          renderCurrent(); 
+        };
+      }
+      if (nextBtn) {
+        nextBtn.onclick = function() { 
+          currentIdx = (currentIdx + 1) % currentList.length; 
+          renderCurrent(); 
+        };
+      }
+    }
+    
+    renderCurrent();
+    setupNav();
+    
+    console.log('Checking Bootstrap availability:', {
+      bootstrap: !!window.bootstrap,
+      Modal: !!(window.bootstrap && window.bootstrap.Modal)
+    });
+    
+    // Force show modal immediately
+    console.log('Modal element before show:', {
+      display: window.getComputedStyle(modalEl).display,
+      visibility: window.getComputedStyle(modalEl).visibility,
+      opacity: window.getComputedStyle(modalEl).opacity,
+      zIndex: window.getComputedStyle(modalEl).zIndex
+    });
+    
+    // Check for duplicate modals
+    var allModals = document.querySelectorAll('#vaultGalleryModal');
+    if (allModals.length > 1) {
+      console.warn('Multiple vaultGalleryModal elements found!', allModals.length);
+      // Use the first one
+      modalEl = allModals[0];
+    }
+    
+    // Use fallback method directly since Bootstrap show() seems to not be working
+    console.log('Using direct fallback method to show modal');
+    showModalFallback(modalEl);
+    
+    function showModalFallback(el) {
+      console.log('=== showModalFallback START ===');
+      console.log('Modal element:', el);
+      
+      // Remove existing backdrop if any
+      var oldBackdrop = document.getElementById('vaultGalleryBackdrop');
+      if (oldBackdrop) {
+        console.log('Removing old backdrop');
+        oldBackdrop.remove();
+      }
+      
+      // Remove any existing modal-backdrop classes
+      var existingBackdrops = document.querySelectorAll('.modal-backdrop');
+      existingBackdrops.forEach(function(b) { b.remove(); });
+      
+      // Ensure modal is in body
+      if (el.parentNode !== document.body) {
+        console.log('Moving modal to body');
+        document.body.appendChild(el);
+      }
+      
+      // Show modal with all necessary styles
+      el.classList.add('show');
+      el.style.display = 'block';
+      el.style.visibility = 'visible';
+      el.style.opacity = '1';
+      el.style.position = 'fixed';
+      el.style.top = '0';
+      el.style.left = '0';
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.zIndex = '1055';
+      el.setAttribute('aria-hidden', 'false');
+      el.setAttribute('aria-modal', 'true');
+      el.setAttribute('role', 'dialog');
+      
+      console.log('Modal styles applied');
+      
+      // Create backdrop
+      var backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      backdrop.id = 'vaultGalleryBackdrop';
+      backdrop.style.position = 'fixed';
+      backdrop.style.top = '0';
+      backdrop.style.left = '0';
+      backdrop.style.width = '100%';
+      backdrop.style.height = '100%';
+      backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      backdrop.style.zIndex = '1050';
+      backdrop.onclick = function() {
+        console.log('Backdrop clicked, hiding modal');
+        hideModalFallback(el);
+      };
+      document.body.appendChild(backdrop);
+      console.log('Backdrop created');
+      
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = '0px';
+      
+      // Close button handler
+      var closeBtn = el.querySelector('.btn-close');
+      if (closeBtn) {
+        closeBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Close button clicked');
+          hideModalFallback(el);
+        };
+      } else {
+        console.warn('Close button not found');
+      }
+      
+      // Also handle ESC key
+      var escHandler = function(e) {
+        if (e.key === 'Escape') {
+          console.log('ESC key pressed');
+          hideModalFallback(el);
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+      
+      console.log('=== showModalFallback COMPLETE ===');
+      console.log('Modal should now be visible. Check:', {
+        display: window.getComputedStyle(el).display,
+        visibility: window.getComputedStyle(el).visibility,
+        opacity: window.getComputedStyle(el).opacity,
+        zIndex: window.getComputedStyle(el).zIndex
+      });
+    }
+    
+    function hideModalFallback(el) {
+      console.log('=== hideModalFallback START ===');
+      el.classList.remove('show');
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.setAttribute('aria-hidden', 'true');
+      el.removeAttribute('aria-modal');
+      
+      // Remove all backdrops
+      var backdrop = document.getElementById('vaultGalleryBackdrop');
+      if (backdrop) backdrop.remove();
+      var allBackdrops = document.querySelectorAll('.modal-backdrop');
+      allBackdrops.forEach(function(b) { b.remove(); });
+      
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+      console.log('=== hideModalFallback COMPLETE ===');
+    }
+  }
+  
+  // Expose function globally for potential external calls
+  window.openVastuGallery = openVastuGallery;
+  
+  // Attach click handlers when DOM is ready
+  function attachVastuHandlers() {
+    // Check if modal exists first
+    var modalCheck = document.getElementById('vaultGalleryModal');
+    console.log('Modal exists in DOM:', !!modalCheck);
+    if (!modalCheck) {
+      console.warn('vaultGalleryModal not found in DOM. Modal may not be rendered yet.');
+    }
+    
+    // Try multiple selectors to find Vastu items
+    var vastuItems = document.querySelectorAll('#tab-vastu .vault-item[data-gallery-source="vastu"], #tab-vastu .vault-item-wrapper .vault-item');
+    console.log('Found', vastuItems.length, 'Vastu items');
+    
+    if (vastuItems.length === 0) {
+      console.warn('No Vastu items found. Tab may not be visible yet.');
+      return;
+    }
+    
+    vastuItems.forEach(function(item, i) {
+      // Make sure item is clickable
+      item.style.cursor = 'pointer';
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      
+      // Remove any existing listeners by cloning
+      var newItem = item.cloneNode(true);
+      var parent = item.parentNode;
+      if (parent) {
+        parent.replaceChild(newItem, item);
+      } else {
+        console.error('Parent not found for item', i);
+        return;
+      }
+      
+      // Add click listener
+      newItem.addEventListener('click', function(e) {
+        // Don't trigger if clicking on buttons/forms below
+        if (e.target.closest('button') || e.target.closest('form')) {
+          console.log('Click intercepted by button/form');
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        var idx = parseInt(this.getAttribute('data-gallery-index') || '0', 10);
+        console.log('Vastu item clicked, index:', idx, 'URL:', vastuList[idx] ? vastuList[idx].url : 'N/A');
+        console.log('openVastuGallery function exists:', typeof openVastuGallery === 'function');
+        console.log('Calling openVastuGallery...');
+        try {
+          if (vastuList[idx]) {
+            openVastuGallery(idx);
+            console.log('openVastuGallery call completed');
+          } else {
+            console.error('No vastu item at index', idx, 'List length:', vastuList.length);
+          }
+        } catch (error) {
+          console.error('Error calling openVastuGallery:', error);
+        }
+        return false;
+      });
+      
+      // Also handle keyboard
+      newItem.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          var idx = parseInt(this.getAttribute('data-gallery-index') || '0', 10);
+          if (vastuList[idx]) {
+            openVastuGallery(idx);
+          }
+        }
+      });
+    });
+  }
+  
+  // Wait for DOM to be ready
+  function initVastuGallery() {
+    console.log('Initializing Vastu gallery...');
+    attachVastuHandlers();
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(initVastuGallery, 100);
+    });
+  } else {
+    setTimeout(initVastuGallery, 100);
+  }
+  
+  // Also attach when Vastu tab is shown (Bootstrap tab event)
+  var vastuTabBtn = document.getElementById('tab-vastu-btn');
+  if (vastuTabBtn) {
+    vastuTabBtn.addEventListener('shown.bs.tab', function() {
+      console.log('Vastu tab shown, re-attaching handlers...');
+      setTimeout(attachVastuHandlers, 200);
+    });
+  } else {
+    console.warn('tab-vastu-btn not found');
+  }
+  
+  // Also try after a delay to catch late-loading content
+  setTimeout(function() {
+    if (document.querySelectorAll('#tab-vastu .vault-item').length > 0) {
+      console.log('Re-checking Vastu items after delay...');
+      attachVastuHandlers();
+    }
+  }, 1000);
+})();
+</script>
 
 <div class="modal fade" id="commentHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

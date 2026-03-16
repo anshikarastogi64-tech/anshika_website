@@ -16,6 +16,9 @@
     <button class="nav-link" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
   </li>
   <% } %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+  </li>
 </ul>
 <div class="tab-content" id="projectTabsContent">
   <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
@@ -139,6 +142,80 @@
     </ul>
     <% } %>
   </div>
+  <div class="tab-pane fade" id="tab-vastu" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Vastu Documents</div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">Upload Vastu-related documents (images, videos, PDFs) and organize them by category. Documents require admin approval before clients can view them.</p>
+        <form method="post" action="/portal/designer/projects/<%= project.id %>/media" enctype="multipart/form-data" class="mb-4">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small mb-0">Category name</label>
+              <input type="text" name="vastu_category_name" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g., North Direction, Entrance" style="min-width:180px" required />
+            </div>
+            <div class="col-auto">
+              <label class="form-label small mb-0">File</label>
+              <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*,video/*,.pdf" required />
+            </div>
+            <div class="col-auto">
+              <input type="hidden" name="category" value="VASTU" />
+              <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+            </div>
+          </div>
+        </form>
+        <% if (typeof vastuDocs !== 'undefined' && vastuDocs.length > 0) { %>
+        <div id="vastuDocumentsList">
+          <% 
+          const vastuByCategory = {};
+          vastuDocs.forEach(function(doc) {
+            const catName = doc.vastu_category_name || 'Uncategorized';
+            if (!vastuByCategory[catName]) vastuByCategory[catName] = [];
+            vastuByCategory[catName].push(doc);
+          });
+          Object.keys(vastuByCategory).sort().forEach(function(catName) {
+          %>
+          <div class="mb-4">
+            <h6 class="text-warning mb-2"><%= catName %></h6>
+            <div class="vault-grid">
+              <% vastuByCategory[catName].forEach(function(m) { %>
+              <div class="vault-item-wrapper mb-3">
+                <div class="vault-item rounded overflow-hidden" data-gallery-source="vastu" data-gallery-index="<%= vastuDocs.indexOf(m) %>" role="button" tabindex="0" style="cursor:pointer">
+                  <% const isVideo = (m.type || 'PHOTO') === 'VIDEO'; %>
+                  <% const isPdf = (m.url || '').toLowerCase().indexOf('.pdf') !== -1; %>
+                  <% if (isVideo) { %>
+                  <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                    <i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i>
+                  </div>
+                  <% } else if (isPdf) { %>
+                  <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                    <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size:2rem"></i>
+                  </div>
+                  <% } else { %>
+                  <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+                    <img src="<%= m.url %>" alt="" loading="lazy" />
+                  </div>
+                  <% } %>
+                  <div class="vault-caption small text-muted text-truncate"><%= m.file_name || m.url || 'Item' %></div>
+                </div>
+                <div class="mt-2">
+                  <% if (!m.approved) { %>
+                  <span class="badge bg-warning text-dark">Pending Approval</span>
+                  <% } else { %>
+                  <span class="badge bg-success">Approved</span>
+                  <% } %>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <% } else { %>
+        <p class="text-muted mb-0">No Vastu documents uploaded yet.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="card card-portal mb-4">
@@ -151,6 +228,185 @@
   </div>
 </div>
   <% } %>
+
+<script>
+(function() {
+  var vastuList = <%- JSON.stringify((typeof vastuDocs !== 'undefined' && vastuDocs) ? vastuDocs.map(function(m) { return { url: m.url, type: (m.type || 'PHOTO'), file_name: m.file_name || m.url, vastu_category_name: m.vastu_category_name || '' }; }) : []) %>;
+  if (vastuList.length === 0) return;
+  
+  window.vastuList = vastuList;
+  
+  function openVastuGallery(index) {
+    var modalEl = document.getElementById('vaultGalleryModal');
+    if (!modalEl) {
+      console.error('vaultGalleryModal not found. Checking if design_vault partial is loaded...');
+      modalEl = document.querySelector('#vaultGalleryModal');
+      if (!modalEl) {
+        alert('Gallery viewer not available. Please refresh the page.');
+        return;
+      }
+    }
+    var contentEl = modalEl.querySelector('.vault-gallery-content');
+    var captionEl = document.getElementById('vaultGalleryCaption');
+    var sourceLabelEl = document.getElementById('vaultGallerySourceLabel');
+    var counterEl = document.getElementById('vaultGalleryCounter');
+    if (!contentEl) {
+      console.error('vault-gallery-content not found in modal');
+      return;
+    }
+    
+    var currentList = vastuList;
+    var currentSourceLabel = 'Vastu Documents';
+    if (currentList.length === 0) return;
+    
+    var currentIdx = (index + currentList.length) % currentList.length;
+    var prevBtn = modalEl.querySelector('.vault-prev');
+    var nextBtn = modalEl.querySelector('.vault-next');
+    
+    function renderCurrent() {
+      if (currentList.length === 0) return;
+      var m = currentList[currentIdx];
+      if (!m) return;
+      var html = '';
+      var fileType = (m.type || 'PHOTO').toUpperCase();
+      var urlLower = (m.url || '').toLowerCase();
+      
+      if (fileType === 'VIDEO' || urlLower.indexOf('.mp4') !== -1 || urlLower.indexOf('.mov') !== -1 || urlLower.indexOf('.webm') !== -1) {
+        html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded" style="max-width:100%;max-height:85vh;"></video>';
+      } else if (urlLower.indexOf('.pdf') !== -1) {
+        var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+        html = '<div class="text-center"><a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold btn-lg">Open PDF</a><p class="text-muted small mt-3">' + fn + '</p></div>';
+      } else {
+        html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded" style="max-width:100%;max-height:85vh;object-fit:contain;">';
+      }
+      contentEl.innerHTML = html;
+      if (captionEl) captionEl.textContent = m.file_name || m.url || ('Item ' + (currentIdx + 1));
+      if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
+      if (counterEl) counterEl.textContent = (currentIdx + 1) + ' / ' + currentList.length;
+    }
+    
+    function setupNav() {
+      if (prevBtn) prevBtn.onclick = function() { currentIdx = (currentIdx - 1 + currentList.length) % currentList.length; renderCurrent(); };
+      if (nextBtn) nextBtn.onclick = function() { currentIdx = (currentIdx + 1) % currentList.length; renderCurrent(); };
+    }
+    
+    renderCurrent();
+    setupNav();
+    
+    // Use direct fallback method
+    showModalFallback(modalEl);
+    
+    function showModalFallback(el) {
+      console.log('=== showModalFallback START ===');
+      var oldBackdrop = document.getElementById('vaultGalleryBackdrop');
+      if (oldBackdrop) oldBackdrop.remove();
+      var existingBackdrops = document.querySelectorAll('.modal-backdrop');
+      existingBackdrops.forEach(function(b) { b.remove(); });
+      
+      if (el.parentNode !== document.body) {
+        document.body.appendChild(el);
+      }
+      
+      el.classList.add('show');
+      el.style.display = 'block';
+      el.style.visibility = 'visible';
+      el.style.opacity = '1';
+      el.style.position = 'fixed';
+      el.style.top = '0';
+      el.style.left = '0';
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.zIndex = '1055';
+      el.setAttribute('aria-hidden', 'false');
+      el.setAttribute('aria-modal', 'true');
+      el.setAttribute('role', 'dialog');
+      
+      var backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      backdrop.id = 'vaultGalleryBackdrop';
+      backdrop.style.position = 'fixed';
+      backdrop.style.top = '0';
+      backdrop.style.left = '0';
+      backdrop.style.width = '100%';
+      backdrop.style.height = '100%';
+      backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      backdrop.style.zIndex = '1050';
+      backdrop.onclick = function() { hideModalFallback(el); };
+      document.body.appendChild(backdrop);
+      
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+      
+      var closeBtn = el.querySelector('.btn-close');
+      if (closeBtn) {
+        closeBtn.onclick = function(e) {
+          e.preventDefault();
+          hideModalFallback(el);
+        };
+      }
+      
+      var escHandler = function(e) {
+        if (e.key === 'Escape') {
+          hideModalFallback(el);
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+    }
+    
+    function hideModalFallback(el) {
+      el.classList.remove('show');
+      el.style.display = 'none';
+      el.style.visibility = 'hidden';
+      el.setAttribute('aria-hidden', 'true');
+      el.removeAttribute('aria-modal');
+      var backdrop = document.getElementById('vaultGalleryBackdrop');
+      if (backdrop) backdrop.remove();
+      var allBackdrops = document.querySelectorAll('.modal-backdrop');
+      allBackdrops.forEach(function(b) { b.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+    }
+  }
+  
+  window.openVastuGallery = openVastuGallery;
+  
+  function attachVastuHandlers() {
+    var vastuItems = document.querySelectorAll('#tab-vastu .vault-item[data-gallery-source="vastu"]');
+    console.log('Found', vastuItems.length, 'Vastu items');
+    vastuItems.forEach(function(item) {
+      item.style.cursor = 'pointer';
+      var newItem = item.cloneNode(true);
+      item.parentNode.replaceChild(newItem, item);
+      newItem.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var idx = parseInt(this.getAttribute('data-gallery-index') || '0', 10);
+        console.log('Vastu item clicked, index:', idx);
+        openVastuGallery(idx);
+        return false;
+      });
+      var children = newItem.querySelectorAll('*');
+      children.forEach(function(child) {
+        child.style.pointerEvents = 'none';
+      });
+    });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachVastuHandlers);
+  } else {
+    attachVastuHandlers();
+  }
+  
+  var vastuTabBtn = document.getElementById('tab-vastu-btn');
+  if (vastuTabBtn) {
+    vastuTabBtn.addEventListener('shown.bs.tab', function() {
+      setTimeout(attachVastuHandlers, 100);
+    });
+  }
+})();
+</script>
 
 <div class="modal fade" id="commentHistoryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

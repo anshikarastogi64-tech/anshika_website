@@ -309,9 +309,12 @@ db.serialize(() => {
       file_name TEXT,
       file_size INTEGER,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      approved INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY (project_id) REFERENCES portal_projects(id)
     )`
   );
+  db.run("ALTER TABLE portal_media ADD COLUMN approved INTEGER NOT NULL DEFAULT 0", () => {});
+  db.run("ALTER TABLE portal_media ADD COLUMN vastu_category_name TEXT", () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_daily_updates (
       id TEXT PRIMARY KEY,
