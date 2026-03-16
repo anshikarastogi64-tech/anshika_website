@@ -241,6 +241,8 @@ db.serialize(() => {
       FOREIGN KEY (designer_id) REFERENCES portal_users(id)
     )`
   );
+  db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_see_finance INTEGER NOT NULL DEFAULT 1', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_view_mirror INTEGER NOT NULL DEFAULT 1', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_quotations (
       id TEXT PRIMARY KEY,
@@ -251,10 +253,12 @@ db.serialize(() => {
       client_comments TEXT,
       approved_at TEXT,
       is_final INTEGER NOT NULL DEFAULT 0,
+      pdf_url TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES portal_projects(id)
     )`
   );
+  db.run('ALTER TABLE portal_quotations ADD COLUMN pdf_url TEXT', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_extra_costs (
       id TEXT PRIMARY KEY,
@@ -264,9 +268,24 @@ db.serialize(() => {
       status TEXT NOT NULL DEFAULT 'PENDING',
       comment TEXT,
       client_note TEXT,
+      response_note TEXT,
+      replaces_id TEXT,
       approved_at TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (quotation_id) REFERENCES portal_quotations(id)
+    )`
+  );
+  db.run('ALTER TABLE portal_extra_costs ADD COLUMN response_note TEXT', () => {});
+  db.run('ALTER TABLE portal_extra_costs ADD COLUMN replaces_id TEXT', () => {}); // ignore err if column exists
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_extra_cost_comments (
+      id TEXT PRIMARY KEY,
+      extra_cost_id TEXT NOT NULL,
+      author_type TEXT NOT NULL,
+      user_id TEXT,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (extra_cost_id) REFERENCES portal_extra_costs(id)
     )`
   );
   db.run(
@@ -294,6 +313,79 @@ db.serialize(() => {
     )`
   );
   db.run(
+    `CREATE TABLE IF NOT EXISTS portal_daily_updates (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      author_type TEXT NOT NULL,
+      author_id TEXT,
+      text TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id),
+      FOREIGN KEY (author_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_daily_update_media (
+      id TEXT PRIMARY KEY,
+      update_id TEXT NOT NULL,
+      url TEXT NOT NULL,
+      type TEXT NOT NULL,
+      file_name TEXT,
+      file_size INTEGER,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (update_id) REFERENCES portal_daily_updates(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_designs (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      category TEXT NOT NULL,
+      area_tag TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_design_versions (
+      id TEXT PRIMARY KEY,
+      design_id TEXT NOT NULL,
+      media_id TEXT NOT NULL,
+      version_number INTEGER NOT NULL DEFAULT 1,
+      admin_status TEXT NOT NULL DEFAULT 'PENDING_ADMIN',
+      client_status TEXT NOT NULL DEFAULT 'PENDING',
+      created_by TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (design_id) REFERENCES portal_designs(id),
+      FOREIGN KEY (media_id) REFERENCES portal_media(id),
+      FOREIGN KEY (created_by) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_design_links (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      design_id_2d TEXT NOT NULL,
+      design_id_3d TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id),
+      FOREIGN KEY (design_id_2d) REFERENCES portal_designs(id),
+      FOREIGN KEY (design_id_3d) REFERENCES portal_designs(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_design_comments (
+      id TEXT PRIMARY KEY,
+      design_version_id TEXT NOT NULL,
+      author_type TEXT NOT NULL,
+      user_id TEXT,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (design_version_id) REFERENCES portal_design_versions(id),
+      FOREIGN KEY (user_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
     `CREATE TABLE IF NOT EXISTS portal_complaints (
       id TEXT PRIMARY KEY,
       project_id TEXT NOT NULL,
@@ -302,6 +394,15 @@ db.serialize(() => {
       status TEXT NOT NULL DEFAULT 'OPEN',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_notifications (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES portal_users(id)
     )`
   );
   db.run(

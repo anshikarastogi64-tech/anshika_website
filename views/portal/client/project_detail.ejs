@@ -1,55 +1,42 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
-<p class="mb-4">Stage: <strong><%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></strong></p>
+<p class="mb-3">Stage: <strong><%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></strong></p>
 
-<!-- Progress stepper (11 stages) -->
-<div class="card card-portal mb-4">
-  <div class="card-header">Progress</div>
-  <div class="card-body">
-    <div class="d-flex flex-wrap gap-2">
-      <% LIFECYCLE_STAGES.forEach(function(s) { %>
-      <span class="badge <%= s.index <= project.current_stage ? 'bg-warning text-dark' : 'bg-secondary' %>" title="<%= s.description %>"><%= s.name %></span>
-      <% }); %>
+<ul class="nav nav-tabs portal-tabs mb-3" id="projectTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
+  </li>
+</ul>
+<div class="tab-content" id="projectTabsContent">
+  <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
+    <!-- Progress stepper -->
+    <div class="card card-portal mb-4">
+      <div class="card-header">Progress</div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          <% LIFECYCLE_STAGES.forEach(function(s) { %>
+          <span class="badge <%= s.index <= project.current_stage ? 'bg-warning text-dark' : 'bg-secondary' %>" title="<%= s.description %>"><%= s.name %></span>
+          <% }); %>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
-<!-- Financials -->
-<div class="card card-portal mb-4">
-  <div class="card-header">Financials</div>
-  <div class="card-body">
-    <p class="serif h4 text-warning mb-4" id="projectTotal">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
-    <% if (quotation) { %>
-    <p>Quotation (base): ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
-    <% if (!readOnly && quotation.status === 'PENDING') { %>
-    <button type="button" class="btn btn-gold btn-sm" data-quotation-id="<%= quotation.id %>" onclick="approveQuotation(this)">Approve Quotation</button>
-    <% } %>
-    <h6 class="mt-4">Extra costs / Variations</h6>
-    <ul class="list-unstyled">
-      <% extraCosts.forEach(function(ec) { %>
-      <li class="border-bottom border-secondary py-2">
-        <%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong><%= ec.status %></strong>
-        <% if (!readOnly && ec.status === 'PENDING') { %>
-        <button type="button" class="btn btn-gold btn-sm ms-2" data-id="<%= ec.id %>" data-amount="<%= ec.amount %>" onclick="approveExtra(this)">Approve</button>
-        <button type="button" class="btn btn-outline-gold btn-sm" data-id="<%= ec.id %>" onclick="rejectExtra(this)">Reject</button>
-        <% } %>
-      </li>
-      <% }); %>
-    </ul>
-    <% } else { %>
-    <p class="text-muted">No quotation yet.</p>
-    <% } %>
-  </div>
-</div>
-
-<!-- CCTV / Live stream (Imou or RTSP) -->
-<div class="card card-portal mb-4">
-  <div class="card-header">Live Site View</div>
-  <div class="card-body">
-    <% if (project.rtsp_link) { %>
-    <div id="cctv-container" class="ratio ratio-16x9 bg-dark rounded">
-      <p class="text-muted d-flex align-items-center justify-content-center m-0">Loading stream…</p>
-    </div>
-    <script>
+    <!-- Live Site View -->
+    <div class="card card-portal mb-4">
+      <div class="card-header">Live Site View</div>
+      <div class="card-body">
+        <% if (project.rtsp_link) { %>
+        <div id="cctv-container" class="ratio ratio-16x9 bg-dark rounded">
+          <p class="text-muted d-flex align-items-center justify-content-center m-0">Loading stream…</p>
+        </div>
+        <script>
 (function(){
   var projectId = '<%= project.id %>';
   fetch('/portal/api/cctv/' + projectId, { credentials: 'same-origin' })
@@ -70,49 +57,128 @@
     })
     .catch(function(){ document.getElementById('cctv-container').innerHTML = '<p class="text-muted m-0">Live stream offline</p>'; });
 })();
-    </script>
-    <% } else { %>
-    <p class="text-muted mb-0">Live stream not configured. Your designer can add a camera link to this project.</p>
-    <% } %>
+        </script>
+        <% } else { %>
+        <p class="text-muted mb-0">Live stream not configured. Your designer can add a camera link to this project.</p>
+        <% } %>
+      </div>
+    </div>
+    <p><button type="button" class="btn btn-outline-gold btn-sm" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button></p>
+  </div>
+  <div class="tab-pane fade" id="tab-vault" role="tabpanel">
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], project, readOnly: typeof readOnly !== 'undefined' ? readOnly : false, showDailyOnly: false }) %>
+  </div>
+  <div class="tab-pane fade" id="tab-daily" role="tabpanel">
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], project, readOnly: typeof readOnly !== 'undefined' ? readOnly : false, dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true }) %>
+  </div>
+  <div class="tab-pane fade" id="tab-finance" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header">Financials</div>
+      <div class="card-body">
+        <p class="serif h4 text-warning mb-4" id="projectTotal">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
+        <% if (quotation) { %>
+        <p>Quotation (base): ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
+        <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" target="_blank" class="text-warning">View / Download quotation PDF</a></p><% } %>
+        <% if (!readOnly && quotation.status === 'PENDING') { %>
+        <button type="button" class="btn btn-gold btn-sm" data-quotation-id="<%= quotation.id %>" onclick="approveQuotation(this)">Approve Quotation</button>
+        <% } %>
+        <h6 class="mt-4">Extra costs / Variations</h6>
+        <p class="small text-muted mb-2">Comments are preserved in order. After a cost is approved, comment history is available via the icon. You can Approve, Reject (reason required), or add a Comment.</p>
+        <ul class="list-unstyled">
+          <% extraCosts.forEach(function(ec) { %>
+          <li class="border-bottom border-secondary py-2" id="ec-<%= ec.id %>">
+            <% if (ec.status === 'SUPERSEDED') { %>
+            <span class="text-muted"><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong>Superseded</strong> (replaced by updated cost)</span>
+            <% if (ec.comments && ec.comments.length) { %>
+            <span class="ms-2" title="Comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+            <% } %>
+            <% } else { %>
+            <%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong><%= ec.status %></strong>
+            <% if (ec.status === 'APPROVED' && ec.comments && ec.comments.length) { %>
+            <span class="ms-2" title="View comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+            <% } else if (ec.status !== 'APPROVED' && ec.comments && ec.comments.length) { %>
+            <div class="mt-1 small text-muted">
+              <% ec.comments.forEach(function(c) { %>
+              <div><strong><%= c.author_type %>:</strong> <%= c.message %> <small>(<%= c.created_at %>)</small></div>
+              <% }); %>
+            </div>
+            <% } %>
+            <% if (!readOnly && ec.status === 'PENDING') { %>
+            <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+              <button type="button" class="btn btn-gold btn-sm" data-id="<%= ec.id %>" onclick="approveExtra(this)">Approve</button>
+              <button type="button" class="btn btn-outline-gold btn-sm" data-id="<%= ec.id %>" onclick="openRejectModal(this)">Reject</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-id="<%= ec.id %>" onclick="openCommentForm(this)">Comment</button>
+            </div>
+            <div class="ec-comment-form mt-2 d-none" data-ec-id="<%= ec.id %>">
+              <textarea class="form-control form-control-sm bg-dark text-light border-secondary mb-1" rows="2" placeholder="Your comment (optional)" style="max-width:400px"></textarea>
+              <button type="button" class="btn btn-outline-gold btn-sm" onclick="submitComment(this)">Submit comment</button>
+            </div>
+            <% } %>
+            <% } %>
+          </li>
+          <% }); %>
+        </ul>
+        <% } else { %>
+        <p class="text-muted">No quotation yet.</p>
+        <% } %>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Design Vault (structured: categories + Site Log by Year/Month) -->
-<% if (media && media.length > 0) { %>
-<div class="card card-portal mb-4">
-  <div class="card-header">Design Vault</div>
-  <div class="card-body">
-    <% if (typeof byYearMonth !== 'undefined' && Object.keys(byYearMonth).length > 0) { %>
-    <h6 class="serif text-warning">Site Progress</h6>
-    <p class="small text-muted">Organized by year and month.</p>
-    <% Object.keys(byYearMonth).sort().reverse().forEach(function(year) { %>
-      <% Object.keys(byYearMonth[year]).forEach(function(month) { %>
-    <p class="mb-1"><strong><%= year %> – <%= month %></strong></p>
-    <ul class="list-unstyled mb-3">
-      <% byYearMonth[year][month].forEach(function(m) { %>
-      <li class="border-bottom border-secondary py-1">
-        <a href="<%= m.url %>" target="_blank" class="text-warning"><%= m.file_name || m.url %></a>
-        <small class="text-muted"><%= m.created_at %></small>
-      </li>
-      <% }); %>
-    </ul>
-      <% }); %>
-    <% }); %>
-    <% } %>
-    <% if (typeof otherByCat !== 'undefined') { Object.keys(otherByCat).forEach(function(cat) { %>
-    <h6 class="serif text-warning mt-3"><%= cat.replace(/_/g, ' ') %></h6>
-    <ul class="list-unstyled">
-      <% otherByCat[cat].forEach(function(m) { %>
-      <li class="border-bottom border-secondary py-1">
-        <a href="<%= m.url %>" target="_blank" class="text-warning"><%= m.file_name || m.url %></a>
-        <small class="text-muted"><%= m.created_at %></small>
-      </li>
-      <% }); %>
-    </ul>
-    <% }); } %>
+<!-- Reject reason modal -->
+<% if (!readOnly) { %>
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning" id="rejectModalLabel">Reject this cost</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">Reason for rejection is required.</p>
+        <textarea id="rejectReason" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Enter reason for rejection..." required></textarea>
+        <p id="rejectError" class="text-danger small mt-1 mb-0 d-none">Please enter a reason.</p>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-gold" id="rejectConfirmBtn">Reject</button>
+      </div>
+    </div>
   </div>
 </div>
 <% } %>
+
+<!-- Comment history modal (for approved/superseded costs; always visible so mirror can use it) -->
+<div class="modal fade" id="commentHistoryModal" tabindex="-1" aria-labelledby="commentHistoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning" id="commentHistoryModalLabel">Comment history</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="commentHistoryModalBody"></div>
+    </div>
+  </div>
+</div>
+<script>
+function showCommentHistory(el) {
+  var raw = el.getAttribute('data-comments');
+  if (!raw) return;
+  try {
+    var comments = JSON.parse(decodeURIComponent(raw));
+    var body = document.getElementById('commentHistoryModalBody');
+    if (!body) return;
+    if (!comments || comments.length === 0) { body.innerHTML = '<p class="text-muted mb-0">No comments.</p>'; }
+    else {
+      body.innerHTML = comments.map(function(c) {
+        return '<div class="border-bottom border-secondary py-2"><strong>' + (c.author_type || '') + ':</strong> ' + (c.message || '') + ' <small class="text-muted">(' + (c.created_at || '') + ')</small></div>';
+      }).join('');
+    }
+    if (window.bootstrap) { var m = document.getElementById('commentHistoryModal'); if (m) new bootstrap.Modal(m).show(); }
+  } catch (e) {}
+}
+</script>
 
 <% if (!readOnly) { %>
 <script>
@@ -129,9 +195,66 @@ function approveExtra(btn) {
     .then(function(r) { return r.json(); })
     .then(function() { location.reload(); });
 }
-function rejectExtra(btn) {
+
+var rejectModalEl = document.getElementById('rejectModal');
+var rejectReasonEl = document.getElementById('rejectReason');
+var rejectErrorEl = document.getElementById('rejectError');
+var rejectConfirmBtn = document.getElementById('rejectConfirmBtn');
+var pendingRejectId = null;
+
+function openRejectModal(btn) {
+  pendingRejectId = btn.getAttribute('data-id');
+  if (rejectReasonEl) rejectReasonEl.value = '';
+  if (rejectErrorEl) { rejectErrorEl.classList.add('d-none'); rejectErrorEl.textContent = ''; }
+  if (rejectModalEl && window.bootstrap) {
+    var m = new bootstrap.Modal(rejectModalEl);
+    m.show();
+  }
+}
+
+if (rejectConfirmBtn && rejectModalEl) {
+  rejectConfirmBtn.addEventListener('click', function() {
+    var reason = rejectReasonEl ? rejectReasonEl.value.trim() : '';
+    if (!reason) {
+      if (rejectErrorEl) { rejectErrorEl.textContent = 'Please enter a reason for rejection.'; rejectErrorEl.classList.remove('d-none'); }
+      return;
+    }
+    if (!pendingRejectId) return;
+    fetch('/portal/api/extra-cost/' + pendingRejectId + '/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: reason })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) { if (rejectErrorEl) { rejectErrorEl.textContent = data.error; rejectErrorEl.classList.remove('d-none'); } return; }
+        if (rejectModalEl && window.bootstrap) bootstrap.Modal.getInstance(rejectModalEl).hide();
+        location.reload();
+      })
+      .catch(function() { if (rejectErrorEl) { rejectErrorEl.textContent = 'Something went wrong.'; rejectErrorEl.classList.remove('d-none'); } });
+  });
+}
+
+function openCommentForm(btn) {
   var id = btn.getAttribute('data-id');
-  fetch('/portal/api/extra-cost/' + id + '/reject', { method: 'POST' })
+  var forms = document.querySelectorAll('.ec-comment-form');
+  forms.forEach(function(f) {
+    if (f.getAttribute('data-ec-id') === id) f.classList.remove('d-none');
+    else f.classList.add('d-none');
+  });
+}
+
+function submitComment(btn) {
+  var form = btn.closest('.ec-comment-form');
+  if (!form) return;
+  var id = form.getAttribute('data-ec-id');
+  var ta = form.querySelector('textarea');
+  var comment = ta ? ta.value.trim() : '';
+  fetch('/portal/api/extra-cost/' + id + '/comment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ comment: comment })
+  })
     .then(function(r) { return r.json(); })
     .then(function() { location.reload(); });
 }

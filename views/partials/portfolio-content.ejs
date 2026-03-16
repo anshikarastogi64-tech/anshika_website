@@ -24,14 +24,14 @@
       <% projs.forEach(function(p) { %>
       <div class="col-lg-4 col-md-6 portfolio-item filter-cat-<%= p.category_id %>">
         <div class="portfolio-wrap">
-          <a href="/portfolio/project/<%= p.id %>">
+          <a href="/portfolio/project/<%= p.id %>" class="portfolio-card-link" title="View <%= (p.name || 'project').replace(/"/g, '&quot;') %>">
             <img src="/<%= p.cover_image_path || 'assets/img/portfolio/portfolio-1.jpg' %>" class="img-fluid" alt="<%= (p.name || '').replace(/"/g, '&quot;') %>" loading="lazy" width="400" height="300">
             <div class="portfolio-info">
               <h4><%= p.name || 'Project' %></h4>
               <% if (p.location && p.location.trim()) { %><p class="mb-0"><small><i class="bx bx-map-pin"></i> <%= p.location %><% if (p.city && p.city.trim()) { %>, <%= p.city %><% } %></small></p><% } %>
               <p><%= (p.initial_text || '').substring(0, 80) %><%= (p.initial_text && p.initial_text.length > 80) ? '...' : '' %></p>
               <div class="portfolio-links">
-                <a href="/portfolio/project/<%= p.id %>" title="<%= (p.name || '').replace(/"/g, '&quot;') %>">Explore</a>
+                <span class="portfolio-cta">View project <i class="bi bi-arrow-right"></i></span>
               </div>
             </div>
           </a>
@@ -42,3 +42,52 @@
     </div>
   </div>
 </section>
+<style>
+  /* Whole card is one link: click photo or overlay to open project */
+  .portfolio .portfolio-wrap .portfolio-card-link {
+    display: block;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  .portfolio .portfolio-wrap .portfolio-cta {
+    color: #fff;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .portfolio .portfolio-wrap a:hover .portfolio-cta {
+    opacity: 0.95;
+    transform: translateX(2px);
+  }
+  /* Mobile: always show project title and summary below image, avoid overlap */
+  @media (max-width: 767.98px) {
+    .portfolio .portfolio-wrap {
+      background: #000;
+    }
+    .portfolio .portfolio-wrap::before {
+      display: none;
+    }
+    .portfolio .portfolio-wrap .portfolio-card-link {
+      display: flex;
+      flex-direction: column;
+    }
+    .portfolio .portfolio-wrap img {
+      width: 100%;
+      height: auto;
+    }
+    .portfolio .portfolio-wrap .portfolio-info {
+      position: static;
+      opacity: 1;
+      padding: 0.75rem 0.75rem 1rem;
+    }
+    .portfolio .portfolio-wrap .portfolio-info h4 {
+      margin-bottom: 0.25rem;
+    }
+    .portfolio .portfolio-wrap .portfolio-links {
+      margin-top: 0.25rem;
+    }
+  }
+</style>

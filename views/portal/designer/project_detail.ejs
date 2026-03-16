@@ -1,53 +1,183 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
-<p>Client: <%= project.client_name %> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></p>
-<div class="card card-portal mb-4">
-  <div class="card-header">Update project</div>
+<p class="mb-3">Client: <%= project.client_name %> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></p>
+
+<ul class="nav nav-tabs portal-tabs mb-3" id="projectTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
+  </li>
+  <% if (typeof project.designer_can_see_finance === 'undefined' || project.designer_can_see_finance !== 0) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
+  </li>
+  <% } %>
+</ul>
+<div class="tab-content" id="projectTabsContent">
+  <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header">Update project</div>
+      <div class="card-body">
+        <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small mb-0">Stage</label>
+              <select name="current_stage" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:180px">
+                <% LIFECYCLE_STAGES.forEach(function(s) { %>
+                <option value="<%= s.index %>" <%= project.current_stage === s.index ? 'selected' : '' %>><%= s.name %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Update stage</button></div>
+          </div>
+        </form>
+        <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-0">
+          <div class="row g-2 align-items-end">
+            <div class="col-auto">
+              <label class="form-label small mb-0">CCTV / RTSP URL</label>
+              <input type="url" name="rtsp_link" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:280px" placeholder="https:// or rtsp://" value="<%= project.rtsp_link || '' %>" />
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-outline-gold btn-sm">Save URL</button></div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <p class="d-flex flex-wrap gap-2">
+      <% if (typeof project.designer_can_view_mirror === 'undefined' || project.designer_can_view_mirror !== 0) { %>
+      <a href="/portal/mirror/<%= project.id %>" class="btn btn-gold">View as Client (Mirror)</a>
+      <% } %>
+      <button type="button" class="btn btn-outline-gold" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button>
+    </p>
+  </div>
+  <div class="tab-pane fade" id="tab-vault" role="tabpanel">
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/designer/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], showDailyOnly: false }) %>
+  </div>
+  <div class="tab-pane fade" id="tab-daily" role="tabpanel">
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/designer/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true }) %>
+  </div>
+  <% if (typeof project.designer_can_see_finance === 'undefined' || project.designer_can_see_finance !== 0) { %>
+  <div class="tab-pane fade" id="tab-finance" role="tabpanel">
+    <div class="card card-portal mb-4">
+      <div class="card-header">Quotation</div>
   <div class="card-body">
-    <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-3">
+    <% if (quotation) { %>
+    <p class="mb-2">Base total: ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
+    <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" target="_blank" class="text-warning">View quotation PDF</a></p><% } %>
+    <% if (quotation.status !== 'APPROVED') { %>
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/quotation/update" class="mb-3">
       <div class="row g-2 align-items-end">
         <div class="col-auto">
-          <label class="form-label small mb-0">Stage</label>
-          <select name="current_stage" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:180px">
-            <% LIFECYCLE_STAGES.forEach(function(s) { %>
-            <option value="<%= s.index %>" <%= project.current_stage === s.index ? 'selected' : '' %>><%= s.name %></option>
-            <% }); %>
-          </select>
+          <label class="form-label small mb-0">Base total (₹)</label>
+          <input type="number" name="base_total" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:120px" value="<%= quotation.base_total %>" required />
         </div>
-        <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Update stage</button></div>
+        <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Update quotation</button></div>
       </div>
     </form>
-    <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-0">
-      <div class="row g-2 align-items-end">
-        <div class="col-auto">
-          <label class="form-label small mb-0">CCTV / RTSP URL</label>
-          <input type="url" name="rtsp_link" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:280px" placeholder="https:// or rtsp://" value="<%= project.rtsp_link || '' %>" />
-        </div>
-        <div class="col-auto"><button type="submit" class="btn btn-outline-gold btn-sm">Save URL</button></div>
-      </div>
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/quotation/upload-pdf" enctype="multipart/form-data" class="mb-0">
+      <input type="file" name="pdf" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" accept=".pdf,application/pdf" style="max-width:280px" />
+      <button type="submit" class="btn btn-outline-gold btn-sm">Upload quotation PDF</button>
     </form>
+    <% } else { %><p class="text-muted small mb-0">Quotation approved. Add extra costs below for any changes.</p><% } %>
+    <% } else { %>
+    <p class="text-muted small mb-2">No quotation yet. Upload a PDF to create one.</p>
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/quotation/upload-pdf" enctype="multipart/form-data">
+      <input type="file" name="pdf" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" accept=".pdf,application/pdf" style="max-width:280px" />
+      <button type="submit" class="btn btn-gold btn-sm">Upload quotation PDF</button>
+    </form>
+    <% } %>
   </div>
 </div>
-<p><a href="/portal/mirror/<%= project.id %>" class="btn btn-gold">View as Client (Mirror)</a></p>
+
+<div class="card card-portal mb-4">
+  <div class="card-header">Additional costs (variations)</div>
+  <div class="card-body">
+    <p class="small text-muted mb-2">Client comments are notified to you. You can comment back or edit the cost (edit creates a new version; previous stays in history; only approved costs count toward the final invoice).</p>
+    <% if (quotation) { %>
+    <form method="post" action="/portal/designer/projects/<%= project.id %>/extra-cost" class="mb-3">
+      <div class="row g-2 flex-wrap align-items-end">
+        <div class="col-auto"><input type="text" name="description" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Description" style="min-width:180px" required /></div>
+        <div class="col-auto"><input type="number" name="amount" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Amount (₹)" style="width:100px" required /></div>
+        <div class="col-auto"><input type="text" name="comment" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Reason (optional)" style="min-width:140px" /></div>
+        <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Add extra cost</button></div>
+      </div>
+    </form>
+    <ul class="list-unstyled small mb-0">
+      <% extraCosts.forEach(function(ec) { %>
+      <li class="border-bottom border-secondary py-2">
+        <% if (ec.status === 'SUPERSEDED') { %>
+        <span class="text-muted"><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong>Superseded</strong> (replaced by updated cost below)</span>
+        <% if (ec.comments && ec.comments.length) { %>
+        <span class="ms-2" title="Comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+        <% } %>
+        <% } else { %>
+        <span><%= ec.description %> – ₹<%= ec.amount.toLocaleString() %> – <strong><%= ec.status %></strong></span>
+        <% if (ec.status === 'APPROVED' && ec.comments && ec.comments.length) { %>
+        <span class="ms-2" title="View comment history" data-comments="<%= encodeURIComponent(JSON.stringify(ec.comments)) %>" onclick="showCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span>
+        <% } else if (ec.status !== 'APPROVED' && ec.comments && ec.comments.length) { %>
+        <div class="mt-1 text-muted">
+          <% ec.comments.forEach(function(c) { %>
+          <div><strong><%= c.author_type %>:</strong> <%= c.message %> <small>(<%= c.created_at %>)</small></div>
+          <% }); %>
+        </div>
+        <% } %>
+        <form method="post" action="/portal/designer/projects/<%= project.id %>/extra-cost/<%= ec.id %>/respond" class="mt-2">
+          <input type="text" name="response_note" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block mb-1" placeholder="Comment back to client" style="min-width:220px" />
+          <button type="submit" class="btn btn-outline-gold btn-sm">Send reply</button>
+        </form>
+        <form method="post" action="/portal/designer/projects/<%= project.id %>/extra-cost/<%= ec.id %>/edit" class="mt-1">
+          <input type="text" name="description" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block" placeholder="New description" style="min-width:140px" value="<%= ec.description %>" required />
+          <input type="number" name="amount" step="0.01" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block" style="width:90px" value="<%= ec.amount %>" required />
+          <button type="submit" class="btn btn-outline-secondary btn-sm">Edit cost (new version)</button>
+        </form>
+        <% } %>
+      </li>
+      <% }); %>
+    </ul>
+    <% } %>
+  </div>
+</div>
+
 <div class="card card-portal mb-4">
   <div class="card-header">Financials</div>
   <div class="card-body">
     <p class="serif h4 text-warning">Total: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
-    <% if (quotation) { %><p>Quotation: <%= quotation.status %> | Extra costs: <%= extraCosts.length %></p><% } %>
+    <p class="small text-muted mb-0">Total = Approved quotation + approved extra costs. Client approves each item.</p>
   </div>
 </div>
-<div class="card card-portal mb-4">
-  <div class="card-header">Design Vault – Upload</div>
-  <div class="card-body">
-    <form method="post" action="/portal/designer/projects/<%= project.id %>/media" enctype="multipart/form-data">
-      <input type="file" name="file" class="form-control bg-dark text-light border-secondary mb-2" accept="image/*,video/*" />
-      <select name="category" class="form-select bg-dark text-light border-secondary mb-2" style="max-width:200px">
-        <option value="SITE_LOG">Site Progress</option>
-        <option value="ARCHITECTURAL_PLANS">Architectural Plans</option>
-        <option value="VISUALIZATIONS">Visualizations</option>
-        <option value="OFFICIAL_DOCS">Official Docs</option>
-      </select>
-      <button type="submit" class="btn btn-gold btn-sm">Upload</button>
-    </form>
-    <% if (media && media.length > 0) { %><p class="text-muted mt-2 mb-0">Files: <%= media.length %></p><% } %>
   </div>
 </div>
+  <% } %>
+
+<div class="modal fade" id="commentHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning">Comment history</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="commentHistoryModalBody"></div>
+    </div>
+  </div>
+</div>
+<script>
+function showCommentHistory(el) {
+  var raw = el.getAttribute('data-comments');
+  if (!raw) return;
+  try {
+    var comments = JSON.parse(decodeURIComponent(raw));
+    var body = document.getElementById('commentHistoryModalBody');
+    if (!body) return;
+    if (!comments || comments.length === 0) { body.innerHTML = '<p class="text-muted mb-0">No comments.</p>'; }
+    else {
+      body.innerHTML = comments.map(function(c) {
+        return '<div class="border-bottom border-secondary py-2"><strong>' + (c.author_type || '') + ':</strong> ' + (c.message || '') + ' <small class="text-muted">(' + (c.created_at || '') + ')</small></div>';
+      }).join('');
+    }
+    if (window.bootstrap) { var m = document.getElementById('commentHistoryModal'); if (m) new bootstrap.Modal(m).show(); }
+  } catch (e) {}
+}
+</script>

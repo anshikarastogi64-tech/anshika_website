@@ -1,10 +1,24 @@
 <h1 class="serif text-warning mb-4">My Dashboard</h1>
 <% if (typeof query !== 'undefined' && query && query.msg) { %><div class="alert alert-success"><%= query.msg %></div><% } %>
 <div class="card card-portal mb-4">
+  <div class="card-header">DV Points</div>
   <div class="card-body">
-    <p class="mb-0">DV Points balance: <strong class="text-warning"><%= dvPoints %></strong></p>
+    <p class="mb-1">Your balance: <strong class="text-warning serif h5"><%= dvPoints %></strong> points</p>
+    <p class="small text-muted mb-0">When someone you refer completes a project, you earn <strong>4%</strong> of the final project value as DV points. Refer friends & family below to grow your balance.</p>
   </div>
 </div>
+<% if (typeof notifications !== 'undefined' && notifications.length > 0) { %>
+<div class="card card-portal mb-4">
+  <div class="card-header">Recent activity</div>
+  <div class="card-body">
+    <ul class="list-unstyled mb-0">
+      <% notifications.slice(0, 5).forEach(function(n) { %>
+      <li class="border-bottom border-secondary py-2"><span class="text-warning">✓</span> <%= n.message %> <small class="text-muted"><%= n.created_at %></small></li>
+      <% }); %>
+    </ul>
+  </div>
+</div>
+<% } %>
 <p><a href="/portal/client/refer" class="btn btn-gold">Refer friends & family</a></p>
 <h2 class="serif h5 text-warning mt-4">My Referrals</h2>
 <% if (typeof referrals !== 'undefined' && referrals.length > 0) { %>

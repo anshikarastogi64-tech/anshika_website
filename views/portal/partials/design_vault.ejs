@@ -1,0 +1,741 @@
+<%
+  const isDailyOnlyView = (typeof showDailyOnly !== 'undefined' && showDailyOnly) === true;
+  // Predefined area tags for residential & office interior (dropdown + custom)
+  const AREA_TAGS_RESIDENTIAL = ['Living Room', 'Dining Room', 'Kitchen', 'Bedroom', 'Master Bedroom', 'Kids Room', 'Bathroom', 'Master Bath', 'Guest Room', 'Study / Home Office', 'Balcony', 'Terrace', 'Entrance / Foyer', 'Corridor', 'Pooja Room', 'Utility', 'Store Room', 'Wardrobe / Dressing'];
+  const AREA_TAGS_OFFICE = ['Reception', 'Conference Room', 'Cabin / Executive Office', 'Workstation Area', 'Open Office', 'Meeting Room', 'Pantry / Cafeteria', 'Corridor', 'Washroom', 'Server Room', 'Storage', 'Break Room', 'Lounge', 'Waiting Area'];
+  const mediaByCat = (typeof mediaByCategory !== 'undefined' && mediaByCategory) ? mediaByCategory : {};
+  const useDesigns = typeof projectDesigns !== 'undefined' && Array.isArray(projectDesigns) && projectDesigns.length > 0;
+  let twoD = [], threeD = [], official = [], designVaultItems = [];
+  if (useDesigns) {
+    const designs2d = projectDesigns.filter(d => d.category === 'ARCHITECTURAL_PLANS');
+    const designs3d = projectDesigns.filter(d => d.category === 'VISUALIZATIONS');
+    designs2d.forEach(d => { (d.versions || []).forEach(v => { twoD.push({ ...v, design: d, area_tag: d.area_tag, design_id: d.id }); }); });
+    designs3d.forEach(d => { (d.versions || []).forEach(v => { threeD.push({ ...v, design: d, area_tag: d.area_tag, design_id: d.id }); }); });
+    twoD.sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    threeD.sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    official = (mediaByCat['OFFICIAL_DOCS'] || []).slice().sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    designVaultItems = twoD.concat(threeD).concat(official);
+  } else {
+    twoD = (mediaByCat['ARCHITECTURAL_PLANS'] || []).slice().sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    threeD = (mediaByCat['VISUALIZATIONS'] || []).slice().sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    official = (mediaByCat['OFFICIAL_DOCS'] || []).slice().sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    designVaultItems = twoD.concat(threeD).concat(official);
+  }
+  const siteLog = (mediaByCat['SITE_LOG'] || []).slice().sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+  const dailyUpdatesList = (typeof dailyUpdates !== 'undefined' && Array.isArray(dailyUpdates)) ? dailyUpdates : [];
+  const dailyUpdateFlatMedia = [];
+  dailyUpdatesList.forEach(function(u) { (u.media || []).forEach(function(m) { dailyUpdateFlatMedia.push(m); }); });
+  const projectId = typeof project !== 'undefined' && project ? project.id : '';
+  const isAdmin = typeof pendingDesignVersions !== 'undefined';
+  // Treat real client view and mirror-as-client both as "client" for UI:
+  // - mirror: readOnly is passed as true
+  // - real client: no showUpload and no pendingDesignVersions
+  const isClient = (typeof readOnly !== 'undefined' && readOnly) || (!isAdmin && (typeof showUpload === 'undefined' || !showUpload));
+  const isDesigner = typeof showUpload !== 'undefined' && showUpload && !isClient;
+  const designBasePath = (typeof showUpload !== 'undefined' && showUpload && typeof uploadUrl !== 'undefined' && uploadUrl) ? (uploadUrl.indexOf('/admin/') !== -1 ? '/portal/admin' : '/portal/designer') : '';
+  function thumb(m, gallerySource, idx) {
+    const isVideo = (m.media_type || m.type) === 'VIDEO';
+    const isPdf = m.url && (m.url.toLowerCase().endsWith('.pdf') || (m.media_category || m.category) === 'OFFICIAL_DOCS');
+%>
+      <div class="vault-item rounded overflow-hidden" data-gallery-source="<%= gallerySource %>" data-gallery-index="<%= idx %>" role="button" tabindex="0">
+        <% if (isVideo) { %>
+        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+          <i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i>
+        </div>
+        <% } else if (isPdf) { %>
+        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+          <i class="bi bi-file-earmark-pdf-fill text-warning" style="font-size:2rem"></i>
+        </div>
+        <% } else { %>
+        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+          <img src="<%= m.url %>" alt="" loading="lazy" />
+        </div>
+        <% } %>
+        <div class="vault-caption small text-muted text-truncate"><%= m.file_name || m.url || 'Item' %></div>
+      </div>
+<% } %>
+<% if (!isDailyOnlyView && typeof showUpload !== 'undefined' && showUpload && useDesigns && projectDesigns && projectDesigns.length > 0 && projectId) {
+  const designs2dList = projectDesigns.filter(d => d.category === 'ARCHITECTURAL_PLANS');
+  const designs3dList = projectDesigns.filter(d => d.category === 'VISUALIZATIONS');
+  const basePath = typeof uploadUrl !== 'undefined' && uploadUrl ? (uploadUrl.indexOf('/admin/') !== -1 ? '/portal/admin' : '/portal/designer') : '';
+%>
+<div class="card card-portal mb-4">
+  <div class="card-header serif text-warning">Design versioning &amp; links</div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Add a new version to an existing design (replaces nothing; admin must approve). Link 2D and 3D designs so clients can switch between them.</p>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <h6 class="text-warning">Add new version</h6>
+        <% projectDesigns.forEach(function(d) {
+             const versions = d.versions || [];
+             const latest = versions.length ? versions[versions.length - 1] : null;
+        %>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 p-2 border border-secondary rounded">
+          <span class="small">
+            <strong><%= d.area_tag || 'General' %></strong> · <%= d.category === 'VISUALIZATIONS' ? '3D' : '2D' %>
+            <% if (latest) { %>
+              · latest v<%= latest.version_number %> (<%= latest.file_name || 'image' %>) · <%= versions.length %> version<%= versions.length > 1 ? 's' : '' %>
+            <% } else { %>
+              · no versions yet
+            <% } %>
+          </span>
+          <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design/<%= d.id %>/version" enctype="multipart/form-data" class="d-flex flex-wrap align-items-center gap-1">
+            <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:160px" accept="image/*,video/*" required />
+            <button type="submit" class="btn btn-outline-gold btn-sm">Add version</button>
+          </form>
+          <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design/<%= d.id %>/delete" class="d-inline" onsubmit="return confirm('Delete this design and all its versions?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+          </form>
+        </div>
+        <% }); %>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-warning">Link 2D ↔ 3D</h6>
+        <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design-link" class="d-flex flex-wrap align-items-end gap-2">
+          <div>
+            <label class="form-label small mb-0">2D design</label>
+            <select name="design_id_2d" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:220px" required>
+              <option value="">Select 2D</option>
+              <% designs2dList.forEach(function(d) {
+                   const versions = d.versions || [];
+                   const latest = versions.length ? versions[versions.length - 1] : null;
+              %>
+              <option value="<%= d.id %>">
+                <%= d.area_tag || 'General' %> · 2D
+                <% if (latest) { %> · v<%= latest.version_number %> (<%= latest.file_name || 'image' %>)<% } %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div>
+            <label class="form-label small mb-0">3D design</label>
+            <select name="design_id_3d" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:220px" required>
+              <option value="">Select 3D</option>
+              <% designs3dList.forEach(function(d) {
+                   const versions = d.versions || [];
+                   const latest = versions.length ? versions[versions.length - 1] : null;
+              %>
+              <option value="<%= d.id %>">
+                <%= d.area_tag || 'General' %> · 3D
+                <% if (latest) { %> · v<%= latest.version_number %> (<%= latest.file_name || 'image' %>)<% } %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-gold btn-sm">Link</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<% if (!isDailyOnlyView && typeof pendingDesignVersions !== 'undefined' && pendingDesignVersions && pendingDesignVersions.length > 0 && projectId) { %>
+<div class="card card-portal mb-4 border-warning">
+  <div class="card-header serif text-warning">Pending design review (2D/3D)</div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Approve designs to show them to the client. Rejected designs stay hidden.</p>
+    <div class="vault-grid mb-0">
+      <% pendingDesignVersions.forEach(function(v) { %>
+      <div class="vault-item rounded overflow-hidden border border-secondary p-2">
+        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center mb-1">
+          <% if ((v.media_type || v.type) === 'VIDEO') { %><i class="bi bi-play-circle-fill text-warning"></i>
+          <% } else { %><img src="<%= v.url %>" alt="" style="max-height:100px;object-fit:contain" /><% } %>
+        </div>
+        <div class="small text-muted"><%= v.area_tag || 'General' %> · <%= v.design_category === 'VISUALIZATIONS' ? '3D' : '2D' %> · v<%= v.version_number %></div>
+        <div class="d-flex gap-1 mt-1">
+          <form method="post" action="/portal/admin/projects/<%= projectId %>/design-version/<%= v.id %>/approve" class="d-inline"><button type="submit" class="btn btn-gold btn-sm">Approve</button></form>
+          <form method="post" action="/portal/admin/projects/<%= projectId %>/design-version/<%= v.id %>/reject" class="d-inline"><button type="submit" class="btn btn-outline-secondary btn-sm">Reject</button></form>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<% if (!isDailyOnlyView) { %>
+<!-- Gallery 1: Design Vault (2D, 3D, Official) -->
+<div class="card card-portal mb-4 design-vault-card">
+  <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span class="serif text-warning">Design Vault</span>
+    <% if (typeof showUpload !== 'undefined' && showUpload && typeof project !== 'undefined' && project && typeof uploadUrl !== 'undefined' && uploadUrl) { %>
+    <form method="post" action="<%= uploadUrl %>" enctype="multipart/form-data" class="d-flex flex-wrap align-items-end gap-2" id="designVaultUploadForm">
+      <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:200px" accept="image/*,video/*,.pdf" />
+      <select name="category" class="form-select form-select-sm bg-dark text-light border-secondary" style="max-width:160px">
+        <option value="ARCHITECTURAL_PLANS">2D Plans</option>
+        <option value="VISUALIZATIONS">3D Visualizations</option>
+        <option value="OFFICIAL_DOCS">Official Docs</option>
+      </select>
+      <div class="area-tag-field">
+        <label class="form-label small mb-0 d-block" for="areaTagSelect">Area (for 2D/3D)</label>
+        <select name="area_tag" id="areaTagSelect" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:180px" title="Required for 2D/3D">
+          <option value="">— Other (type below) —</option>
+          <optgroup label="Residential">
+            <% AREA_TAGS_RESIDENTIAL.forEach(function(tag) { %><option value="<%= tag %>"><%= tag %></option><% }); %>
+          </optgroup>
+          <optgroup label="Office">
+            <% AREA_TAGS_OFFICE.forEach(function(tag) { %><option value="<%= tag %>"><%= tag %></option><% }); %>
+          </optgroup>
+        </select>
+      </div>
+      <div class="area-tag-custom d-none">
+        <label class="form-label small mb-0 d-block" for="areaTagCustom">Custom area</label>
+        <input type="text" name="area_tag_custom" id="areaTagCustom" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:160px" placeholder="e.g. Home Theatre" />
+      </div>
+      <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+    </form>
+    <script>
+    (function() {
+      var form = document.getElementById('designVaultUploadForm');
+      if (!form) return;
+      var sel = document.getElementById('areaTagSelect');
+      var customWrap = form.querySelector('.area-tag-custom');
+      var categorySel = form.querySelector('select[name="category"]');
+      function isAreaRequired() {
+        return categorySel && (categorySel.value === 'ARCHITECTURAL_PLANS' || categorySel.value === 'VISUALIZATIONS');
+      }
+      function toggleAreaFields() {
+        var show = isAreaRequired();
+        var areaField = form.querySelector('.area-tag-field');
+        if (areaField) areaField.style.display = show ? '' : 'none';
+        if (customWrap) {
+          customWrap.style.display = show ? '' : 'none';
+          var customInput = customWrap.querySelector('input');
+          if (customInput) customInput.required = false;
+        }
+        if (!show) return;
+        var isOther = (sel.value || '') === '';
+        customWrap.classList.toggle('d-none', !isOther);
+        if (customWrap.querySelector('input')) customWrap.querySelector('input').required = isOther;
+      }
+      function toggleCustom() {
+        if (!sel || !customWrap) return;
+        var isOther = (sel.value || '') === '';
+        customWrap.classList.toggle('d-none', !isOther);
+        if (customWrap.querySelector('input')) customWrap.querySelector('input').required = isOther && isAreaRequired();
+      }
+      if (sel) sel.addEventListener('change', toggleCustom);
+      if (categorySel) {
+        categorySel.addEventListener('change', function() {
+          toggleAreaFields();
+          toggleCustom();
+        });
+      }
+      toggleAreaFields();
+      toggleCustom();
+    })();
+    </script>
+    <% } %>
+  </div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">2D plans, 3D visualizations, and design documents. Click any item to open the gallery; arrows move within Design Vault only.</p>
+
+    <% if (designVaultItems.length === 0) { %>
+    <p class="text-muted mb-0">No design files yet.<% if (typeof showUpload !== 'undefined' && showUpload) { %> Use the upload form above.<% } %></p>
+    <% } else { %>
+    <h6 class="serif text-warning vault-category-title mb-2">2D Plans</h6>
+    <% if (twoD.length > 0) { %>
+      <% if (useDesigns) {
+        const byArea2d = {};
+        twoD.forEach(m => { const t = m.area_tag || 'General'; if (!byArea2d[t]) byArea2d[t] = []; byArea2d[t].push(m); });
+        Object.keys(byArea2d).sort().forEach(area => { %>
+    <div class="mb-3" id="area-2d-<%= area.replace(/\s+/g, '-') %>" data-design-area="<%= area %>">
+      <span class="badge bg-secondary me-2"><%= area %></span>
+      <div class="vault-grid mb-2">
+        <% byArea2d[area].forEach(function(m, i) {
+          const idx = twoD.indexOf(m);
+          const design = m.design || {};
+          const linked3d = (design.linked3d || []).length;
+        %>
+        <div class="vault-item-wrapper position-relative">
+          <% thumb(m, 'design', idx); %>
+          <div class="small mt-1">
+            <span class="text-muted">v<%= m.version_number %></span>
+            <% if (!isClient) { %>
+            <span class="badge <%= m.admin_status === 'APPROVED' ? 'bg-success' : m.admin_status === 'REJECTED' ? 'bg-danger' : 'bg-warning text-dark' %>"><%= m.admin_status %></span>
+            <% } %>
+            <% if (m.admin_status === 'APPROVED') { %>
+            <span class="badge <%= m.client_status === 'APPROVED' ? 'bg-success' : m.client_status === 'DENIED' ? 'bg-danger' : 'bg-secondary' %>"><%= m.client_status %></span>
+            <% } %>
+          <% if (m.comments && m.comments.length) { %><span class="ms-1" title="Comment history" data-design-comments="<%= encodeURIComponent(JSON.stringify(m.comments)) %>" onclick="window.showDesignCommentHistory && window.showDesignCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span><% } %>
+          </div>
+          <% if (linked3d > 0 && typeof projectDesigns !== 'undefined') { %>
+          <div class="mt-1"><a href="#area-3d-<%= area.replace(/\s+/g, '-') %>" class="small text-warning">View linked 3D (<%= linked3d %>)</a></div>
+          <% } %>
+          <% if (typeof readOnly !== 'undefined' && !readOnly && typeof projectId !== 'undefined' && projectId && m.admin_status === 'APPROVED' && m.client_status === 'PENDING') { %>
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            <form method="post" action="/portal/client/projects/<%= projectId %>/design-version/<%= m.id %>/approve" class="d-inline"><button type="submit" class="btn btn-gold btn-sm">Approve</button></form>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-version-id="<%= m.id %>" onclick="window.openDesignDenyModal && window.openDesignDenyModal(this)">Deny</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-version-id="<%= m.id %>" onclick="window.openDesignCommentModal && window.openDesignCommentModal(this)">Comment</button>
+          </div>
+          <% } %>
+          <% if (typeof pendingDesignVersions !== 'undefined' && projectId) { %>
+          <form method="post" action="/portal/admin/projects/<%= projectId %>/design-version/<%= m.id %>/set-client-status" class="mt-1 d-flex align-items-center gap-1">
+            <select name="client_status" class="form-select form-select-sm bg-dark text-light border-secondary" style="width:auto">
+              <option value="PENDING" <%= m.client_status === 'PENDING' ? 'selected' : '' %>>PENDING</option>
+              <option value="APPROVED" <%= m.client_status === 'APPROVED' ? 'selected' : '' %>>APPROVED</option>
+              <option value="DENIED" <%= m.client_status === 'DENIED' ? 'selected' : '' %>>DENIED</option>
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Set</button>
+          </form>
+          <% } %>
+          <% if (designBasePath && projectId) { %>
+          <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/design-version/<%= m.id %>/comment" class="mt-1 d-flex align-items-center gap-1">
+            <input type="text" name="message" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Comment" style="max-width:140px" required />
+            <button type="submit" class="btn btn-outline-gold btn-sm">Send</button>
+          </form>
+          <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/design-version/<%= m.id %>/delete" class="mt-1" onsubmit="return confirm('Delete this version?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+          </form>
+          <% } %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+        <% }); %>
+      <% } else { %>
+    <div class="vault-grid mb-4">
+      <% twoD.forEach(function(m, idx) { %>
+      <div class="position-relative vault-item-with-delete">
+        <% thumb(m, 'design', idx); %>
+        <% if (designBasePath && projectId) { %>
+        <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/media/<%= m.id %>/delete" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Delete this image?');">
+          <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+        </form>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+      <% } %>
+    <% } else { %><p class="text-muted small mb-4">No 2D plans yet.</p><% } %>
+
+    <h6 class="serif text-warning vault-category-title mt-3 mb-2">3D Visualizations</h6>
+    <% if (threeD.length > 0) { %>
+      <% if (useDesigns) {
+        const byArea3d = {};
+        threeD.forEach(m => { const t = m.area_tag || 'General'; if (!byArea3d[t]) byArea3d[t] = []; byArea3d[t].push(m); });
+        Object.keys(byArea3d).sort().forEach(area => { %>
+    <div class="mb-3" id="area-3d-<%= area.replace(/\s+/g, '-') %>" data-design-area="<%= area %>">
+      <span class="badge bg-secondary me-2"><%= area %></span>
+      <div class="vault-grid mb-2">
+        <% byArea3d[area].forEach(function(m, i) {
+          const idx = twoD.length + threeD.indexOf(m);
+          const design = m.design || {};
+          const linked2d = (design.linked2d || []).length;
+        %>
+        <div class="vault-item-wrapper position-relative">
+          <% thumb(m, 'design', idx); %>
+          <div class="small mt-1">
+            <span class="text-muted">v<%= m.version_number %></span>
+            <% if (!isClient) { %>
+            <span class="badge <%= m.admin_status === 'APPROVED' ? 'bg-success' : m.admin_status === 'REJECTED' ? 'bg-danger' : 'bg-warning text-dark' %>"><%= m.admin_status %></span>
+            <% } %>
+            <% if (m.admin_status === 'APPROVED') { %>
+            <span class="badge <%= m.client_status === 'APPROVED' ? 'bg-success' : m.client_status === 'DENIED' ? 'bg-danger' : 'bg-secondary' %>"><%= m.client_status %></span>
+            <% } %>
+          <% if (m.comments && m.comments.length) { %><span class="ms-1" title="Comment history" data-design-comments="<%= encodeURIComponent(JSON.stringify(m.comments)) %>" onclick="window.showDesignCommentHistory && window.showDesignCommentHistory(this)" style="cursor:pointer"><i class="bi bi-chat-left-text text-warning"></i></span><% } %>
+          </div>
+          <% if (linked2d > 0 && typeof projectDesigns !== 'undefined') { %>
+          <div class="mt-1"><a href="#area-2d-<%= area.replace(/\s+/g, '-') %>" class="small text-warning">View linked 2D (<%= linked2d %>)</a></div>
+          <% } %>
+          <% if (typeof readOnly !== 'undefined' && !readOnly && typeof projectId !== 'undefined' && projectId && m.admin_status === 'APPROVED' && m.client_status === 'PENDING') { %>
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            <form method="post" action="/portal/client/projects/<%= projectId %>/design-version/<%= m.id %>/approve" class="d-inline"><button type="submit" class="btn btn-gold btn-sm">Approve</button></form>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-version-id="<%= m.id %>" onclick="window.openDesignDenyModal && window.openDesignDenyModal(this)">Deny</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-version-id="<%= m.id %>" onclick="window.openDesignCommentModal && window.openDesignCommentModal(this)">Comment</button>
+          </div>
+          <% } %>
+          <% if (typeof pendingDesignVersions !== 'undefined' && projectId) { %>
+          <form method="post" action="/portal/admin/projects/<%= projectId %>/design-version/<%= m.id %>/set-client-status" class="mt-1 d-flex align-items-center gap-1">
+            <select name="client_status" class="form-select form-select-sm bg-dark text-light border-secondary" style="width:auto">
+              <option value="PENDING" <%= m.client_status === 'PENDING' ? 'selected' : '' %>>PENDING</option>
+              <option value="APPROVED" <%= m.client_status === 'APPROVED' ? 'selected' : '' %>>APPROVED</option>
+              <option value="DENIED" <%= m.client_status === 'DENIED' ? 'selected' : '' %>>DENIED</option>
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Set</button>
+          </form>
+          <% } %>
+          <% if (designBasePath && projectId) { %>
+          <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/design-version/<%= m.id %>/comment" class="mt-1 d-flex align-items-center gap-1">
+            <input type="text" name="message" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Comment" style="max-width:140px" required />
+            <button type="submit" class="btn btn-outline-gold btn-sm">Send</button>
+          </form>
+          <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/design-version/<%= m.id %>/delete" class="mt-1" onsubmit="return confirm('Delete this version?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+          </form>
+          <% } %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+        <% }); %>
+      <% } else { %>
+    <div class="vault-grid mb-4">
+      <% threeD.forEach(function(m, idx) { %>
+      <div class="position-relative vault-item-with-delete">
+        <% thumb(m, 'design', twoD.length + idx); %>
+        <% if (designBasePath && projectId) { %>
+        <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/media/<%= m.id %>/delete" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Delete this image?');">
+          <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+        </form>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+      <% } %>
+    <% } else { %><p class="text-muted small mb-4">No 3D visualizations yet.</p><% } %>
+
+    <h6 class="serif text-warning vault-category-title mt-3 mb-2">Official Documents</h6>
+    <% if (official.length > 0) { %>
+    <div class="vault-grid mb-3">
+      <% official.forEach(function(m, idx) { %>
+      <div class="position-relative vault-item-with-delete">
+        <% thumb(m, 'design', twoD.length + threeD.length + idx); %>
+        <% if (designBasePath && projectId) { %>
+        <form method="post" action="<%= designBasePath %>/projects/<%= projectId %>/media/<%= m.id %>/delete" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Delete this document?');">
+          <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
+        </form>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %><p class="text-muted small mb-0">No official documents yet.</p><% } %>
+    <% } %>
+  </div>
+</div>
+<% } %>
+
+<% if (isDailyOnlyView) { %>
+<%
+  const dailyUpdatePostUrl = (typeof uploadUrl !== 'undefined' && uploadUrl) ? uploadUrl.replace(/\/media\/?$/, '/daily-updates') : '';
+%>
+<!-- Daily Updates: post form (admin/designer) + timeline -->
+<div class="card card-portal mb-4 daily-update-card" id="dailyUpdateCard">
+  <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span class="serif text-warning">Daily Updates</span>
+    <% if (typeof showUpload !== 'undefined' && showUpload && projectId && dailyUpdatePostUrl) { %>
+    <form method="post" action="<%= dailyUpdatePostUrl %>" enctype="multipart/form-data" class="d-flex flex-wrap align-items-end gap-2">
+      <div class="d-flex flex-column gap-1">
+        <label class="form-label small mb-0 text-muted">Update (optional text)</label>
+        <textarea name="text" class="form-control form-control-sm bg-dark text-light border-secondary" rows="2" placeholder="What's the progress today?" style="min-width:220px"></textarea>
+      </div>
+      <div class="d-flex flex-column gap-1">
+        <label class="form-label small mb-0 text-muted">Photos / videos</label>
+        <input type="file" name="files" multiple class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:220px" accept="image/*,video/*" />
+      </div>
+      <button type="submit" class="btn btn-gold btn-sm">Post update</button>
+    </form>
+    <% } %>
+  </div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Add text and/or photos and videos. Click any media to open the gallery.</p>
+    <% if (dailyUpdatesList.length === 0) { %>
+    <p class="text-muted mb-0">No daily updates yet.<% if (typeof showUpload !== 'undefined' && showUpload) { %> Use the form above to post an update (text, photos, or videos).<% } %></p>
+    <% } else { %>
+    <div class="daily-updates-timeline">
+      <% var dailyGalleryIdx = 0; dailyUpdatesList.forEach(function(up) { %>
+      <div class="border border-secondary rounded p-3 mb-3">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="small text-muted"><%= new Date(up.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) %></span>
+          <span class="badge bg-secondary"><%= up.author_type === 'ADMIN' ? 'Admin' : 'Designer' %></span>
+        </div>
+        <% if (up.text && up.text.trim()) { %><p class="small mb-2 text-light"><%= up.text.trim() %></p><% } %>
+        <% if ((up.media || []).length > 0) { %>
+        <div class="vault-grid mb-0">
+          <% (up.media || []).forEach(function(m) { %>
+          <div class="vault-item rounded overflow-hidden" data-gallery-source="daily" data-gallery-index="<%= dailyGalleryIdx %>" role="button" tabindex="0">
+            <% const isVideo = (m.type || m.media_type) === 'VIDEO'; %>
+            <% if (isVideo) { %>
+            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+              <i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i>
+            </div>
+            <% } else { %>
+            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+              <img src="<%= m.url %>" alt="" loading="lazy" />
+            </div>
+            <% } %>
+            <div class="vault-caption small text-muted text-truncate"><%= m.file_name || m.url || 'Item' %></div>
+          </div>
+          <% dailyGalleryIdx++; }); %>
+        </div>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+  </div>
+</div>
+<% } %>
+
+<!-- Gallery lightbox: shows only the selected category; arrows move within that category -->
+<div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-fullscreen p-0 m-0">
+    <div class="modal-content bg-black border-0">
+      <div class="modal-header border-0 position-absolute top-0 start-0 end-0 z-2 bg-dark bg-opacity-75 py-2">
+        <span class="text-muted small me-2" id="vaultGallerySourceLabel"></span>
+        <span class="badge bg-warning text-dark me-2 d-none" id="vaultGalleryAreaTag"></span>
+        <h6 class="modal-title text-warning text-truncate me-2" id="vaultGalleryCaption"></h6>
+        <div class="btn-group btn-group-sm me-2 d-none" id="vaultDesignSwitchGroup" title="Switch to linked 2D or 3D">
+          <button type="button" class="btn btn-outline-warning" id="vaultSwitch2DBtn">2D</button>
+          <button type="button" class="btn btn-outline-warning" id="vaultSwitch3DBtn">3D</button>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center position-relative p-0" style="min-height:100vh">
+        <button type="button" class="btn btn-link text-warning position-absolute start-0 top-50 translate-middle-y ms-2 vault-nav vault-prev" aria-label="Previous" style="font-size:2rem;z-index:2"><i class="bi bi-chevron-left"></i></button>
+        <div class="vault-gallery-content flex-grow-1 d-flex align-items-center justify-content-center p-4" style="min-height:80vh"></div>
+        <button type="button" class="btn btn-link text-warning position-absolute end-0 top-50 translate-middle-y me-2 vault-nav vault-next" aria-label="Next" style="font-size:2rem;z-index:2"><i class="bi bi-chevron-right"></i></button>
+      </div>
+      <div class="position-absolute bottom-0 start-0 end-0 text-center py-2 bg-dark bg-opacity-75 text-muted small z-2" id="vaultGalleryCounter"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.vault-category-title { font-size: 1rem; }
+.design-vault-card .vault-grid,
+.daily-update-card .vault-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+.vault-item { cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; border: 1px solid rgba(212,175,55,0.25); }
+.vault-item:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(212,175,55,0.2); }
+.vault-thumb { aspect-ratio: 4/3; max-height: 140px; }
+.vault-thumb img { width: 100%; height: 100%; object-fit: cover; }
+#vaultDesignSwitchGroup .btn.disabled { opacity: 0.4; pointer-events: none; }
+.vault-caption { padding: 0.25rem 0.5rem; }
+#vaultGalleryModal .modal-body img { max-width: 100%; max-height: 85vh; object-fit: contain; }
+#vaultGalleryModal .modal-body video { max-width: 100%; max-height: 85vh; }
+</style>
+
+<script>
+(function() {
+  var designVaultList = <%- JSON.stringify(designVaultItems.map(function(m) {
+    return {
+      url: m.url,
+      type: (m.media_type || m.type || 'PHOTO'),
+      file_name: m.file_name || m.url,
+      design_id: m.design_id || null,
+      design_category: m.design ? m.design.category : (m.media_category || m.category || null),
+      area_tag: m.area_tag || (m.design && m.design.area_tag) || '',
+      linked2d: m.design && m.design.linked2d ? m.design.linked2d : [],
+      linked3d: m.design && m.design.linked3d ? m.design.linked3d : []
+    };
+  })) %>;
+  var dailyUpdateList = <%- JSON.stringify(dailyUpdateFlatMedia.map(function(m) { return { url: m.url, type: (m.type || m.media_type) || 'PHOTO', file_name: m.file_name || m.url }; })) %>;
+  var modalEl = document.getElementById('vaultGalleryModal');
+  var contentEl = modalEl ? modalEl.querySelector('.vault-gallery-content') : null;
+  var captionEl = document.getElementById('vaultGalleryCaption');
+  var sourceLabelEl = document.getElementById('vaultGallerySourceLabel');
+  var areaTagEl = document.getElementById('vaultGalleryAreaTag');
+  var counterEl = document.getElementById('vaultGalleryCounter');
+  var currentList = [];
+  var currentSourceLabel = '';
+  var currentIdx = 0;
+  var designIdToIndices = {};
+
+  designVaultList.forEach(function(m, idx) {
+    if (!m.design_id) return;
+    if (!designIdToIndices[m.design_id]) designIdToIndices[m.design_id] = [];
+    designIdToIndices[m.design_id].push(idx);
+  });
+
+  function updateSwitchButtons(m) {
+    var group = document.getElementById('vaultDesignSwitchGroup');
+    var btn2d = document.getElementById('vaultSwitch2DBtn');
+    var btn3d = document.getElementById('vaultSwitch3DBtn');
+    if (!group || !btn2d || !btn3d) return;
+    if (currentList !== designVaultList) {
+      group.classList.add('d-none');
+      return;
+    }
+    var linked2d = (m && m.linked2d && Array.isArray(m.linked2d)) ? m.linked2d : [];
+    var linked3d = (m && m.linked3d && Array.isArray(m.linked3d)) ? m.linked3d : [];
+    var countLinked2d = 0;
+    var countLinked3d = 0;
+    linked2d.forEach(function(id) { if (designIdToIndices[id] && designIdToIndices[id].length > 0) countLinked2d++; });
+    linked3d.forEach(function(id) { if (designIdToIndices[id] && designIdToIndices[id].length > 0) countLinked3d++; });
+    if (!m || !m.design_id) {
+      group.classList.add('d-none');
+      return;
+    }
+    group.classList.remove('d-none');
+    btn2d.textContent = '2D (' + countLinked2d + ')';
+    btn3d.textContent = '3D (' + countLinked3d + ')';
+    btn2d.classList.toggle('disabled', countLinked2d === 0);
+    btn3d.classList.toggle('disabled', countLinked3d === 0);
+  }
+
+  function renderCurrent() {
+    if (!contentEl || currentList.length === 0) return;
+    var m = currentList[currentIdx];
+    if (!m) return;
+    var html = '';
+    if (m.type === 'VIDEO') {
+      html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded"></video>';
+    } else if (m.url && (m.url.toLowerCase().indexOf('.pdf') !== -1)) {
+      var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+      html = '<a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold">Open PDF</a><p class="text-muted small mt-2">' + fn + '</p>';
+    } else {
+      html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded">';
+    }
+    contentEl.innerHTML = html;
+    if (captionEl) captionEl.textContent = m.file_name || m.url || ('Item ' + (currentIdx + 1));
+    if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
+    if (areaTagEl) {
+      var tag = (m.area_tag || '').trim();
+      if (tag && currentList === designVaultList) {
+        areaTagEl.textContent = tag;
+        areaTagEl.classList.remove('d-none');
+      } else {
+        areaTagEl.textContent = '';
+        areaTagEl.classList.add('d-none');
+      }
+    }
+    if (counterEl) counterEl.textContent = (currentIdx + 1) + ' / ' + currentList.length;
+    updateSwitchButtons(m);
+  }
+
+  function openGallery(source, index) {
+    currentList = (source === 'daily') ? dailyUpdateList : designVaultList;
+    currentSourceLabel = (source === 'daily') ? 'Daily Update Photos' : 'Design Vault';
+    if (currentList.length === 0) return;
+    currentIdx = (index + currentList.length) % currentList.length;
+    renderCurrent();
+    if (modalEl && window.bootstrap) new bootstrap.Modal(modalEl, { backdrop: 'static' }).show();
+  }
+
+  function switchToLinked(targetType) {
+    if (currentList !== designVaultList || designVaultList.length === 0) return;
+    var m = currentList[currentIdx];
+    if (!m) return;
+    var linkedIds = targetType === '3d' ? (m.linked3d || []) : (m.linked2d || []);
+    if (!linkedIds.length) return;
+    var firstId = linkedIds[0];
+    var indices = designIdToIndices[firstId];
+    if (!indices || !indices.length) return;
+    currentIdx = indices[0];
+    renderCurrent();
+  }
+
+  if (modalEl) {
+    modalEl.querySelector('.vault-prev').addEventListener('click', function() {
+      if (currentList.length === 0) return;
+      currentIdx = (currentIdx - 1 + currentList.length) % currentList.length;
+      renderCurrent();
+    });
+    modalEl.querySelector('.vault-next').addEventListener('click', function() {
+      if (currentList.length === 0) return;
+      currentIdx = (currentIdx + 1) % currentList.length;
+      renderCurrent();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (!modalEl.classList.contains('show')) return;
+      if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + currentList.length) % currentList.length; renderCurrent(); }
+      if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % currentList.length; renderCurrent(); }
+      if (e.key === 'Escape') { var m = bootstrap.Modal.getInstance(modalEl); if (m) m.hide(); }
+    });
+  }
+
+  var btn2d = document.getElementById('vaultSwitch2DBtn');
+  var btn3d = document.getElementById('vaultSwitch3DBtn');
+  if (btn2d) btn2d.addEventListener('click', function() { if (!this.classList.contains('disabled')) switchToLinked('2d'); });
+  if (btn3d) btn3d.addEventListener('click', function() { if (!this.classList.contains('disabled')) switchToLinked('3d'); });
+
+  document.querySelectorAll('.vault-item').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var source = el.getAttribute('data-gallery-source');
+      var idx = parseInt(el.getAttribute('data-gallery-index'), 10);
+      if (source && !isNaN(idx)) openGallery(source, idx);
+    });
+    el.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { el.click(); e.preventDefault(); } });
+  });
+
+  window.showDesignCommentHistory = function(el) {
+    var raw = el.getAttribute('data-design-comments');
+    if (!raw) return;
+    try {
+      var comments = JSON.parse(decodeURIComponent(raw));
+      var body = document.getElementById('designCommentHistoryModalBody');
+      if (!body) return;
+      if (!comments || comments.length === 0) { body.innerHTML = '<p class="text-muted mb-0">No comments.</p>'; }
+      else { body.innerHTML = comments.map(function(c) { return '<div class="mb-2"><strong>' + (c.author_type || '') + '</strong>: ' + (c.message || '') + ' <small class="text-muted">(' + (c.created_at || '') + ')</small></div>'; }).join(''); }
+      var modal = document.getElementById('designCommentHistoryModal');
+      if (modal && window.bootstrap) new bootstrap.Modal(modal).show();
+    } catch (e) {}
+  };
+
+  var designVaultProjectId = '<%= typeof projectId !== "undefined" ? projectId : "" %>';
+  if (designVaultProjectId) {
+    window.openDesignDenyModal = function(btn) {
+      var vid = btn.getAttribute('data-version-id');
+      if (!vid) return;
+      var form = document.getElementById('designDenyForm');
+      if (form) { form.action = '/portal/client/projects/' + designVaultProjectId + '/design-version/' + vid + '/deny'; }
+      var modal = document.getElementById('designDenyModal');
+      if (modal && window.bootstrap) new bootstrap.Modal(modal).show();
+    };
+    window.openDesignCommentModal = function(btn) {
+      var vid = btn.getAttribute('data-version-id');
+      if (!vid) return;
+      var form = document.getElementById('designCommentForm');
+      if (form) { form.action = '/portal/client/projects/' + designVaultProjectId + '/design-version/' + vid + '/comment'; }
+      var modal = document.getElementById('designCommentModal');
+      if (modal && window.bootstrap) new bootstrap.Modal(modal).show();
+    };
+  }
+})();
+</script>
+
+<div class="modal fade" id="designCommentHistoryModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning">Comment history</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="designCommentHistoryModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<% if (typeof projectId !== 'undefined' && projectId && typeof readOnly !== 'undefined' && !readOnly) { %>
+<div class="modal fade" id="designDenyModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning">Deny design</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="designDenyForm" method="post" action="">
+        <div class="modal-body">
+          <label class="form-label">Reason (optional)</label>
+          <input type="text" name="reason" class="form-control bg-dark text-light border-secondary" placeholder="Reason for denial" />
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="designCommentModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning">Comment on design</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="designCommentForm" method="post" action="">
+        <div class="modal-body">
+          <label class="form-label">Message</label>
+          <input type="text" name="message" class="form-control bg-dark text-light border-secondary" placeholder="Your comment" required />
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold">Send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<% } %>
