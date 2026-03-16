@@ -45,7 +45,6 @@
     .portal-nav .navbar-brand img { height: 52px; width: auto; display: block; }
     /* Portal layout responsiveness */
     @media (max-width: 991.98px) {
-      .portal-nav .navbar-text { display: none; }
       .portal-nav .nav-link { padding-left: 0.25rem; padding-right: 0.25rem; }
       .portal-nav .navbar-brand img { height: 40px; }
       .container { padding-left: 1rem; padding-right: 1rem; }
@@ -71,12 +70,17 @@
   </style>
 </head>
 <body>
+  <% var dashboardPath = portalUser && portalUser.role === 'ADMIN'
+        ? '/portal/admin'
+        : (portalUser && portalUser.role === 'DESIGNER'
+          ? '/portal/designer'
+          : '/portal/client'); %>
   <% if (typeof mirrorBanner !== 'undefined' && mirrorBanner) { %>
   <div class="mirror-banner">View as client (read-only)</div>
   <% } %>
   <nav class="navbar navbar-expand-lg portal-nav">
     <div class="container-fluid">
-      <a class="navbar-brand d-flex align-items-center" href="/portal/<%= portalUser.role === 'ADMIN' ? 'admin' : portalUser.role === 'DESIGNER' ? 'designer' : 'client' %>">
+      <a class="navbar-brand d-flex align-items-center" href="<%= dashboardPath %>">
         <img src="/assets/img/portal/logo-dv.png" alt="Designer's Vision" />
       </a>
       <button class="navbar-toggler text-light border-0" type="button" data-bs-toggle="collapse" data-bs-target="#portalNav" aria-controls="portalNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,7 +102,7 @@
           <% } %>
         </ul>
         <a class="nav-link me-2" href="/">Main website</a>
-        <span class="navbar-text me-3"><%= portalUser.name || portalUser.email %></span>
+        <span class="navbar-text me-3">Signed in as <strong><%= portalUser.name || portalUser.email %></strong></span>
         <form method="post" action="/portal/logout" class="d-inline">
           <button type="submit" class="btn btn-outline-gold btn-sm">Logout</button>
         </form>
@@ -110,6 +114,30 @@
   </div>
   <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
+  // Activate correct tab from URL hash or one-time session flag (e.g. #tab-vault, #tab-finance, #tab-daily)
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      if (!window.bootstrap) return;
+      var hash = window.location.hash || '';
+      var targetHash = '';
+      if (hash && hash.indexOf('#tab-') === 0) {
+        targetHash = hash;
+      } else if (window.sessionStorage) {
+        var stored = window.sessionStorage.getItem('portalActiveTab');
+        if (stored && stored.indexOf('tab-') === 0) {
+          targetHash = '#' + stored;
+          window.sessionStorage.removeItem('portalActiveTab');
+        }
+      }
+      if (targetHash) {
+        var tabTrigger = document.querySelector('[data-bs-target=\"' + targetHash + '\"]');
+        if (tabTrigger) {
+          var tab = window.bootstrap.Tab.getOrCreateInstance(tabTrigger);
+          tab.show();
+        }
+      }      
+    } catch (e) {}
+  });
   // Global helper to switch to Daily Updates tab and scroll to the Daily Update card.
   window.switchToDailyUpdates = function() {
     try {

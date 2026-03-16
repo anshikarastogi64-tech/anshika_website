@@ -187,13 +187,20 @@ function approveQuotation(btn) {
   var id = btn.getAttribute('data-quotation-id');
   fetch('/portal/api/quotation/' + id + '/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
     .then(function(r) { return r.json(); })
-    .then(function() { location.reload(); });
+    .then(function() {
+      // Next reload: stay on Finance tab, but default view remains Updates & Progress
+      try { if (window.sessionStorage) window.sessionStorage.setItem('portalActiveTab', 'tab-finance'); } catch (e) {}
+      window.location.href = window.location.pathname + window.location.search;
+    });
 }
 function approveExtra(btn) {
   var id = btn.getAttribute('data-id');
   fetch('/portal/api/extra-cost/' + id + '/approve', { method: 'POST' })
     .then(function(r) { return r.json(); })
-    .then(function() { location.reload(); });
+    .then(function() {
+      try { if (window.sessionStorage) window.sessionStorage.setItem('portalActiveTab', 'tab-finance'); } catch (e) {}
+      window.location.href = window.location.pathname + window.location.search;
+    });
 }
 
 var rejectModalEl = document.getElementById('rejectModal');
@@ -229,7 +236,8 @@ if (rejectConfirmBtn && rejectModalEl) {
       .then(function(data) {
         if (data.error) { if (rejectErrorEl) { rejectErrorEl.textContent = data.error; rejectErrorEl.classList.remove('d-none'); } return; }
         if (rejectModalEl && window.bootstrap) bootstrap.Modal.getInstance(rejectModalEl).hide();
-        location.reload();
+        try { if (window.sessionStorage) window.sessionStorage.setItem('portalActiveTab', 'tab-finance'); } catch (e) {}
+        window.location.href = window.location.pathname + window.location.search;
       })
       .catch(function() { if (rejectErrorEl) { rejectErrorEl.textContent = 'Something went wrong.'; rejectErrorEl.classList.remove('d-none'); } });
   });
@@ -256,7 +264,10 @@ function submitComment(btn) {
     body: JSON.stringify({ comment: comment })
   })
     .then(function(r) { return r.json(); })
-    .then(function() { location.reload(); });
+    .then(function() {
+      try { if (window.sessionStorage) window.sessionStorage.setItem('portalActiveTab', 'tab-finance'); } catch (e) {}
+      window.location.href = window.location.pathname + window.location.search;
+    });
 }
 </script>
 <% } %>

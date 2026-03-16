@@ -533,6 +533,29 @@ router.post('/admin/projects/:id/design-version/:versionId/delete', requirePorta
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
 });
 
+// Admin: add new version to existing design (upload) – same behavior as designer route but under /admin
+router.post('/admin/projects/:id/design/:designId/version', requirePortalAuth, requireAdmin, portalUpload.single('file'), async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const design = await portalDb.getDesignById(req.params.designId);
+  if (!design || design.project_id !== projectId) return res.redirect('/portal/admin/projects/' + projectId + '#tab-vault');
+  if (!req.file) return res.redirect('/portal/admin/projects/' + projectId + '?msg=No+file#tab-vault');
+  const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
+  const mediaId = await portalDb.addProjectMedia(
+    projectId,
+    url,
+    req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO',
+    design.category,
+    req.file.originalname,
+    req.file.size
+  );
+  // New version should not auto-carry old 2D/3D links; admin/designer explicitly relink.
+  await portalDb.clearDesignLinks(design.id);
+  await portalDb.createDesignVersion(design.id, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-vault');
+});
+
 // ----- Designer Dashboard -----
 router.get('/designer', requirePortalAuth, requireDesigner, async (req, res) => {
   const designerId = req.session[PORTAL_USER_ID];
@@ -637,13 +660,14 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
   const mediaList = media || [];
   const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG');
   const byYearMonth = groupMediaByDate(siteLog);
+  // For client view, do NOT surface raw 2D/3D media; only admin-approved design versions
   const mediaByCategory = {
-    ARCHITECTURAL_PLANS: mediaList.filter((m) => m.category === 'ARCHITECTURAL_PLANS'),
-    VISUALIZATIONS: mediaList.filter((m) => m.category === 'VISUALIZATIONS'),
+    ARCHITECTURAL_PLANS: [],
+    VISUALIZATIONS: [],
     SITE_LOG: siteLog,
     OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS'),
   };
-  const vaultMediaList = buildVaultMediaList(mediaList);
+  const vaultMediaList = buildVaultMediaList(mediaList.filter((m) => m.category !== 'ARCHITECTURAL_PLANS' && m.category !== 'VISUALIZATIONS'));
   const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
   const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false });
   renderPortal(req, res, 'portal/designer/project_detail', {
@@ -945,13 +969,14 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const mediaList = media || [];
   const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG');
   const byYearMonth = groupMediaByDate(siteLog);
+  // Mirror uses client view rules: 2D/3D only via approved design versions
   const mediaByCategory = {
-    ARCHITECTURAL_PLANS: mediaList.filter((m) => m.category === 'ARCHITECTURAL_PLANS'),
-    VISUALIZATIONS: mediaList.filter((m) => m.category === 'VISUALIZATIONS'),
+    ARCHITECTURAL_PLANS: [],
+    VISUALIZATIONS: [],
     SITE_LOG: siteLog,
     OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS'),
   };
-  const vaultMediaList = buildVaultMediaList(mediaList);
+  const vaultMediaList = buildVaultMediaList(mediaList.filter((m) => m.category !== 'ARCHITECTURAL_PLANS' && m.category !== 'VISUALIZATIONS'));
   const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
   const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true });
   renderPortal(req, res, 'portal/client/project_detail', {

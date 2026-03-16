@@ -1,4 +1,5 @@
-<h1 class="serif text-warning mb-4">My Dashboard</h1>
+<h1 class="serif text-warning mb-2">My Dashboard</h1>
+<p class="mb-4">Welcome <strong><%= portalUser && (portalUser.name || portalUser.email) %></strong></p>
 <% if (typeof query !== 'undefined' && query && query.msg) { %><div class="alert alert-success"><%= query.msg %></div><% } %>
 <div class="card card-portal mb-4">
   <div class="card-header">DV Points</div>
