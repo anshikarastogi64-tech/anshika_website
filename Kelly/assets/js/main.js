@@ -131,34 +131,51 @@
   }
 
   /**
-   * Porfolio isotope and filter (desktop only – on mobile items stack normally to avoid overlap)
+   * Portfolio isotope (desktop) and category filter (mobile: show/hide items to avoid Isotope overlap)
    */
   window.addEventListener('load', () => {
     let portfolioContainer = select('.portfolio-container');
     if (!portfolioContainer) return;
     const isMobile = () => window.innerWidth < 768;
-    if (isMobile()) return;
 
-    let portfolioIsotope = new Isotope(portfolioContainer, {
-      itemSelector: '.portfolio-item'
-    });
+    let portfolioIsotope = null;
+    if (!isMobile() && typeof Isotope !== 'undefined') {
+      portfolioIsotope = new Isotope(portfolioContainer, {
+        itemSelector: '.portfolio-item'
+      });
+    }
 
     let portfolioFilters = select('#portfolio-flters li', true);
 
+    function applyMobileFilter(selector) {
+      let items = select('.portfolio-item', true);
+      if (!items.length) return;
+      items.forEach(function(item) {
+        if (selector === '*') {
+          item.style.display = '';
+        } else {
+          item.style.display = item.matches(selector) ? '' : 'none';
+        }
+      });
+      if (typeof AOS !== 'undefined') AOS.refresh();
+    }
+
     on('click', '#portfolio-flters li', function(e) {
       e.preventDefault();
-      if (isMobile()) return;
       portfolioFilters.forEach(function(el) {
         el.classList.remove('filter-active');
       });
       this.classList.add('filter-active');
 
-      portfolioIsotope.arrange({
-        filter: this.getAttribute('data-filter')
-      });
-      portfolioIsotope.on('arrangeComplete', function() {
-        AOS.refresh()
-      });
+      var filter = this.getAttribute('data-filter');
+      if (isMobile()) {
+        applyMobileFilter(filter);
+      } else if (portfolioIsotope) {
+        portfolioIsotope.arrange({ filter: filter });
+        portfolioIsotope.once('arrangeComplete', function() {
+          if (typeof AOS !== 'undefined') AOS.refresh();
+        });
+      }
     }, true);
   });
 
