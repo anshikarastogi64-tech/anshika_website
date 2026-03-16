@@ -476,9 +476,15 @@
         <span class="text-muted small me-2" id="vaultGallerySourceLabel"></span>
         <span class="badge bg-warning text-dark me-2 d-none" id="vaultGalleryAreaTag"></span>
         <h6 class="modal-title text-warning text-truncate me-2" id="vaultGalleryCaption"></h6>
+        <span class="badge bg-secondary me-2 d-none" id="vaultGalleryStatus"></span>
         <div class="btn-group btn-group-sm me-2 d-none" id="vaultDesignSwitchGroup" title="Switch to linked 2D or 3D">
           <button type="button" class="btn btn-outline-warning" id="vaultSwitch2DBtn">2D</button>
           <button type="button" class="btn btn-outline-warning" id="vaultSwitch3DBtn">3D</button>
+        </div>
+        <div class="btn-group btn-group-sm ms-2 d-none" id="vaultClientActions">
+          <button type="button" class="btn btn-outline-success" id="vaultApproveClientBtn">Approve</button>
+          <button type="button" class="btn btn-outline-danger" id="vaultDenyClientBtn">Deny</button>
+          <button type="button" class="btn btn-outline-light" id="vaultCommentClientBtn">Comment</button>
         </div>
         <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -517,7 +523,10 @@
       design_category: m.design ? m.design.category : (m.media_category || m.category || null),
       area_tag: m.area_tag || (m.design && m.design.area_tag) || '',
       linked2d: m.design && m.design.linked2d ? m.design.linked2d : [],
-      linked3d: m.design && m.design.linked3d ? m.design.linked3d : []
+      linked3d: m.design && m.design.linked3d ? m.design.linked3d : [],
+      version_id: m.id || null,
+      admin_status: m.admin_status || null,
+      client_status: m.client_status || null
     };
   })) %>;
   var dailyUpdateList = <%- JSON.stringify(dailyUpdateFlatMedia.map(function(m) { return { url: m.url, type: (m.type || m.media_type) || 'PHOTO', file_name: m.file_name || m.url }; })) %>;
@@ -528,10 +537,16 @@
   var sourceLabelEl = document.getElementById('vaultGallerySourceLabel');
   var areaTagEl = document.getElementById('vaultGalleryAreaTag');
   var counterEl = document.getElementById('vaultGalleryCounter');
+  var statusEl = document.getElementById('vaultGalleryStatus');
+  var clientActionsEl = document.getElementById('vaultClientActions');
+  var approveClientBtn = document.getElementById('vaultApproveClientBtn');
+  var denyClientBtn = document.getElementById('vaultDenyClientBtn');
+  var commentClientBtn = document.getElementById('vaultCommentClientBtn');
   var currentList = [];
   var currentSourceLabel = '';
   var currentIdx = 0;
   var designIdToIndices = {};
+  var isClientView = <%= isClient ? 'true' : 'false' %> === 'true';
 
   designVaultList.forEach(function(m, idx) {
     if (!m.design_id) return;
@@ -592,6 +607,27 @@
       }
     }
     if (counterEl) counterEl.textContent = (currentIdx + 1) + ' / ' + currentList.length;
+    // Client approval status & actions in viewer
+    if (statusEl && clientActionsEl) {
+      if (!isClientView || !m.version_id || (m.design_category !== 'ARCHITECTURAL_PLANS' && m.design_category !== 'VISUALIZATIONS')) {
+        statusEl.classList.add('d-none');
+        clientActionsEl.classList.add('d-none');
+      } else {
+        var adminStatus = (m.admin_status || 'PENDING_ADMIN');
+        var clientStatus = (m.client_status || 'PENDING');
+        statusEl.textContent = 'Admin: ' + adminStatus + ' | You: ' + clientStatus;
+        statusEl.classList.remove('d-none');
+        var canAct = adminStatus === 'APPROVED';
+        if (canAct) {
+          clientActionsEl.classList.remove('d-none');
+          if (approveClientBtn) approveClientBtn.setAttribute('data-version-id', m.version_id);
+          if (denyClientBtn) denyClientBtn.setAttribute('data-version-id', m.version_id);
+          if (commentClientBtn) commentClientBtn.setAttribute('data-version-id', m.version_id);
+        } else {
+          clientActionsEl.classList.add('d-none');
+        }
+      }
+    }
     updateSwitchButtons(m);
   }
 
@@ -648,6 +684,36 @@
   var btn3d = document.getElementById('vaultSwitch3DBtn');
   if (btn2d) btn2d.addEventListener('click', function() { if (!this.classList.contains('disabled')) switchToLinked('2d'); });
   if (btn3d) btn3d.addEventListener('click', function() { if (!this.classList.contains('disabled')) switchToLinked('3d'); });
+
+  // Client actions from viewer
+  if (approveClientBtn && designVaultProjectId && isClientView) {
+    approveClientBtn.addEventListener('click', function() {
+      var vid = this.getAttribute('data-version-id');
+      if (!vid) return;
+      fetch('/portal/client/projects/' + designVaultProjectId + '/design-version/' + vid + '/approve', { method: 'POST' })
+        .then(function(r) { return r.text(); })
+        .then(function() {
+          try { if (window.sessionStorage) window.sessionStorage.setItem('portalActiveTab', 'tab-vault'); } catch (e) {}
+          window.location.href = window.location.pathname + window.location.search;
+        });
+    });
+  }
+  if (denyClientBtn && designVaultProjectId && isClientView && typeof window.openDesignDenyModal === 'function') {
+    denyClientBtn.addEventListener('click', function() {
+      var vid = this.getAttribute('data-version-id');
+      if (!vid) return;
+      this.setAttribute('data-version-id', vid);
+      window.openDesignDenyModal(this);
+    });
+  }
+  if (commentClientBtn && designVaultProjectId && isClientView && typeof window.openDesignCommentModal === 'function') {
+    commentClientBtn.addEventListener('click', function() {
+      var vid = this.getAttribute('data-version-id');
+      if (!vid) return;
+      this.setAttribute('data-version-id', vid);
+      window.openDesignCommentModal(this);
+    });
+  }
 
   document.querySelectorAll('.vault-item').forEach(function(el) {
     el.addEventListener('click', function() {
