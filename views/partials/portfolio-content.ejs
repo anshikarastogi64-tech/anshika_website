@@ -62,15 +62,23 @@
     opacity: 0.95;
     transform: translateX(2px);
   }
-  /* Mobile: always show project title and summary below image, avoid overlap */
+  /* Mobile: disable Isotope overlap – stack items normally; constrain image height */
   @media (max-width: 767.98px) {
+    /* Override Isotope's absolute positioning so items stack instead of overlapping */
     .portfolio .portfolio-container {
-      row-gap: 0;
+      height: auto !important;
+      min-height: 0 !important;
     }
-    .portfolio .portfolio-item {
+    .portfolio .portfolio-container .portfolio-item {
+      position: relative !important;
+      left: auto !important;
+      top: auto !important;
+      right: auto !important;
+      transform: none !important;
+      width: 100% !important;
       margin-bottom: 1.25rem;
     }
-    .portfolio .portfolio-item:last-child {
+    .portfolio .portfolio-container .portfolio-item:last-child {
       margin-bottom: 0;
     }
     .portfolio .portfolio-wrap {
@@ -87,9 +95,13 @@
       display: flex;
       flex-direction: column;
     }
+    /* Fixed-height image area so tall images don't blow up the card or cause overlap */
     .portfolio .portfolio-wrap img {
       width: 100%;
       height: auto;
+      max-height: 280px;
+      object-fit: cover;
+      object-position: center;
       display: block;
     }
     .portfolio .portfolio-wrap .portfolio-info {

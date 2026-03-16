@@ -131,33 +131,35 @@
   }
 
   /**
-   * Porfolio isotope and filter
+   * Porfolio isotope and filter (desktop only – on mobile items stack normally to avoid overlap)
    */
   window.addEventListener('load', () => {
     let portfolioContainer = select('.portfolio-container');
-    if (portfolioContainer) {
-      let portfolioIsotope = new Isotope(portfolioContainer, {
-        itemSelector: '.portfolio-item'
+    if (!portfolioContainer) return;
+    const isMobile = () => window.innerWidth < 768;
+    if (isMobile()) return;
+
+    let portfolioIsotope = new Isotope(portfolioContainer, {
+      itemSelector: '.portfolio-item'
+    });
+
+    let portfolioFilters = select('#portfolio-flters li', true);
+
+    on('click', '#portfolio-flters li', function(e) {
+      e.preventDefault();
+      if (isMobile()) return;
+      portfolioFilters.forEach(function(el) {
+        el.classList.remove('filter-active');
       });
+      this.classList.add('filter-active');
 
-      let portfolioFilters = select('#portfolio-flters li', true);
-
-      on('click', '#portfolio-flters li', function(e) {
-        e.preventDefault();
-        portfolioFilters.forEach(function(el) {
-          el.classList.remove('filter-active');
-        });
-        this.classList.add('filter-active');
-
-        portfolioIsotope.arrange({
-          filter: this.getAttribute('data-filter')
-        });
-        portfolioIsotope.on('arrangeComplete', function() {
-          AOS.refresh()
-        });
-      }, true);
-    }
-
+      portfolioIsotope.arrange({
+        filter: this.getAttribute('data-filter')
+      });
+      portfolioIsotope.on('arrangeComplete', function() {
+        AOS.refresh()
+      });
+    }, true);
   });
 
   /**
