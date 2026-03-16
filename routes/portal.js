@@ -198,6 +198,25 @@ router.post('/admin/users/new', express.urlencoded({ extended: false }), require
   }
 });
 
+router.get('/admin/users/:id/password', requirePortalAuth, requireAdmin, async (req, res) => {
+  const user = await portalDb.getUserById(req.params.id);
+  if (!user) return res.status(404).send('User not found');
+  renderPortal(req, res, 'portal/admin/user_password', { user, query: req.query });
+});
+
+router.post('/admin/users/:id/password', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const user = await portalDb.getUserById(req.params.id);
+  if (!user) return res.status(404).send('User not found');
+  const pwd = (req.body.password || '').trim();
+  const confirm = (req.body.password_confirm || '').trim();
+  if (!pwd || pwd.length < 6 || pwd !== confirm) {
+    return res.redirect('/portal/admin/users/' + req.params.id + '/password?error=Invalid+password');
+  }
+  const hash = bcrypt.hashSync(pwd, 10);
+  await portalDb.run('UPDATE portal_users SET password_hash = ? WHERE id = ?', [hash, user.id]);
+  res.redirect('/portal/admin/users?msg=Password+updated');
+});
+
 // ----- Admin: Leads (static /new before /:id so "new" is not treated as id) -----
 router.get('/admin/leads', requirePortalAuth, requireAdmin, async (req, res) => {
   const leads = await portalDb.getLeadsForAdmin();

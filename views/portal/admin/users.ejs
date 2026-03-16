@@ -2,7 +2,7 @@
 <p><a href="/portal/admin/users/new" class="btn btn-gold">Add User</a></p>
 <div class="table-responsive">
   <table class="table table-dark table-striped table-bordered border-secondary">
-    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>DV Points</th></tr></thead>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>DV Points</th><th>Actions</th></tr></thead>
     <tbody>
       <% users.forEach(function(u) { %>
       <tr>
@@ -10,6 +10,9 @@
         <td><%= u.email %></td>
         <td><%= u.role %></td>
         <td><%= u.dv_points_balance %></td>
+        <td>
+          <a href="/portal/admin/users/<%= u.id %>/password" class="btn btn-sm btn-outline-gold">Change password</a>
+        </td>
       </tr>
       <% }); %>
     </tbody>
