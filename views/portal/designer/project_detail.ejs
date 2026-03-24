@@ -1,5 +1,5 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
-<p class="mb-3">Client: <%= project.client_name %> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></p>
+<p class="mb-3">Client: <%= project.client_name %> | Progress: <%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></p>
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
@@ -29,19 +29,10 @@
     <div class="card card-portal mb-4">
       <div class="card-header">Update project</div>
       <div class="card-body">
-        <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-3">
-          <div class="row g-2 align-items-end">
-            <div class="col-auto">
-              <label class="form-label small mb-0">Stage</label>
-              <select name="current_stage" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:180px">
-                <% LIFECYCLE_STAGES.forEach(function(s) { %>
-                <option value="<%= s.index %>" <%= project.current_stage === s.index ? 'selected' : '' %>><%= s.name %></option>
-                <% }); %>
-              </select>
-            </div>
-            <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Update stage</button></div>
-          </div>
-        </form>
+        <div class="mb-3">
+          <label class="form-label small text-muted mb-2 d-block">Lifecycle progress</label>
+          <%- include('../partials/project_stage_picker', { project, formAction: '/portal/designer/projects/' + project.id + '/update' }) %>
+        </div>
         <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-0">
           <div class="row g-2 align-items-end">
             <div class="col-auto">

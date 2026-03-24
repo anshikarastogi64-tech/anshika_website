@@ -11,6 +11,9 @@ const portalDb = require('../lib/portal-db');
 const { sendWelcomeEmail } = require('../lib/portal-email');
 const {
   LIFECYCLE_STAGES,
+  enrichProjectLifecycle,
+  lifecycleHeadline,
+  deriveLegacyCurrentStageIndex,
   calculateProjectTotal,
   sumApprovedClientPayments,
   balanceDueAfterPublishedPayments,
@@ -27,6 +30,26 @@ const fs = require('fs');
 
 const portalUploadDir = path.join(__dirname, '..', 'Kelly', 'assets', 'uploads', 'portal');
 if (!fs.existsSync(portalUploadDir)) fs.mkdirSync(portalUploadDir, { recursive: true });
+
+function parseLifecycleIndicesFromBody(body, field) {
+  let raw = body[`${field}[]`] !== undefined ? body[`${field}[]`] : body[field];
+  if (raw === undefined) return [];
+  if (!Array.isArray(raw)) raw = [raw];
+  return [...new Set(raw.map((x) => parseInt(x, 10)).filter((n) => !Number.isNaN(n) && n >= 0 && n < LIFECYCLE_STAGES.length))].sort(
+    (a, b) => a - b
+  );
+}
+
+function buildLifecycleUpdates(body) {
+  let completed = parseLifecycleIndicesFromBody(body, 'lifecycle_completed');
+  let active = parseLifecycleIndicesFromBody(body, 'lifecycle_active');
+  active = active.filter((i) => !completed.includes(i));
+  return {
+    lifecycle_completed_stages: JSON.stringify(completed),
+    lifecycle_active_stages: JSON.stringify(active),
+    current_stage: deriveLegacyCurrentStageIndex(completed, active),
+  };
+}
 
 function inferPortalUploadMediaType(file) {
   if (!file || !file.mimetype) return 'PHOTO';
@@ -163,6 +186,7 @@ router.use(requirePortalAuth, async (req, res, next) => {
     name: req.session[PORTAL_USER_NAME],
   };
   res.locals.LIFECYCLE_STAGES = LIFECYCLE_STAGES;
+  res.locals.lifecycleHeadline = lifecycleHeadline;
   try {
     res.locals.portalUnreadCount = await portalDb.countUnreadNotifications(req.session[PORTAL_USER_ID]);
   } catch (e) {
@@ -351,6 +375,7 @@ router.post('/admin/leads/:id/note', express.urlencoded({ extended: false }), re
 // ----- Admin: Projects (static /new before /:id) -----
 router.get('/admin/projects', requirePortalAuth, requireAdmin, async (req, res) => {
   const projects = await portalDb.getProjectsForAdmin();
+  (projects || []).forEach((p) => enrichProjectLifecycle(p));
   renderPortal(req, res, 'portal/admin/projects', { projects });
 });
 
@@ -388,6 +413,7 @@ router.post('/admin/projects/new', express.urlencoded({ extended: false }), requ
 router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, res) => {
   const project = await portalDb.getProjectWithRelations(req.params.id);
   if (!project) return res.status(404).send('Project not found');
+  enrichProjectLifecycle(project);
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   let extraCosts = [];
   if (quotation) extraCosts = await portalDb.getExtraCostsByQuotationId(quotation.id);
@@ -473,6 +499,30 @@ router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded
   const designer_can_view_mirror = req.body.designer_can_view_mirror === '1' ? 1 : 0;
   await portalDb.updateProject(req.params.id, { designer_can_view_mirror });
   res.redirect('/portal/admin/projects/' + req.params.id);
+});
+
+router.post('/admin/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  if (req.body.lifecycle_update !== '1') {
+    return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-updates');
+  }
+  const updates = buildLifecycleUpdates(req.body);
+  await portalDb.updateProject(req.params.id, updates);
+  const p = await portalDb.getProjectById(req.params.id);
+  if (p) {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.PROJECT,
+        message: `Project lifecycle stages were updated on «${p.title}».`,
+        projectId: p.id,
+        tabSuffix: '#tab-updates',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: true,
+      })
+    );
+  }
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-updates');
 });
 
 const DEFAULT_DESIGN_TIMELINE_DAYS = 15;
@@ -1463,6 +1513,7 @@ router.get('/designer', requirePortalAuth, requireDesigner, async (req, res) => 
     portalDb.getNotificationsForUser(designerId, 15),
   ]);
   const pendingFollowUps = leads.filter((l) => l.next_follow_up && new Date(l.next_follow_up) <= new Date());
+  (projects || []).forEach((p) => enrichProjectLifecycle(p));
   renderPortal(req, res, 'portal/designer/dashboard', { leads, projects, pendingFollowUps, notifications: notifications || [] });
 });
 
@@ -1547,6 +1598,7 @@ router.post('/designer/leads/:id/convert', express.urlencoded({ extended: false 
 
 router.get('/designer/projects', requirePortalAuth, requireDesigner, async (req, res) => {
   const projects = await portalDb.getProjectsForDesigner(req.session[PORTAL_USER_ID]);
+  (projects || []).forEach((p) => enrichProjectLifecycle(p));
   renderPortal(req, res, 'portal/designer/projects', { projects });
 });
 
@@ -1579,6 +1631,7 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
     portalDb.getTimelineExtensions(project.id),
   ]);
+  enrichProjectLifecycle(project);
   renderPortal(req, res, 'portal/designer/project_detail', {
     project,
     query: req.query,
@@ -1594,13 +1647,15 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
   });
 });
 
-router.post('/designer/projects/:id/update', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+router.post('/designer/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) {
     return res.status(403).send('Forbidden');
   }
   const updates = {};
-  if (req.body.current_stage !== undefined) updates.current_stage = parseInt(req.body.current_stage, 10);
+  if (req.body.lifecycle_update === '1') {
+    Object.assign(updates, buildLifecycleUpdates(req.body));
+  }
   if (req.body.title !== undefined) updates.title = req.body.title;
   if (req.body.rtsp_link !== undefined) updates.rtsp_link = req.body.rtsp_link || null;
   if (Object.keys(updates).length) {
@@ -1610,7 +1665,10 @@ router.post('/designer/projects/:id/update', express.urlencoded({ extended: fals
       portalNotify.safeNotify(
         portalNotify.notifyProjectStakeholders(portalDb, {
           category: NC.PROJECT,
-          message: `Project details were updated on «${p.title}».`,
+          message:
+            req.body.lifecycle_update === '1'
+              ? `Project lifecycle stages were updated on «${p.title}».`
+              : `Project details were updated on «${p.title}».`,
           projectId: p.id,
           tabSuffix: '#tab-updates',
           excludeUserIds: [req.session[PORTAL_USER_ID]],
@@ -1619,7 +1677,7 @@ router.post('/designer/projects/:id/update', express.urlencoded({ extended: fals
       );
     }
   }
-  res.redirect('/portal/designer/projects/' + req.params.id);
+  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-updates');
 });
 
 router.post('/designer/projects/:id/media', requirePortalAuth, requireDesigner, portalUpload.single('file'), async (req, res) => {
@@ -1908,6 +1966,7 @@ router.get('/client', requirePortalAuth, async (req, res) => {
     portalDb.getLeadsByReferrerId(req.session[PORTAL_USER_ID]),
     portalDb.getNotificationsForUser(req.session[PORTAL_USER_ID]),
   ]);
+  (projects || []).forEach((p) => enrichProjectLifecycle(p));
   renderPortal(req, res, 'portal/client/dashboard', {
     projects,
     dvPoints: user?.dv_points_balance ?? 0,
@@ -1995,6 +2054,7 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
   const project = await portalDb.getProjectById(req.params.id);
   if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  enrichProjectLifecycle(project);
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   let extraCosts = [];
   if (quotation) extraCosts = await portalDb.getExtraCostsByQuotationId(quotation.id);
@@ -2066,6 +2126,7 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
 router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.projectId);
   if (!project) return res.status(404).send('Project not found');
+  enrichProjectLifecycle(project);
   const isAdmin = req.session[PORTAL_USER_ROLE] === 'ADMIN';
   const isAssignedDesigner = project.designer_id === req.session[PORTAL_USER_ID];
   if (!isAdmin && !isAssignedDesigner) return res.status(403).send('Forbidden');

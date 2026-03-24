@@ -61,7 +61,7 @@
   <% projects.forEach(function(p) { %>
   <a href="/portal/client/projects/<%= p.id %>" class="list-group-item list-group-item-dark list-group-item-action d-flex justify-content-between align-items-center border-secondary">
     <span><%= p.title %></span>
-    <span class="badge bg-secondary"><%= typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES[p.current_stage] ? LIFECYCLE_STAGES[p.current_stage].name : 'Stage ' + p.current_stage %></span>
+    <span class="badge bg-secondary text-wrap text-start" style="max-width: 12rem;"><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(p) : (typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES[p.current_stage] ? LIFECYCLE_STAGES[p.current_stage].name : 'Stage ' + p.current_stage) %></span>
   </a>
   <% }); %>
 </div>

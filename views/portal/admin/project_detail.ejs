@@ -1,5 +1,5 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
-<p class="mb-3">Client: <%= project.client_name %> | Designer: <strong><%= project.designer_name %></strong> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %> | Status: <%= project.status %></p>
+<p class="mb-3">Client: <%= project.client_name %> | Designer: <strong><%= project.designer_name %></strong> | Progress: <%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %> | Status: <%= project.status %></p>
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
@@ -49,6 +49,13 @@
           <label class="form-check-label small mb-0" for="designerCanViewMirror">Designer can open Client Mirror for this project</label>
           <button type="submit" class="btn btn-outline-gold btn-sm">Save</button>
         </form>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header">Lifecycle progress</div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">Mark stages as completed or in progress. Multiple stages can be in progress at once. Green, yellow, and grey match what the client sees.</p>
+        <%- include('../partials/project_stage_picker', { project, formAction: '/portal/admin/projects/' + project.id + '/update' }) %>
       </div>
     </div>
     <p class="d-flex flex-wrap gap-2">

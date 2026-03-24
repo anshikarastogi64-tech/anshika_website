@@ -9,7 +9,7 @@
         <td><%= p.title %></td>
         <td><%= p.client_name %></td>
         <td><%= p.designer_name %></td>
-        <td><%= typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES[p.current_stage] ? LIFECYCLE_STAGES[p.current_stage].name : p.current_stage %></td>
+        <td><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(p) : (typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES[p.current_stage] ? LIFECYCLE_STAGES[p.current_stage].name : p.current_stage) %></td>
         <td><%= p.status %></td>
         <td>
           <a href="/portal/admin/projects/<%= p.id %>" class="btn btn-outline-gold btn-sm">View</a>

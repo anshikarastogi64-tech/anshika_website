@@ -1,5 +1,5 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
-<p class="mb-3">Stage: <strong><%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %></strong></p>
+<p class="mb-3">Progress: <strong><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></strong></p>
 
 <ul class="nav nav-tabs portal-tabs mb-3" id="projectTabs" role="tablist">
   <li class="nav-item" role="presentation">
@@ -34,8 +34,12 @@
       <div class="card-header">Progress</div>
       <div class="card-body">
         <div class="d-flex flex-wrap gap-2">
-          <% LIFECYCLE_STAGES.forEach(function(s) { %>
-          <span class="badge <%= s.index <= project.current_stage ? 'bg-warning text-dark' : 'bg-secondary' %>" title="<%= s.description %>"><%= s.name %></span>
+          <% LIFECYCLE_STAGES.forEach(function(s) {
+            var done = project.lifecycle_completed && project.lifecycle_completed.indexOf(s.index) !== -1;
+            var on = project.lifecycle_active && project.lifecycle_active.indexOf(s.index) !== -1;
+            var badgeCls = done ? 'bg-success' : (on ? 'bg-warning text-dark' : 'bg-secondary');
+          %>
+          <span class="badge <%= badgeCls %>" title="<%= s.description %>"><%= s.name %></span>
           <% }); %>
         </div>
       </div>

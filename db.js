@@ -1,6 +1,7 @@
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
+const { NUM_LIFECYCLE_STAGES } = require('./lib/portal');
 
 const DB_PATH = path.join(__dirname, 'data.sqlite');
 
@@ -253,6 +254,26 @@ db.serialize(() => {
   db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_visible_to_client INTEGER NOT NULL DEFAULT 0', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_completed_date TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_completed_date TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN lifecycle_completed_stages TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN lifecycle_active_stages TEXT', () => {});
+  db.all(
+    'SELECT id, current_stage FROM portal_projects WHERE lifecycle_completed_stages IS NULL',
+    [],
+    (e, rows) => {
+      if (e || !rows || !rows.length) return;
+      const stmt = db.prepare(
+        'UPDATE portal_projects SET lifecycle_completed_stages = ?, lifecycle_active_stages = ? WHERE id = ?'
+      );
+      for (const row of rows) {
+        const cs = Math.min(Math.max(parseInt(row.current_stage, 10) || 0, 0), NUM_LIFECYCLE_STAGES - 1);
+        const completed = [];
+        for (let i = 0; i < cs; i++) completed.push(i);
+        const active = [cs];
+        stmt.run(JSON.stringify(completed), JSON.stringify(active), row.id);
+      }
+      stmt.finalize();
+    }
+  );
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_client_payments (
       id TEXT PRIMARY KEY,

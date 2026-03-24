@@ -1,0 +1,104 @@
+<%
+  const stages = typeof LIFECYCLE_STAGES !== 'undefined' && LIFECYCLE_STAGES ? LIFECYCLE_STAGES : [];
+  const action = typeof formAction !== 'undefined' ? formAction : '';
+  const completed = Array.isArray(project && project.lifecycle_completed) ? project.lifecycle_completed : [];
+  const active = Array.isArray(project && project.lifecycle_active) ? project.lifecycle_active : [];
+%>
+<style>
+  .stage-lifecycle-legend { font-size: 0.8rem; color: #8b9299; margin-bottom: 0.75rem; }
+  .stage-lifecycle-legend span { display: inline-flex; align-items: center; gap: 0.35rem; margin-right: 1rem; }
+  .stage-lifecycle-legend .dot { width: 0.65rem; height: 0.65rem; border-radius: 2px; flex-shrink: 0; }
+  .stage-lifecycle-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem 1rem;
+    align-items: start;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(108, 117, 125, 0.45);
+    border-radius: 0.35rem;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .stage-lifecycle-row.stage-row-completed {
+    border-color: rgba(25, 135, 84, 0.55);
+    background: rgba(25, 135, 84, 0.18);
+    color: #e8f5e9;
+  }
+  .stage-lifecycle-row.stage-row-active:not(.stage-row-completed) {
+    border-color: rgba(255, 193, 7, 0.65);
+    background: rgba(255, 193, 7, 0.14);
+    color: #fff8e6;
+  }
+  .stage-lifecycle-row.stage-row-future:not(.stage-row-completed):not(.stage-row-active) {
+    background: rgba(0, 0, 0, 0.25);
+    color: #8b9299;
+  }
+  .stage-lifecycle-row .stage-line-title { font-weight: 600; font-size: 0.9rem; }
+  .stage-lifecycle-row .stage-line-desc { font-size: 0.75rem; opacity: 0.85; margin-top: 0.15rem; line-height: 1.3; }
+  .stage-lifecycle-checks { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: center; justify-content: flex-end; }
+  .stage-lifecycle-checks .form-check { margin: 0; min-height: unset; }
+  .stage-lifecycle-checks .form-check-input { margin-top: 0.2rem; }
+  .stage-lifecycle-checks .form-check-label { font-size: 0.78rem; white-space: nowrap; }
+</style>
+<form method="post" action="<%= action %>" class="stage-picker-form" id="stageLifecycleForm">
+  <input type="hidden" name="lifecycle_update" value="1" />
+  <p class="stage-lifecycle-legend mb-2">
+    <span><span class="dot" style="background:#198754"></span> Completed</span>
+    <span><span class="dot" style="background:#ffc107"></span> In progress</span>
+    <span><span class="dot" style="background:#6c757d"></span> Upcoming</span>
+  </p>
+  <p class="small text-muted mb-2">Check <strong>Completed</strong> for finished stages. Check <strong>In progress</strong> for every stage currently underway (you can pick several). Saving updates what the client sees.</p>
+  <div class="stage-lifecycle-grid" role="group" aria-label="Project lifecycle stages">
+    <% stages.forEach(function(s) {
+      const isDone = completed.indexOf(s.index) !== -1;
+      const isOn = active.indexOf(s.index) !== -1;
+      let rowClass = 'stage-row-future';
+      if (isDone) rowClass = 'stage-row-completed';
+      else if (isOn) rowClass = 'stage-row-active';
+    %>
+    <div class="stage-lifecycle-row <%= rowClass %>" data-stage-index="<%= s.index %>">
+      <div style="min-width:0">
+        <span class="stage-line-title d-block"><%= s.name %></span>
+        <% if (s.description) { %><span class="stage-line-desc d-block"><%= s.description %></span><% } %>
+      </div>
+      <div class="stage-lifecycle-checks">
+        <div class="form-check">
+          <input class="form-check-input chk-stage-completed" type="checkbox" name="lifecycle_completed[]" value="<%= s.index %>" id="lc_done_<%= s.index %>" <%= isDone ? 'checked' : '' %> />
+          <label class="form-check-label" for="lc_done_<%= s.index %>">Completed</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input chk-stage-active" type="checkbox" name="lifecycle_active[]" value="<%= s.index %>" id="lc_on_<%= s.index %>" <%= isOn ? 'checked' : '' %> />
+          <label class="form-check-label" for="lc_on_<%= s.index %>">In progress</label>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+  <button type="submit" class="btn btn-gold btn-sm mt-2">Update lifecycle</button>
+</form>
+<script>
+(function () {
+  var form = document.getElementById('stageLifecycleForm');
+  if (!form) return;
+  function syncRowClasses(row) {
+    var done = row.querySelector('.chk-stage-completed');
+    var on = row.querySelector('.chk-stage-active');
+    row.classList.remove('stage-row-completed', 'stage-row-active', 'stage-row-future');
+    if (done && done.checked) row.classList.add('stage-row-completed');
+    else if (on && on.checked) row.classList.add('stage-row-active');
+    else row.classList.add('stage-row-future');
+  }
+  form.querySelectorAll('.stage-lifecycle-row').forEach(function (row) {
+    var c = row.querySelector('.chk-stage-completed');
+    var a = row.querySelector('.chk-stage-active');
+    if (c) c.addEventListener('change', function () {
+      if (c.checked && a) a.checked = false;
+      syncRowClasses(row);
+    });
+    if (a) a.addEventListener('change', function () {
+      if (a.checked && c) c.checked = false;
+      syncRowClasses(row);
+    });
+  });
+})();
+</script>
