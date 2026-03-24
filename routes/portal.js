@@ -8,7 +8,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const portalDb = require('../lib/portal-db');
-const { sendWelcomeEmail } = require('../lib/portal-email');
+const { sendWelcomeEmail, sendClientPaymentThankYouEmail } = require('../lib/portal-email');
 const {
   LIFECYCLE_STAGES,
   enrichProjectLifecycle,
@@ -21,6 +21,13 @@ const {
   LEAD_STATUSES,
   groupMediaByDate,
   buildVaultMediaList,
+  parsePaymentTermsJson,
+  cloneDefaultPaymentTerms,
+  sumPaymentTermsPercents,
+  computePaymentMilestoneAllocations,
+  fingerprintPaymentSchedule,
+  buildPaymentScheduleNotifyMessage,
+  buildPaymentScheduleShortLine,
 } = require('../lib/portal');
 const timelineUtil = require('../lib/portal-timeline');
 const portalNotify = require('../lib/portal-notify');
@@ -49,6 +56,68 @@ function buildLifecycleUpdates(body) {
     lifecycle_active_stages: JSON.stringify(active),
     current_stage: deriveLegacyCurrentStageIndex(completed, active),
   };
+}
+
+function buildPaymentTermsFromBody(body) {
+  const intro = (body.payment_terms_intro || '').trim();
+  const items = [];
+  for (let i = 0; i < 24; i++) {
+    const label = body[`pt_label_${i}`];
+    if (!label || !String(label).trim()) continue;
+    const pct = parseFloat(body[`pt_pct_${i}`]);
+    if (Number.isNaN(pct)) continue;
+    const dueRaw = body[`pt_due_${i}`];
+    const dueDate =
+      dueRaw && String(dueRaw).trim() && /^\d{4}-\d{2}-\d{2}$/.test(String(dueRaw).trim())
+        ? String(dueRaw).trim()
+        : null;
+    items.push({ label: String(label).trim(), percent: pct, basis: 'TOTAL', dueDate });
+  }
+  return { intro, items };
+}
+
+function buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll) {
+  const paymentTerms = parsePaymentTermsJson(project.payment_terms_json);
+  const qb =
+    quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
+  const ct = calculateProjectTotal(quotation, extraCosts);
+  const published = (clientPaymentsAll || []).filter((p) => Number(p.approved_for_client) === 1);
+  return computePaymentMilestoneAllocations({
+    items: paymentTerms.items,
+    quotationBase: qb,
+    contractTotal: ct,
+    publishedPayments: published,
+  });
+}
+
+async function getPaymentScheduleContext(projectId) {
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return null;
+  const quotation = await portalDb.getLatestQuotationByProjectId(projectId);
+  const extraCosts = quotation ? await portalDb.getExtraCostsByQuotationId(quotation.id) : [];
+  const clientPaymentsAll = await portalDb.getClientPaymentsByProject(projectId);
+  const result = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
+  const fp = fingerprintPaymentSchedule(result);
+  return { project, quotation, extraCosts, clientPaymentsAll, result, fp };
+}
+
+async function maybeNotifyPaymentScheduleIfChanged(projectId, excludeUserIds) {
+  const ctx = await getPaymentScheduleContext(projectId);
+  if (!ctx) return;
+  const prev = ctx.project.payment_schedule_notify_fingerprint || null;
+  if (ctx.fp === prev) return;
+  await portalDb.updateProject(projectId, { payment_schedule_notify_fingerprint: ctx.fp });
+  const msg = buildPaymentScheduleNotifyMessage(ctx.project.title, ctx.result);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: msg,
+      projectId,
+      tabSuffix: '#tab-finance',
+      excludeUserIds,
+      includeClient: true,
+    })
+  );
 }
 
 function inferPortalUploadMediaType(file) {
@@ -450,6 +519,10 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const financePaidPublished = sumApprovedClientPayments(clientPayments);
   const financePaidPending = (clientPayments || []).filter((p) => Number(p.approved_for_client) !== 1).reduce((s, p) => s + (Number(p.amount) || 0), 0);
   const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPayments);
+  const paymentTerms = parsePaymentTermsJson(project.payment_terms_json);
+  const quotationBaseForTerms =
+    quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
+  const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPayments || []);
   renderPortal(req, res, 'portal/admin/project_detail', {
     project,
     quotation,
@@ -473,6 +546,9 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     otherDocs,
     timelineExtensions: timelineExtensions || [],
     isMirror: false,
+    paymentTerms,
+    quotationBaseForTerms,
+    paymentScheduleProgress,
   });
 });
 
@@ -499,6 +575,55 @@ router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded
   const designer_can_view_mirror = req.body.designer_can_view_mirror === '1' ? 1 : 0;
   await portalDb.updateProject(req.params.id, { designer_can_view_mirror });
   res.redirect('/portal/admin/projects/' + req.params.id);
+});
+
+router.post('/admin/projects/:id/payment-terms', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  const redir = '/portal/admin/projects/' + req.params.id + '#tab-finance';
+  if (req.body.reset_payment_terms === '1') {
+    await portalDb.updateProject(req.params.id, { payment_terms_json: null });
+  } else {
+    const built = buildPaymentTermsFromBody(req.body);
+    if (!built.items.length) {
+      const def = cloneDefaultPaymentTerms();
+      def.intro = built.intro;
+      await portalDb.updateProject(req.params.id, { payment_terms_json: JSON.stringify(def) });
+    } else {
+      const sumPct = sumPaymentTermsPercents(built.items);
+      if (Math.abs(sumPct - 100) > 0.02) {
+        return res.redirect(
+          `${redir}?msg=${encodeURIComponent(`Milestone percentages must total exactly 100%. Current sum: ${sumPct.toFixed(2)}%`)}`
+        );
+      }
+      await portalDb.updateProject(req.params.id, { payment_terms_json: JSON.stringify(built) });
+    }
+  }
+  const p = await portalDb.getProjectById(req.params.id);
+  if (p) {
+    const quotation = await portalDb.getLatestQuotationByProjectId(p.id);
+    const extraCosts = quotation ? await portalDb.getExtraCostsByQuotationId(quotation.id) : [];
+    const clientPaymentsAll = await portalDb.getClientPaymentsByProject(p.id);
+    const result = buildPaymentScheduleViewForProject(p, quotation, extraCosts, clientPaymentsAll);
+    const fp = fingerprintPaymentSchedule(result);
+    await portalDb.updateProject(p.id, { payment_schedule_notify_fingerprint: fp });
+    const short = buildPaymentScheduleShortLine(result);
+    const headline =
+      req.body.reset_payment_terms === '1'
+        ? `Payment terms for «${p.title}» were reset to the studio default. ${short}`
+        : `Payment terms for «${p.title}» were saved. ${short}`;
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.FINANCE,
+        message: headline,
+        projectId: p.id,
+        tabSuffix: '#tab-finance',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: true,
+      })
+    );
+  }
+  res.redirect(redir);
 });
 
 router.post('/admin/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
@@ -1076,10 +1201,14 @@ router.post('/admin/projects/:id/quotation/update', express.urlencoded({ extende
   let items = req.body.items;
   try { items = items ? JSON.parse(items) : quotation.items ? JSON.parse(quotation.items) : []; } catch (_) { items = []; }
   await portalDb.updateQuotation(quotation.id, { base_total, items: JSON.stringify(items) });
+  const extraCostsAfter = await portalDb.getExtraCostsByQuotationId(quotation.id);
+  const sched = buildPaymentScheduleViewForProject(project, quotation, extraCostsAfter, await portalDb.getClientPaymentsByProject(project.id));
+  const fp = fingerprintPaymentSchedule(sched);
+  await portalDb.updateProject(project.id, { payment_schedule_notify_fingerprint: fp });
   portalNotify.safeNotify(
     portalNotify.notifyProjectStakeholders(portalDb, {
       category: NC.FINANCE,
-      message: `Quotation was updated for «${project.title}».`,
+      message: `Quotation was updated for «${project.title}». ${buildPaymentScheduleShortLine(sched)}`,
       projectId: project.id,
       tabSuffix: '#tab-finance',
       excludeUserIds: [req.session[PORTAL_USER_ID]],
@@ -1206,15 +1335,39 @@ router.post('/admin/projects/:id/payments/:paymentId/approve-client', requirePor
   if (!ok) return res.redirect('/portal/admin/projects/' + req.params.id + '?msg=Payment+not+found#tab-finance');
   const project = await portalDb.getProjectById(req.params.id);
   if (project) {
+    const ctx = await getPaymentScheduleContext(project.id);
+    if (ctx) await portalDb.updateProject(project.id, { payment_schedule_notify_fingerprint: ctx.fp });
+    const tail = ctx ? buildPaymentScheduleShortLine(ctx.result) : '';
     portalNotify.safeNotify(
       portalNotify.notifyProjectStakeholders(portalDb, {
         category: NC.FINANCE,
-        message: `A payment was shared with you on «${project.title}».`,
+        message: `A payment is now visible for you on «${project.title}». ${tail}`,
         projectId: project.id,
         tabSuffix: '#tab-finance',
         excludeUserIds: [req.session[PORTAL_USER_ID]],
+        skipClientEmail: true,
       })
     );
+    const pay = await portalDb.getClientPaymentById(req.params.paymentId);
+    const clientUser = await portalDb.getUserById(project.client_id);
+    if (
+      clientUser &&
+      clientUser.email &&
+      pay &&
+      pay.project_id === project.id &&
+      Number(pay.amount) > 0
+    ) {
+      await sendClientPaymentThankYouEmail({
+        toEmail: clientUser.email,
+        recipientName: clientUser.full_name,
+        projectTitle: project.title,
+        projectId: project.id,
+        amount: Number(pay.amount) || 0,
+        receivedDate: pay.received_date,
+        note: pay.note,
+        scheduleHint: tail,
+      });
+    }
   }
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
@@ -1226,6 +1379,7 @@ router.post('/admin/projects/:id/payments/:paymentId/hide-from-client', requireP
 
 router.post('/admin/projects/:id/payments/:paymentId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
   await portalDb.deleteClientPayment(req.params.paymentId, req.params.id);
+  await maybeNotifyPaymentScheduleIfChanged(req.params.id, [req.session[PORTAL_USER_ID]]);
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
 
@@ -2125,6 +2279,10 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const clientPaymentsPublished = (clientPaymentsAll || []).filter((p) => Number(p.approved_for_client) === 1);
   const financePaidPublished = sumApprovedClientPayments(clientPaymentsAll);
   const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPaymentsAll);
+  const paymentTerms = parsePaymentTermsJson(project.payment_terms_json);
+  const quotationBaseForTerms =
+    quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
+  const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
@@ -2144,6 +2302,9 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     otherDocs,
     timelineExtensions,
     readOnly: false,
+    paymentTerms,
+    quotationBaseForTerms,
+    paymentScheduleProgress,
   });
 });
 
@@ -2200,6 +2361,10 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const clientPaymentsPublished = (clientPaymentsAll || []).filter((p) => Number(p.approved_for_client) === 1);
   const financePaidPublished = sumApprovedClientPayments(clientPaymentsAll);
   const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPaymentsAll);
+  const paymentTerms = parsePaymentTermsJson(project.payment_terms_json);
+  const quotationBaseForTerms =
+    quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
+  const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
   res.locals.mirrorBanner = true;
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
@@ -2220,6 +2385,9 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
     otherDocs,
     timelineExtensions,
     readOnly: true,
+    paymentTerms,
+    quotationBaseForTerms,
+    paymentScheduleProgress,
   });
 });
 
@@ -2244,10 +2412,14 @@ router.post('/api/quotation/:id/approve', express.json(), express.urlencoded({ e
   const project = await portalDb.getProjectById(q.project_id);
   if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
   await portalDb.updateQuotation(req.params.id, { status: 'APPROVED' });
+  const extraCostsAfter = await portalDb.getExtraCostsByQuotationId(q.id);
+  const sched = buildPaymentScheduleViewForProject(project, q, extraCostsAfter, await portalDb.getClientPaymentsByProject(project.id));
+  const fp = fingerprintPaymentSchedule(sched);
+  await portalDb.updateProject(project.id, { payment_schedule_notify_fingerprint: fp });
   portalNotify.safeNotify(
     portalNotify.notifyProjectStakeholders(portalDb, {
       category: NC.FINANCE,
-      message: `Client approved the quotation for «${project.title}».`,
+      message: `Client approved the quotation for «${project.title}». ${buildPaymentScheduleShortLine(sched)}`,
       projectId: project.id,
       tabSuffix: '#tab-finance',
       excludeUserIds: [req.session[PORTAL_USER_ID]],
@@ -2263,10 +2435,14 @@ router.post('/api/extra-cost/:id/approve', requirePortalAuth, async (req, res) =
   const project = await portalDb.getProjectById(q.project_id);
   if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
   await portalDb.updateExtraCost(req.params.id, { status: 'APPROVED' });
+  const extraCostsAfter = await portalDb.getExtraCostsByQuotationId(q.id);
+  const sched = buildPaymentScheduleViewForProject(project, q, extraCostsAfter, await portalDb.getClientPaymentsByProject(project.id));
+  const fp = fingerprintPaymentSchedule(sched);
+  await portalDb.updateProject(project.id, { payment_schedule_notify_fingerprint: fp });
   portalNotify.safeNotify(
     portalNotify.notifyProjectStakeholders(portalDb, {
       category: NC.FINANCE,
-      message: `Client approved an extra cost on «${project.title}».`,
+      message: `Client approved an extra cost on «${project.title}». ${buildPaymentScheduleShortLine(sched)}`,
       projectId: project.id,
       tabSuffix: '#tab-finance',
       excludeUserIds: [req.session[PORTAL_USER_ID]],

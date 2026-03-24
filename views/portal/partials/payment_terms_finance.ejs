@@ -1,0 +1,155 @@
+<%
+  var pt = typeof paymentTerms !== 'undefined' && paymentTerms ? paymentTerms : { intro: '', items: [] };
+  var qb = typeof quotationBaseForTerms !== 'undefined' ? Number(quotationBaseForTerms) : 0;
+  var ct = typeof contractTotal !== 'undefined' ? Number(contractTotal) : 0;
+  var varAmt = Math.max(0, ct - qb);
+  var edit = typeof paymentTermsEditMode !== 'undefined' && paymentTermsEditMode;
+  var pid = typeof project !== 'undefined' && project && project.id ? project.id : '';
+  var embed = typeof paymentTermsEmbed !== 'undefined' && paymentTermsEmbed;
+  var sectionSpaced = typeof paymentTermsSectionSpaced !== 'undefined' && paymentTermsSectionSpaced;
+%>
+<% if (!embed) { %>
+<div class="card card-portal mb-4 border-secondary">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="serif text-warning mb-0">Payment terms &amp; schedule</span>
+    <% if (edit) { %><span class="small text-muted">Visible to the client on the Finance tab</span><% } %>
+  </div>
+  <div class="card-body">
+<% } else { %>
+<section class="payment-terms-finance-embed mb-0<%= sectionSpaced ? ' pt-4' : '' %>">
+  <h6 class="serif text-warning mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span>Payment terms &amp; schedule</span>
+    <% if (edit) { %><span class="small text-muted fw-normal">Visible to the client on the Finance tab</span><% } %>
+  </h6>
+<% } %>
+    <% if (edit) { %>
+    <p class="small text-muted mb-3">Every milestone <strong>%</strong> applies to the <strong>contract total</strong> (approved quotation plus approved extra costs). When the filled rows add up to <strong>100%</strong>, the rupee previews below add up to that contract total.</p>
+    <p class="small text-warning mb-2"><strong>Required:</strong> every filled row’s percentages must add up to exactly <strong>100%</strong>. You can add or remove rows; leave unused rows blank.</p>
+    <div class="small mb-3 p-2 rounded border border-secondary border-opacity-25 bg-dark bg-opacity-25">
+      <div class="text-muted mb-1">Contract breakdown (same as Finance summary)</div>
+      <ul class="mb-0 ps-3">
+        <li>Approved quotation base: <strong class="text-warning">₹<%= qb.toLocaleString('en-IN') %></strong></li>
+        <li>Approved extra costs (variations): <strong class="text-warning">₹<%= varAmt.toLocaleString('en-IN') %></strong></li>
+        <li class="fw-semibold text-light">Contract total (100% of schedule): <strong class="text-warning">₹<%= ct.toLocaleString('en-IN') %></strong></li>
+      </ul>
+    </div>
+    <form method="post" action="/portal/admin/projects/<%= pid %>/payment-terms" class="mb-3">
+      <label class="form-label small text-muted">Introduction or conditions (optional)</label>
+      <textarea name="payment_terms_intro" class="form-control form-control-sm bg-dark text-light border-secondary mb-3" rows="3" placeholder="e.g. All amounts exclude GST unless noted. Milestones are due on the dates agreed in writing."><%= pt.intro || '' %></textarea>
+      <div class="table-responsive mb-3">
+        <table class="table table-dark table-sm table-bordered border-secondary align-middle">
+          <thead>
+            <tr class="text-muted small">
+              <th style="width:2rem">#</th>
+              <th>Milestone / description</th>
+              <th style="width:6rem">% of contract</th>
+              <th style="width:11rem">Due date</th>
+              <th style="width:9rem" class="text-end">Preview (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% var rowMax = Math.min(24, Math.max((pt.items && pt.items.length) || 0, 7) + 4);
+            for (var i = 0; i < rowMax; i++) {
+              var row = (pt.items && pt.items[i]) ? pt.items[i] : {};
+              var preview = (Number(row.percent) || 0) * ct / 100;
+            %>
+            <tr>
+              <td class="text-muted small"><%= i + 1 %></td>
+              <td>
+                <input type="hidden" name="pt_basis_<%= i %>" value="TOTAL" />
+                <input type="text" name="pt_label_<%= i %>" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= row.label != null ? row.label : '' %>" placeholder="Milestone name" />
+              </td>
+              <td><input type="number" name="pt_pct_<%= i %>" step="0.01" min="0" max="100" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= row.percent != null && row.percent !== '' ? row.percent : '' %>" placeholder="%" /></td>
+              <td><input type="date" name="pt_due_<%= i %>" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= row.dueDate ? row.dueDate : '' %>" title="Optional target date for this milestone" /></td>
+              <td class="text-end small text-muted"><%= (row.label && row.percent != null && row.percent !== '') ? ('₹' + Math.round(preview).toLocaleString('en-IN')) : '—' %></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" class="btn btn-gold btn-sm">Save payment terms</button>
+    </form>
+    <form method="post" action="/portal/admin/projects/<%= pid %>/payment-terms" class="d-inline" onsubmit="return confirm('Reset this project to the default studio payment schedule?');">
+      <input type="hidden" name="reset_payment_terms" value="1" />
+      <button type="submit" class="btn btn-outline-secondary btn-sm">Reset to default breakdown</button>
+    </form>
+    <% } else { %>
+    <% if (pt.intro) { %><p class="text-light mb-3" style="white-space:pre-wrap"><%= pt.intro %></p><% } %>
+    <div class="small mb-3 p-2 rounded border border-secondary border-opacity-25 bg-dark bg-opacity-25">
+      <div class="text-muted mb-1">What the percentages apply to</div>
+      <ul class="mb-0 ps-3">
+        <li>Approved quotation base: <strong class="text-warning">₹<%= qb.toLocaleString('en-IN') %></strong></li>
+        <li>Approved extra costs (variations): <strong class="text-warning">₹<%= varAmt.toLocaleString('en-IN') %></strong></li>
+        <li class="fw-semibold text-light">Contract total (100% of schedule): <strong class="text-warning">₹<%= ct.toLocaleString('en-IN') %></strong></li>
+      </ul>
+    </div>
+    <p class="small text-muted mb-2">Each milestone is a percentage of the <strong>contract total</strong> above (not the quotation alone). When percentages total 100%, the indicative amounts below sum to that contract total. Final invoices follow your agreement with the studio.</p>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm table-bordered border-secondary mb-0">
+        <thead>
+          <tr class="text-muted small">
+            <th style="width:2.5rem">#</th>
+            <th>Milestone</th>
+            <th class="text-end" style="width:5rem">% of contract</th>
+            <th style="width:9rem">Due date</th>
+            <th class="text-end" style="width:10rem">Indicative (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% var sumAmt = 0;
+          var sumPct = 0;
+          (pt.items || []).forEach(function(row, idx) {
+            var amt = ct * (Number(row.percent) || 0) / 100;
+            sumAmt += amt;
+            sumPct += Number(row.percent) || 0;
+            var dueClient = '—';
+            if (row.dueDate) {
+              var ddc = new Date(row.dueDate + 'T12:00:00');
+              dueClient = !isNaN(ddc.getTime()) ? ddc.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : row.dueDate;
+            }
+          %>
+          <tr>
+            <td class="text-muted"><%= idx + 1 %></td>
+            <td><%= row.label %></td>
+            <td class="text-end"><%= row.percent %>%</td>
+            <td class="small"><%= dueClient %></td>
+            <td class="text-end serif text-warning">₹<%= Math.round(amt).toLocaleString('en-IN') %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+        <% if ((pt.items || []).length) {
+          var pctOk = Math.abs(sumPct - 100) < 0.05;
+          var sumRounded = Math.round(sumAmt);
+          var ctRounded = Math.round(ct);
+          var sumMatchesContract = ct > 0 && pctOk && Math.abs(sumRounded - ctRounded) <= 1;
+        %>
+        <tfoot>
+          <tr class="border-secondary">
+            <td colspan="4" class="text-end small text-muted">Sum of milestone amounts (indicative)</td>
+            <td class="text-end serif text-warning">₹<%= sumRounded.toLocaleString('en-IN') %></td>
+          </tr>
+          <% if (ct > 0 && sumMatchesContract) { %>
+          <tr class="border-0">
+            <td colspan="5" class="small text-success pt-0 pb-0">Matches contract total ₹<%= ctRounded.toLocaleString('en-IN') %> (percentages total 100%).</td>
+          </tr>
+          <% } else if (ct > 0 && !pctOk) { %>
+          <tr class="border-0">
+            <td colspan="5" class="small text-warning pt-0 pb-0">Milestone percentages total <%= sumPct.toFixed(2) %>% — they must total <strong>100%</strong> for the sum to match the contract total.</td>
+          </tr>
+          <% } else if (ct > 0 && pctOk) { %>
+          <tr class="border-0">
+            <td colspan="5" class="small text-warning pt-0 pb-0">Percentages total 100%, but the indicative sum (₹<%= sumRounded.toLocaleString('en-IN') %>) should equal contract total ₹<%= ctRounded.toLocaleString('en-IN') %>; report this to the studio if it does not.</td>
+          </tr>
+          <% } %>
+        </tfoot>
+        <% } %>
+      </table>
+    </div>
+    <% if (!(pt.items || []).length) { %><p class="text-muted small mb-0 mt-2">No milestones configured.</p><% } %>
+    <% } %>
+<% if (!embed) { %>
+  </div>
+</div>
+<% } else { %>
+</section>
+<% } %>

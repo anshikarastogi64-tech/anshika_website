@@ -1,0 +1,42 @@
+<%
+  var ps = typeof paymentScheduleProgress !== 'undefined' && paymentScheduleProgress ? paymentScheduleProgress : null;
+  var hasSchedule = ps && ps.stages && ps.stages.length;
+  var pid = typeof project !== 'undefined' && project && project.id ? String(project.id) : '0';
+  var panelId = 'portal-payment-finance-' + pid;
+%>
+<div class="card card-portal mb-4 border-secondary">
+  <div class="card-header p-0 border-secondary">
+    <button
+      class="btn btn-link text-start w-100 text-decoration-none text-light py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2 collapsed portal-payment-finance-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#<%= panelId %>"
+      aria-expanded="false"
+      aria-controls="<%= panelId %>"
+    >
+      <span class="serif text-warning mb-0">Payment schedule &amp; terms</span>
+      <span class="d-flex align-items-center gap-2 small text-muted">
+        <span class="d-none d-sm-inline">Show / hide</span>
+        <i class="bi bi-chevron-down portal-payment-finance-chevron" aria-hidden="true"></i>
+      </span>
+    </button>
+  </div>
+  <div id="<%= panelId %>" class="collapse">
+    <div class="card-body border-top border-secondary">
+      <%- include('./payment_schedule_progress', {
+        paymentScheduleProgress: typeof paymentScheduleProgress !== 'undefined' ? paymentScheduleProgress : null,
+        showPaymentScheduleExplain: typeof showPaymentScheduleExplain !== 'undefined' ? showPaymentScheduleExplain : false,
+        paymentScheduleEmbed: true,
+      }) %>
+      <%- include('./payment_terms_finance', {
+        project: typeof project !== 'undefined' ? project : null,
+        paymentTerms: typeof paymentTerms !== 'undefined' ? paymentTerms : null,
+        quotationBaseForTerms: typeof quotationBaseForTerms !== 'undefined' ? quotationBaseForTerms : 0,
+        contractTotal: typeof contractTotal !== 'undefined' ? contractTotal : 0,
+        paymentTermsEditMode: typeof paymentTermsEditMode !== 'undefined' ? paymentTermsEditMode : false,
+        paymentTermsEmbed: true,
+        paymentTermsSectionSpaced: hasSchedule,
+      }) %>
+    </div>
+  </div>
+</div>

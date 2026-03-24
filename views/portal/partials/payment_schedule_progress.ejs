@@ -1,0 +1,81 @@
+<%
+  var ps = typeof paymentScheduleProgress !== 'undefined' && paymentScheduleProgress ? paymentScheduleProgress : null;
+  var showExplain = typeof showPaymentScheduleExplain !== 'undefined' && showPaymentScheduleExplain;
+  var embed = typeof paymentScheduleEmbed !== 'undefined' && paymentScheduleEmbed;
+%>
+<% if (ps && ps.stages && ps.stages.length) { %>
+<% if (embed) { %>
+<section class="mb-0 pb-4 border-bottom border-secondary">
+  <h6 class="serif text-warning mb-2">Payment stage progress</h6>
+  <p class="small text-muted mb-3">Based on amounts <strong>shared with the client</strong> · milestones apply in order</p>
+<% } else { %>
+<div class="card card-portal mb-4 border-secondary">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="serif text-warning mb-0">Payment stage progress</span>
+    <span class="small text-muted">Based on amounts <strong>shared with the client</strong> · milestones apply in order</span>
+  </div>
+  <div class="card-body">
+<% } %>
+<% if (showExplain) { %>
+    <p class="small text-muted mb-2">
+      Each milestone target is a percentage of the <strong>contract total</strong> (approved quotation plus approved extra costs). Published client payments fill milestones in order.
+    </p>
+    <% } %>
+    <% if (ps.variationAmount > 0.5) { %>
+    <p class="small text-warning mb-3 border border-warning border-opacity-25 rounded p-2 bg-dark bg-opacity-25">
+      <strong>Approved extra costs:</strong> ₹<%= Math.round(ps.variationAmount).toLocaleString('en-IN') %> on top of the approved quotation base — included in the contract total and in every milestone % below.
+    </p>
+    <% } %>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm table-bordered border-secondary mb-0 align-middle">
+        <thead>
+          <tr class="text-muted small">
+            <th>#</th>
+            <th>Milestone</th>
+            <th class="text-end">Target (₹)</th>
+            <th class="text-end">Paid toward stage</th>
+            <th class="text-end">Remaining</th>
+            <th>Status</th>
+            <th>Due date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% ps.stages.forEach(function(s) {
+               var stClass = s.status === 'PAID' ? 'text-success' : (s.status === 'PARTIAL' ? 'text-warning' : 'text-secondary');
+               var stLabel = s.status === 'PAID' ? 'Fully paid' : (s.status === 'PARTIAL' ? 'Partially paid' : 'Due');
+               var dueDisp = '—';
+               if (s.dueDate) {
+                 var dd = new Date(s.dueDate + 'T12:00:00');
+                 dueDisp = !isNaN(dd.getTime()) ? dd.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : s.dueDate;
+               }
+          %>
+          <tr>
+            <td class="text-muted"><%= s.index + 1 %></td>
+            <td>
+              <%= s.label %>
+              <div class="small text-muted"><%= s.percent %>% of contract total</div>
+            </td>
+            <td class="text-end font-monospace">₹<%= Math.round(s.targetAmount).toLocaleString('en-IN') %></td>
+            <td class="text-end font-monospace">₹<%= Math.round(s.allocated).toLocaleString('en-IN') %></td>
+            <td class="text-end font-monospace"><%= s.remaining > 0.5 ? ('₹' + Math.round(s.remaining).toLocaleString('en-IN')) : '—' %></td>
+            <td class="<%= stClass %>"><%= stLabel %></td>
+            <td class="small"><%= dueDisp %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+        <tfoot>
+          <tr class="border-secondary">
+            <td colspan="3" class="text-end small text-muted">Total published payments (waterfall)</td>
+            <td class="text-end font-monospace text-light">₹<%= Math.round(ps.totalPaid).toLocaleString('en-IN') %></td>
+            <td colspan="3" class="small text-muted">Stages fill in order from oldest shared payment onward.</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+<% if (embed) { %>
+</section>
+<% } else { %>
+  </div>
+</div>
+<% } %>
+<% } %>

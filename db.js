@@ -256,6 +256,8 @@ db.serialize(() => {
   db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_completed_date TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN lifecycle_completed_stages TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN lifecycle_active_stages TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN payment_terms_json TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN payment_schedule_notify_fingerprint TEXT', () => {});
   db.all(
     'SELECT id, current_stage FROM portal_projects WHERE lifecycle_completed_stages IS NULL',
     [],

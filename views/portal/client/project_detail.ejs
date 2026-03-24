@@ -118,6 +118,7 @@
             </div>
           </div>
         </div>
+        <%- include('../partials/payment_finance_panel', { project, paymentScheduleProgress: typeof paymentScheduleProgress !== 'undefined' ? paymentScheduleProgress : null, showPaymentScheduleExplain: false, paymentTerms: typeof paymentTerms !== 'undefined' ? paymentTerms : null, quotationBaseForTerms: typeof quotationBaseForTerms !== 'undefined' ? quotationBaseForTerms : 0, contractTotal: typeof total !== 'undefined' ? total : 0, paymentTermsEditMode: false }) %>
         <% if (quotation) { %>
         <p>Quotation (base): ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
         <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" target="_blank" class="text-warning">View / Download quotation PDF</a></p><% } %>
