@@ -1,0 +1,399 @@
+<%
+  const role = typeof timelinesRole !== 'undefined' ? timelinesRole : 'client';
+  const base = typeof timelineBasePath !== 'undefined' ? timelineBasePath : '';
+  const exts = typeof timelineExtensions !== 'undefined' && Array.isArray(timelineExtensions) ? timelineExtensions : [];
+  const p = typeof project !== 'undefined' ? project : {};
+  const isAdmin = role === 'admin';
+  const isDesigner = role === 'designer';
+  const isClient = role === 'client';
+  function fmt(d) {
+    if (!d) return '—';
+    try { return new Date(d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }); } catch (e) { return d; }
+  }
+  const designDur = Math.max(1, parseInt(p.design_timeline_duration_days, 10) || 15);
+  const execDur = Math.max(1, parseInt(p.execution_timeline_duration_days, 10) || 45);
+  const designPublished = Number(p.design_timeline_visible_to_client) === 1;
+  const execPublished = Number(p.execution_timeline_visible_to_client) === 1;
+  const designCompleted = !!p.design_timeline_completed_date;
+  const execCompleted = !!p.execution_timeline_completed_date;
+  const extDesignAll = exts.filter(function(e) { return e.phase === 'DESIGN'; });
+  const extExecAll = exts.filter(function(e) { return e.phase === 'EXECUTION'; });
+  const extDesignApproved = extDesignAll.filter(function(e) { return e.status === 'APPROVED'; }).sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+  const extExecApproved = extExecAll.filter(function(e) { return e.status === 'APPROVED'; }).sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+  const tlu = typeof timelineUtil !== 'undefined' ? timelineUtil : null;
+  const designExtraTotal = extDesignApproved.reduce(function(s, e) { return s + (parseInt(e.extra_days, 10) || 0); }, 0);
+  const execExtraTotal = extExecApproved.reduce(function(s, e) { return s + (parseInt(e.extra_days, 10) || 0); }, 0);
+  const designEffectiveEnd = tlu && p.design_timeline_end ? tlu.effectivePhaseEndDate(p.design_timeline_end, extDesignApproved) : null;
+  const execEffectiveEnd = tlu && p.execution_timeline_end ? tlu.effectivePhaseEndDate(p.execution_timeline_end, extExecApproved) : null;
+%>
+<style>
+.portal-tl-phase { border: 1px solid rgba(212,175,55,0.35); border-radius: 12px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.2) 100%); }
+.portal-tl-phase-header { font-family: var(--bs-font-serif, Georgia, serif); letter-spacing: 0.02em; padding: 1rem 1.25rem; border-bottom: 1px solid rgba(212,175,55,0.25); background: rgba(212,175,55,0.08); }
+.portal-tl-rail { position: relative; padding-left: 1.75rem; margin: 1rem 0; }
+.portal-tl-rail::before { content: ''; position: absolute; left: 0.45rem; top: 0.35rem; bottom: 0.35rem; width: 2px; background: linear-gradient(180deg, rgba(212,175,55,0.9), rgba(212,175,55,0.25)); border-radius: 2px; }
+.portal-tl-node { position: relative; margin-bottom: 1.1rem; }
+.portal-tl-node::before { content: ''; position: absolute; left: -1.42rem; top: 0.35rem; width: 10px; height: 10px; border-radius: 50%; background: #D4AF37; box-shadow: 0 0 0 3px rgba(212,175,55,0.25); }
+.portal-tl-node-muted::before { background: #6c757d; box-shadow: 0 0 0 3px rgba(108,117,125,0.25); }
+.portal-tl-node-complete::before { background: #2ea043; box-shadow: 0 0 0 3px rgba(46, 160, 67, 0.35); }
+.portal-tl-stat { font-size: 0.95rem; }
+.portal-tl-ext-card { border-left: 3px solid rgba(212,175,55,0.6); background: rgba(0,0,0,0.25); border-radius: 0 8px 8px 0; padding: 0.65rem 0.85rem; margin-bottom: 0.5rem; }
+</style>
+
+<div class="tab-pane fade" id="tab-timelines" role="tabpanel">
+  <div class="mb-4">
+    <h2 class="serif text-warning h4 mb-1">Project schedules</h2>
+    <p class="text-muted small mb-0">
+      <% if (isClient) { %>
+      Dates and extensions below are shared by your studio after internal approval. Extension history shows only approved changes.
+      <% } else if (isAdmin) { %>
+      You control date edits, client visibility, and approval of extra days. Designers can set initial start dates once; after that only you may change design or execution dates.
+      <% } else { %>
+      Set start dates when schedules are empty. After that, only an admin can change dates. You may request extra days with a reason; an admin must approve. The original planned finish stays on record; an updated finish is shown after approved extensions.
+      <% } %>
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <!-- Design timeline -->
+    <div class="col-lg-6">
+      <div class="portal-tl-phase h-100 d-flex flex-column">
+        <div class="portal-tl-phase-header text-warning d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <span><i class="bi bi-bezier2 me-2"></i>Design phase</span>
+          <% if (isAdmin && designPublished) { %><span class="badge bg-success">Live for client</span><% } %>
+          <% if (isAdmin && !designPublished && p.design_timeline_start) { %><span class="badge bg-secondary">Not shared with client</span><% } %>
+        </div>
+        <div class="p-3 flex-grow-1 d-flex flex-column">
+          <% if (isClient && !designPublished) { %>
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-lock fs-1 d-block mb-2 opacity-50"></i>
+            <p class="mb-0 small">Your studio will share the design schedule here once it is approved for you.</p>
+          </div>
+          <% } else if (isClient && designPublished && !p.design_timeline_start) { %>
+          <p class="text-muted small text-center py-4 mb-0">The design schedule is being prepared.</p>
+          <% } else if (!p.design_timeline_start && (isAdmin || isDesigner)) { %>
+          <p class="small text-muted mb-3">Set the design kickoff. Default length is <strong>15 calendar days</strong> (inclusive). You can adjust days on first setup<% if (isAdmin) { %>; later, use the admin update form<% } %>.</p>
+          <form method="post" action="<%= base %>/design/init" class="border border-secondary rounded p-3 bg-dark bg-opacity-25">
+            <div class="mb-2">
+              <label class="form-label small text-muted mb-0">Design start</label>
+              <input type="date" name="start_date" class="form-control form-control-sm bg-dark text-light border-secondary" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small text-muted mb-0">Duration (days, inclusive)</label>
+              <input type="number" name="duration_days" class="form-control form-control-sm bg-dark text-light border-secondary" min="1" max="365" value="15" />
+            </div>
+            <button type="submit" class="btn btn-gold btn-sm">Save design timeline</button>
+          </form>
+          <% } else if (p.design_timeline_start) { %>
+          <div class="portal-tl-rail flex-grow-1">
+            <div class="portal-tl-node">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Start</div>
+              <div class="portal-tl-stat text-light fw-semibold"><%= fmt(p.design_timeline_start) %></div>
+            </div>
+            <div class="portal-tl-node">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Original planned finish</div>
+              <div class="portal-tl-stat text-light fw-semibold"><%= fmt(p.design_timeline_end) %></div>
+              <div class="small text-muted mt-1">Baseline span: <strong class="text-warning"><%= designDur %></strong> calendar days (inclusive). Unchanged when extensions are approved.</div>
+            </div>
+            <% if ((isClient && designPublished) || isAdmin || isDesigner) { %>
+              <% extDesignApproved.forEach(function(ex) { %>
+              <div class="portal-tl-node portal-tl-node-muted">
+                <div class="text-muted text-uppercase small">Approved extension</div>
+                <div class="portal-tl-stat text-warning">+<%= ex.extra_days %> day<%= ex.extra_days !== 1 ? 's' : '' %></div>
+                <div class="small text-light mt-1"><%= ex.reason %></div>
+              </div>
+              <% }); %>
+            <% } %>
+            <% if (designExtraTotal > 0 && designEffectiveEnd && ((isClient && designPublished) || isAdmin || isDesigner)) { %>
+            <div class="portal-tl-node">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Current schedule end</div>
+              <div class="portal-tl-stat text-warning fw-semibold"><%= fmt(designEffectiveEnd) %></div>
+              <div class="small text-muted mt-1">After <strong class="text-warning"><%= designExtraTotal %></strong> approved extra calendar day<%= designExtraTotal !== 1 ? 's' : '' %>.</div>
+            </div>
+            <% } %>
+            <% if (designCompleted && ((isClient && designPublished) || isAdmin || isDesigner)) { %>
+            <div class="portal-tl-node portal-tl-node-complete">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Completed</div>
+              <div class="portal-tl-stat text-success fw-semibold"><%= fmt(p.design_timeline_completed_date) %></div>
+              <div class="small text-muted mt-1">Design phase marked complete on this date.</div>
+            </div>
+            <% } %>
+          </div>
+
+          <% if (isAdmin) { %>
+          <form method="post" action="<%= base %>/design/update" class="border border-secondary rounded p-3 bg-dark bg-opacity-25 mt-3">
+            <div class="small text-warning mb-2 fw-semibold">Admin: edit schedule</div>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">Start</label>
+                <input type="date" name="start_date" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= p.design_timeline_start %>" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">End</label>
+                <input type="date" name="end_date" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= p.design_timeline_end %>" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">Or duration (days)</label>
+                <input type="number" name="duration_days" class="form-control form-control-sm bg-dark text-light border-secondary" min="1" placeholder="e.g. 15" />
+              </div>
+            </div>
+            <p class="small text-muted mt-2 mb-2">Leave duration empty to derive from start &amp; end, or set duration only to recalculate the end from start. This updates the <strong>original planned finish</strong> only; approved extensions still add on top in the timeline above.</p>
+            <button type="submit" class="btn btn-outline-gold btn-sm">Update design dates</button>
+          </form>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <% if (!designPublished) { %>
+            <form method="post" action="<%= base %>/design/publish-client"><button type="submit" class="btn btn-gold btn-sm">Share design schedule with client</button></form>
+            <% } else { %>
+            <form method="post" action="<%= base %>/design/unpublish-client" onsubmit="return confirm('Hide design schedule from the client?');"><button type="submit" class="btn btn-outline-secondary btn-sm">Hide from client</button></form>
+            <% } %>
+          </div>
+          <% } else if (isDesigner) { %>
+          <p class="small text-muted border-top border-secondary pt-3 mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Only an admin can change design dates or duration after the timeline is created.</p>
+          <% } %>
+          <% if ((isAdmin || isDesigner) && p.design_timeline_start && !designCompleted) { %>
+          <div class="border border-secondary border-success border-opacity-50 rounded p-3 bg-dark bg-opacity-25 mt-3">
+            <div class="small text-success mb-2 fw-semibold"><i class="bi bi-check2-circle me-1"></i>Mark design phase complete</div>
+            <p class="small text-muted mb-2 mb-md-3">Record when design work finished. Leave the date empty to use <strong>today</strong> (your local date).</p>
+            <form method="post" action="<%= base %>/design/complete" class="row g-2 align-items-end flex-wrap">
+              <div class="col-auto">
+                <label class="form-label small mb-0 text-muted">Completion date</label>
+                <input type="date" name="completion_date" class="form-control form-control-sm bg-dark text-light border-secondary" title="Optional — defaults to today" />
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-success btn-sm">Mark completed</button>
+              </div>
+            </form>
+          </div>
+          <% } %>
+          <% if (isAdmin && designCompleted) { %>
+          <div class="mt-3">
+            <form method="post" action="<%= base %>/design/clear-complete" class="d-inline" onsubmit="return confirm('Remove the design completion date? You can request extra days again after clearing.');">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">Clear design completion</button>
+            </form>
+          </div>
+          <% } %>
+          <% } %>
+        </div>
+
+        <% if ((isAdmin || isDesigner) && p.design_timeline_end && !designCompleted) { %>
+        <div class="border-top border-secondary p-3 bg-black bg-opacity-25">
+          <h6 class="small text-uppercase text-muted mb-2" style="letter-spacing:0.08em">Request extra days (design)</h6>
+          <form method="post" action="<%= base %>/extension" class="row g-2 align-items-end">
+            <input type="hidden" name="phase" value="DESIGN" />
+            <div class="col-auto">
+              <label class="form-label small mb-0 text-muted">Days to add</label>
+              <input type="number" name="extra_days" class="form-control form-control-sm bg-dark text-light border-secondary" min="1" max="999" style="width:88px" required />
+            </div>
+            <div class="col">
+              <label class="form-label small mb-0 text-muted">Reason (required)</label>
+              <input type="text" name="reason" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g. Client revision round, vendor delay" required />
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-outline-gold btn-sm">Submit request</button></div>
+          </form>
+        </div>
+        <% } %>
+
+        <% if (isAdmin || isDesigner) { %>
+        <div class="border-top border-secondary p-3 small">
+          <div class="text-muted text-uppercase mb-2" style="letter-spacing:0.06em;font-size:0.7rem">Extension log · design</div>
+          <% if (extDesignAll.length === 0) { %><p class="text-muted mb-0">No requests yet.</p><% } %>
+          <% extDesignAll.forEach(function(ex) { %>
+          <div class="portal-tl-ext-card">
+            <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+              <span>
+                <strong>+<%= ex.extra_days %>d</strong>
+                <span class="text-muted"> · <%= ex.requester_name || 'Team' %> (<%= ex.requested_by_role %>)</span>
+              </span>
+              <% if (ex.status === 'PENDING') { %><span class="badge bg-warning text-dark">Pending admin</span><% } %>
+              <% if (ex.status === 'APPROVED') { %><span class="badge bg-success">Approved</span><% } %>
+              <% if (ex.status === 'REJECTED') { %><span class="badge bg-danger">Rejected</span><% } %>
+            </div>
+            <div class="mt-1 text-light"><%= ex.reason %></div>
+            <% if (ex.review_note) { %><div class="mt-1 text-muted small">Admin note: <%= ex.review_note %></div><% } %>
+            <% if (isAdmin && ex.status === 'PENDING') { %>
+            <div class="mt-2 d-flex flex-wrap gap-2">
+              <form method="post" action="<%= base %>/extension/<%= ex.id %>/approve" class="d-inline"><button type="submit" class="btn btn-sm btn-gold">Approve (+<%= ex.extra_days %>d)</button></form>
+              <form method="post" action="<%= base %>/extension/<%= ex.id %>/reject" class="d-inline-flex gap-1 align-items-center">
+                <input type="text" name="review_note" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Optional note" style="max-width:180px" />
+                <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+              </form>
+            </div>
+            <% } %>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Execution timeline -->
+    <div class="col-lg-6">
+      <div class="portal-tl-phase h-100 d-flex flex-column">
+        <div class="portal-tl-phase-header text-warning d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <span><i class="bi bi-hammer me-2"></i>Execution phase</span>
+          <% if (isAdmin && execPublished) { %><span class="badge bg-success">Live for client</span><% } %>
+          <% if (isAdmin && !execPublished && p.execution_timeline_start) { %><span class="badge bg-secondary">Not shared with client</span><% } %>
+        </div>
+        <div class="p-3 flex-grow-1 d-flex flex-column">
+          <% if (isClient && !execPublished) { %>
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-lock fs-1 d-block mb-2 opacity-50"></i>
+            <p class="mb-0 small">Your studio will share the execution schedule here once it is approved for you.</p>
+          </div>
+          <% } else if (isClient && execPublished && !p.execution_timeline_start) { %>
+          <p class="text-muted small text-center py-4 mb-0">The execution schedule is being prepared.</p>
+          <% } else if (!p.execution_timeline_start && (isAdmin || isDesigner)) { %>
+          <p class="small text-muted mb-3">Set site / execution start. Default length is <strong>45 calendar days</strong> (inclusive). Admin can change dates and duration anytime after setup.</p>
+          <form method="post" action="<%= base %>/execution/init" class="border border-secondary rounded p-3 bg-dark bg-opacity-25">
+            <div class="mb-2">
+              <label class="form-label small text-muted mb-0">Execution start</label>
+              <input type="date" name="start_date" class="form-control form-control-sm bg-dark text-light border-secondary" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small text-muted mb-0">Duration (days, inclusive)</label>
+              <input type="number" name="duration_days" class="form-control form-control-sm bg-dark text-light border-secondary" min="1" max="730" value="45" />
+            </div>
+            <button type="submit" class="btn btn-gold btn-sm">Save execution timeline</button>
+          </form>
+          <% } else if (p.execution_timeline_start) { %>
+          <div class="portal-tl-rail flex-grow-1">
+            <div class="portal-tl-node">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Start</div>
+              <div class="portal-tl-stat text-light fw-semibold"><%= fmt(p.execution_timeline_start) %></div>
+            </div>
+            <div class="portal-tl-node">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Original planned finish</div>
+              <div class="portal-tl-stat text-light fw-semibold"><%= fmt(p.execution_timeline_end) %></div>
+              <div class="small text-muted mt-1">Baseline span: <strong class="text-warning"><%= execDur %></strong> calendar days (inclusive). Unchanged when extensions are approved.</div>
+            </div>
+            <% if ((isClient && execPublished) || isAdmin || isDesigner) { %>
+              <% extExecApproved.forEach(function(ex) { %>
+              <div class="portal-tl-node portal-tl-node-muted">
+                <div class="text-muted text-uppercase small">Approved extension</div>
+                <div class="portal-tl-stat text-warning">+<%= ex.extra_days %> day<%= ex.extra_days !== 1 ? 's' : '' %></div>
+                <div class="small text-light mt-1"><%= ex.reason %></div>
+              </div>
+              <% }); %>
+            <% } %>
+            <% if (execExtraTotal > 0 && execEffectiveEnd && ((isClient && execPublished) || isAdmin || isDesigner)) { %>
+            <div class="portal-tl-node">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Current schedule end</div>
+              <div class="portal-tl-stat text-warning fw-semibold"><%= fmt(execEffectiveEnd) %></div>
+              <div class="small text-muted mt-1">After <strong class="text-warning"><%= execExtraTotal %></strong> approved extra calendar day<%= execExtraTotal !== 1 ? 's' : '' %>.</div>
+            </div>
+            <% } %>
+            <% if (execCompleted && ((isClient && execPublished) || isAdmin || isDesigner)) { %>
+            <div class="portal-tl-node portal-tl-node-complete">
+              <div class="text-muted text-uppercase small" style="letter-spacing:0.06em">Completed</div>
+              <div class="portal-tl-stat text-success fw-semibold"><%= fmt(p.execution_timeline_completed_date) %></div>
+              <div class="small text-muted mt-1">Execution phase marked complete on this date.</div>
+            </div>
+            <% } %>
+          </div>
+
+          <% if (isAdmin) { %>
+          <form method="post" action="<%= base %>/execution/update" class="border border-secondary rounded p-3 bg-dark bg-opacity-25 mt-3">
+            <div class="small text-warning mb-2 fw-semibold">Admin: edit schedule</div>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">Start</label>
+                <input type="date" name="start_date" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= p.execution_timeline_start %>" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">End</label>
+                <input type="date" name="end_date" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= p.execution_timeline_end %>" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-0">Or duration (days)</label>
+                <input type="number" name="duration_days" class="form-control form-control-sm bg-dark text-light border-secondary" min="1" placeholder="e.g. 45" />
+              </div>
+            </div>
+            <p class="small text-muted mt-2 mb-2">Adjust length per project (e.g. larger sites). Leave duration empty to use start &amp; end only. This updates the <strong>original planned finish</strong> only; approved extensions still add on top in the timeline above.</p>
+            <button type="submit" class="btn btn-outline-gold btn-sm">Update execution dates</button>
+          </form>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <% if (!execPublished) { %>
+            <form method="post" action="<%= base %>/execution/publish-client"><button type="submit" class="btn btn-gold btn-sm">Share execution schedule with client</button></form>
+            <% } else { %>
+            <form method="post" action="<%= base %>/execution/unpublish-client" onsubmit="return confirm('Hide execution schedule from the client?');"><button type="submit" class="btn btn-outline-secondary btn-sm">Hide from client</button></form>
+            <% } %>
+          </div>
+          <% } else if (isDesigner) { %>
+          <p class="small text-muted border-top border-secondary pt-3 mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Only an admin can change execution dates or duration after the timeline is created.</p>
+          <% } %>
+          <% if ((isAdmin || isDesigner) && p.execution_timeline_start && !execCompleted) { %>
+          <div class="border border-secondary border-success border-opacity-50 rounded p-3 bg-dark bg-opacity-25 mt-3">
+            <div class="small text-success mb-2 fw-semibold"><i class="bi bi-check2-circle me-1"></i>Mark execution phase complete</div>
+            <p class="small text-muted mb-2 mb-md-3">Record when on-site execution finished. Leave the date empty to use <strong>today</strong> (your local date).</p>
+            <form method="post" action="<%= base %>/execution/complete" class="row g-2 align-items-end flex-wrap">
+              <div class="col-auto">
+                <label class="form-label small mb-0 text-muted">Completion date</label>
+                <input type="date" name="completion_date" class="form-control form-control-sm bg-dark text-light border-secondary" title="Optional — defaults to today" />
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-success btn-sm">Mark completed</button>
+              </div>
+            </form>
+          </div>
+          <% } %>
+          <% if (isAdmin && execCompleted) { %>
+          <div class="mt-3">
+            <form method="post" action="<%= base %>/execution/clear-complete" class="d-inline" onsubmit="return confirm('Remove the execution completion date? You can request extra days again after clearing.');">
+              <button type="submit" class="btn btn-outline-secondary btn-sm">Clear execution completion</button>
+            </form>
+          </div>
+          <% } %>
+          <% } %>
+        </div>
+
+        <% if ((isAdmin || isDesigner) && p.execution_timeline_end && !execCompleted) { %>
+        <div class="border-top border-secondary p-3 bg-black bg-opacity-25">
+          <h6 class="small text-uppercase text-muted mb-2" style="letter-spacing:0.08em">Request extra days (execution)</h6>
+          <form method="post" action="<%= base %>/extension" class="row g-2 align-items-end">
+            <input type="hidden" name="phase" value="EXECUTION" />
+            <div class="col-auto">
+              <label class="form-label small mb-0 text-muted">Days to add</label>
+              <input type="number" name="extra_days" class="form-control form-control-sm bg-dark text-light border-secondary" min="1" max="999" style="width:88px" required />
+            </div>
+            <div class="col">
+              <label class="form-label small mb-0 text-muted">Reason (required)</label>
+              <input type="text" name="reason" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g. Weather hold, material lead time" required />
+            </div>
+            <div class="col-auto"><button type="submit" class="btn btn-outline-gold btn-sm">Submit request</button></div>
+          </form>
+        </div>
+        <% } %>
+
+        <% if (isAdmin || isDesigner) { %>
+        <div class="border-top border-secondary p-3 small">
+          <div class="text-muted text-uppercase mb-2" style="letter-spacing:0.06em;font-size:0.7rem">Extension log · execution</div>
+          <% if (extExecAll.length === 0) { %><p class="text-muted mb-0">No requests yet.</p><% } %>
+          <% extExecAll.forEach(function(ex) { %>
+          <div class="portal-tl-ext-card">
+            <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+              <span>
+                <strong>+<%= ex.extra_days %>d</strong>
+                <span class="text-muted"> · <%= ex.requester_name || 'Team' %> (<%= ex.requested_by_role %>)</span>
+              </span>
+              <% if (ex.status === 'PENDING') { %><span class="badge bg-warning text-dark">Pending admin</span><% } %>
+              <% if (ex.status === 'APPROVED') { %><span class="badge bg-success">Approved</span><% } %>
+              <% if (ex.status === 'REJECTED') { %><span class="badge bg-danger">Rejected</span><% } %>
+            </div>
+            <div class="mt-1 text-light"><%= ex.reason %></div>
+            <% if (ex.review_note) { %><div class="mt-1 text-muted small">Admin note: <%= ex.review_note %></div><% } %>
+            <% if (isAdmin && ex.status === 'PENDING') { %>
+            <div class="mt-2 d-flex flex-wrap gap-2">
+              <form method="post" action="<%= base %>/extension/<%= ex.id %>/approve" class="d-inline"><button type="submit" class="btn btn-sm btn-gold">Approve (+<%= ex.extra_days %>d)</button></form>
+              <form method="post" action="<%= base %>/extension/<%= ex.id %>/reject" class="d-inline-flex gap-1 align-items-center">
+                <input type="text" name="review_note" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Optional note" style="max-width:180px" />
+                <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+              </form>
+            </div>
+            <% } %>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

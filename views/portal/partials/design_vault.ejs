@@ -54,81 +54,6 @@
         <div class="vault-caption small text-muted text-truncate"><%= m.file_name || m.url || 'Item' %></div>
       </div>
 <% } %>
-<% if (!isDailyOnlyView && typeof showUpload !== 'undefined' && showUpload && useDesigns && projectDesigns && projectDesigns.length > 0 && projectId) {
-  const designs2dList = projectDesigns.filter(d => d.category === 'ARCHITECTURAL_PLANS');
-  const designs3dList = projectDesigns.filter(d => d.category === 'VISUALIZATIONS');
-  const basePath = typeof uploadUrl !== 'undefined' && uploadUrl ? (uploadUrl.indexOf('/admin/') !== -1 ? '/portal/admin' : '/portal/designer') : '';
-%>
-<div class="card card-portal mb-4">
-  <div class="card-header serif text-warning">Design versioning &amp; links</div>
-  <div class="card-body">
-    <p class="small text-muted mb-3">Add a new version to an existing design (replaces nothing; admin must approve). Link 2D and 3D designs so clients can switch between them.</p>
-    <div class="row g-3">
-      <div class="col-md-6">
-        <h6 class="text-warning">Add new version</h6>
-        <% projectDesigns.forEach(function(d) {
-             const versions = d.versions || [];
-             const latest = versions.length ? versions[versions.length - 1] : null;
-        %>
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 p-2 border border-secondary rounded">
-          <span class="small">
-            <strong><%= d.area_tag || 'General' %></strong> · <%= d.category === 'VISUALIZATIONS' ? '3D' : '2D' %>
-            <% if (latest) { %>
-              · latest v<%= latest.version_number %> (<%= latest.file_name || 'image' %>) · <%= versions.length %> version<%= versions.length > 1 ? 's' : '' %>
-            <% } else { %>
-              · no versions yet
-            <% } %>
-          </span>
-          <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design/<%= d.id %>/version" enctype="multipart/form-data" class="d-flex flex-wrap align-items-center gap-1">
-            <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:160px" accept="image/*,video/*" required />
-            <button type="submit" class="btn btn-outline-gold btn-sm">Add version</button>
-          </form>
-          <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design/<%= d.id %>/delete" class="d-inline" onsubmit="return confirm('Delete this design and all its versions?');">
-            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-          </form>
-        </div>
-        <% }); %>
-      </div>
-      <div class="col-md-6">
-        <h6 class="text-warning">Link 2D ↔ 3D</h6>
-        <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design-link" class="d-flex flex-wrap align-items-end gap-2">
-          <div>
-            <label class="form-label small mb-0">2D design</label>
-            <select name="design_id_2d" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:220px" required>
-              <option value="">Select 2D</option>
-              <% designs2dList.forEach(function(d) {
-                   const versions = d.versions || [];
-                   const latest = versions.length ? versions[versions.length - 1] : null;
-              %>
-              <option value="<%= d.id %>">
-                <%= d.area_tag || 'General' %> · 2D
-                <% if (latest) { %> · v<%= latest.version_number %> (<%= latest.file_name || 'image' %>)<% } %>
-              </option>
-              <% }); %>
-            </select>
-          </div>
-          <div>
-            <label class="form-label small mb-0">3D design</label>
-            <select name="design_id_3d" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:220px" required>
-              <option value="">Select 3D</option>
-              <% designs3dList.forEach(function(d) {
-                   const versions = d.versions || [];
-                   const latest = versions.length ? versions[versions.length - 1] : null;
-              %>
-              <option value="<%= d.id %>">
-                <%= d.area_tag || 'General' %> · 3D
-                <% if (latest) { %> · v<%= latest.version_number %> (<%= latest.file_name || 'image' %>)<% } %>
-              </option>
-              <% }); %>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-gold btn-sm">Link</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-<% } %>
 
 <% if (!isDailyOnlyView && typeof pendingDesignVersions !== 'undefined' && pendingDesignVersions && pendingDesignVersions.length > 0 && projectId) { %>
 <div class="card card-portal mb-4 border-warning">
@@ -397,6 +322,14 @@
           <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="Delete"><i class="bi bi-trash"></i></button>
         </form>
         <% } %>
+        <% if (typeof pendingDesignVersions !== 'undefined' && projectId && Number(m.approved) !== 1) { %>
+        <div class="mt-1">
+          <span class="badge bg-warning text-dark">Not on client portal</span>
+          <form method="post" action="/portal/admin/projects/<%= projectId %>/media/<%= m.id %>/publish-client" class="d-inline ms-1">
+            <button type="submit" class="btn btn-gold btn-sm py-0">Publish to client</button>
+          </form>
+        </div>
+        <% } %>
       </div>
       <% }); %>
     </div>
@@ -404,11 +337,119 @@
     <% } %>
   </div>
 </div>
+
+<% if (siteLog.length > 0) { %>
+<div class="card card-portal mb-4 border-secondary">
+  <div class="card-header serif text-warning">Site log</div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Site photos and videos. Designer uploads stay hidden from the client until an admin publishes them.</p>
+    <div class="vault-grid mb-0">
+      <% siteLog.forEach(function(m) { %>
+      <div class="border border-secondary rounded p-2 position-relative">
+        <% var slVid = (m.type || 'PHOTO') === 'VIDEO'; %>
+        <% if (slVid) { %>
+        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center"><i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i></div>
+        <% } else { %>
+        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center"><img src="<%= m.url %>" alt="" loading="lazy" style="max-height:120px;object-fit:cover;width:100%" /></div>
+        <% } %>
+        <div class="small text-muted text-truncate mt-1"><%= m.file_name || m.url || 'Item' %></div>
+        <% if (typeof pendingDesignVersions !== 'undefined' && projectId) { %>
+          <% if (Number(m.approved) !== 1) { %>
+          <div class="mt-1"><span class="badge bg-warning text-dark">Not on client portal</span></div>
+          <form method="post" action="/portal/admin/projects/<%= projectId %>/media/<%= m.id %>/publish-client" class="mt-1 mb-0"><button type="submit" class="btn btn-gold btn-sm">Publish to client</button></form>
+          <% } else { %><div class="mt-1"><span class="badge bg-success">Live for client</span></div><% } %>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<% if (!isDailyOnlyView && typeof showUpload !== 'undefined' && showUpload && useDesigns && projectDesigns && projectDesigns.length > 0 && projectId) {
+  const designs2dList = projectDesigns.filter(d => d.category === 'ARCHITECTURAL_PLANS');
+  const designs3dList = projectDesigns.filter(d => d.category === 'VISUALIZATIONS');
+  const basePath = typeof uploadUrl !== 'undefined' && uploadUrl ? (uploadUrl.indexOf('/admin/') !== -1 ? '/portal/admin' : '/portal/designer') : '';
+%>
+<div class="card card-portal mb-4">
+  <div class="card-header serif text-warning">Design versioning &amp; links</div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Add a new version to an existing design (replaces nothing; admin must approve). Link 2D and 3D designs so clients can switch between them.</p>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <h6 class="text-warning">Add new version</h6>
+        <% projectDesigns.forEach(function(d) {
+             const versions = d.versions || [];
+             const latest = versions.length ? versions[versions.length - 1] : null;
+        %>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 p-2 border border-secondary rounded">
+          <span class="small">
+            <strong><%= d.area_tag || 'General' %></strong> · <%= d.category === 'VISUALIZATIONS' ? '3D' : '2D' %>
+            <% if (latest) { %>
+              · latest v<%= latest.version_number %> (<%= latest.file_name || 'image' %>) · <%= versions.length %> version<%= versions.length > 1 ? 's' : '' %>
+            <% } else { %>
+              · no versions yet
+            <% } %>
+          </span>
+          <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design/<%= d.id %>/version" enctype="multipart/form-data" class="d-flex flex-wrap align-items-center gap-1">
+            <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:160px" accept="image/*,video/*" required />
+            <button type="submit" class="btn btn-outline-gold btn-sm">Add version</button>
+          </form>
+          <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design/<%= d.id %>/delete" class="d-inline" onsubmit="return confirm('Delete this design and all its versions?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+          </form>
+        </div>
+        <% }); %>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-warning">Link 2D ↔ 3D</h6>
+        <form method="post" action="<%= basePath %>/projects/<%= projectId %>/design-link" class="d-flex flex-wrap align-items-end gap-2">
+          <div>
+            <label class="form-label small mb-0">2D design</label>
+            <select name="design_id_2d" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:220px" required>
+              <option value="">Select 2D</option>
+              <% designs2dList.forEach(function(d) {
+                   const versions = d.versions || [];
+                   const latest = versions.length ? versions[versions.length - 1] : null;
+              %>
+              <option value="<%= d.id %>">
+                <%= d.area_tag || 'General' %> · 2D
+                <% if (latest) { %> · v<%= latest.version_number %> (<%= latest.file_name || 'image' %>)<% } %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div>
+            <label class="form-label small mb-0">3D design</label>
+            <select name="design_id_3d" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:220px" required>
+              <option value="">Select 3D</option>
+              <% designs3dList.forEach(function(d) {
+                   const versions = d.versions || [];
+                   const latest = versions.length ? versions[versions.length - 1] : null;
+              %>
+              <option value="<%= d.id %>">
+                <%= d.area_tag || 'General' %> · 3D
+                <% if (latest) { %> · v<%= latest.version_number %> (<%= latest.file_name || 'image' %>)<% } %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-gold btn-sm">Link</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
 <% } %>
 
 <% if (isDailyOnlyView) { %>
 <%
   const dailyUpdatePostUrl = (typeof uploadUrl !== 'undefined' && uploadUrl) ? uploadUrl.replace(/\/media\/?$/, '/daily-updates') : '';
+  const dailyAdminBase = (typeof uploadUrl !== 'undefined' && uploadUrl && String(uploadUrl).indexOf('/portal/admin/') !== -1)
+    ? String(uploadUrl).replace(/\/media\/?$/, '')
+    : '';
 %>
 <!-- Daily Updates: post form (admin/designer) + timeline -->
 <div class="card card-portal mb-4 daily-update-card" id="dailyUpdateCard">
@@ -436,15 +477,48 @@
     <div class="daily-updates-timeline">
       <% var dailyGalleryIdx = 0; dailyUpdatesList.forEach(function(up) { %>
       <div class="border border-secondary rounded p-3 mb-3">
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-          <span class="small text-muted"><%= new Date(up.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) %></span>
-          <span class="badge bg-secondary"><%= up.author_type === 'ADMIN' ? 'Admin' : 'Designer' %></span>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small text-muted"><%= new Date(up.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) %></span>
+            <span class="badge bg-secondary"><%= up.author_type === 'ADMIN' ? 'Admin' : 'Designer' %></span>
+            <% if (dailyAdminBase && Number(up.visible_to_client) !== 1) { %>
+            <span class="badge bg-warning text-dark">Hidden from client</span>
+            <% } %>
+          </div>
+          <% if (dailyAdminBase) { %>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <% if (Number(up.visible_to_client) !== 1) { %>
+            <form method="post" action="<%= dailyAdminBase %>/daily-updates/<%= up.id %>/publish-client" class="d-inline">
+              <button type="submit" class="btn btn-gold btn-sm">Publish to client</button>
+            </form>
+            <% } %>
+            <button type="button" class="btn btn-outline-gold btn-sm" data-bs-toggle="collapse" data-bs-target="#editDaily-<%= up.id %>" aria-expanded="false" aria-controls="editDaily-<%= up.id %>">Edit</button>
+            <form method="post" action="<%= dailyAdminBase %>/daily-updates/<%= up.id %>/delete" class="d-inline" onsubmit="return confirm('Delete this entire daily update and all attached photos/videos?');">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+            </form>
+          </div>
+          <% } %>
         </div>
+        <% if (dailyAdminBase) { %>
+        <div class="collapse mb-3" id="editDaily-<%= up.id %>">
+          <form method="post" action="<%= dailyAdminBase %>/daily-updates/<%= up.id %>/edit" class="border border-secondary rounded p-3 bg-dark bg-opacity-25">
+            <label class="form-label small text-muted mb-1">Update text</label>
+            <textarea name="text" class="form-control form-control-sm bg-dark text-light border-secondary" rows="3" placeholder="What's the progress?"><%= up.text != null ? up.text : '' %></textarea>
+            <p class="small text-muted mb-2 mt-2">To remove a file, use the × on its thumbnail. You cannot leave the update empty (add text or keep at least one file).</p>
+            <button type="submit" class="btn btn-gold btn-sm">Save changes</button>
+          </form>
+        </div>
+        <% } %>
         <% if (up.text && up.text.trim()) { %><p class="small mb-2 text-light"><%= up.text.trim() %></p><% } %>
         <% if ((up.media || []).length > 0) { %>
         <div class="vault-grid mb-0">
           <% (up.media || []).forEach(function(m) { %>
-          <div class="vault-item rounded overflow-hidden" data-gallery-source="daily" data-gallery-index="<%= dailyGalleryIdx %>" role="button" tabindex="0">
+          <div class="vault-item rounded overflow-hidden position-relative" data-gallery-source="daily" data-gallery-index="<%= dailyGalleryIdx %>" role="button" tabindex="0">
+            <% if (dailyAdminBase) { %>
+            <form method="post" action="<%= dailyAdminBase %>/daily-updates/<%= up.id %>/media/<%= m.id %>/delete" class="position-absolute top-0 end-0 z-3 m-1" onclick="event.stopPropagation();" onsubmit="return confirm('Remove this file from the update?');">
+              <button type="submit" class="btn btn-sm btn-danger py-0 px-2 lh-1 rounded-circle" style="font-size:1rem;line-height:1.2" title="Remove file" aria-label="Remove file">&times;</button>
+            </form>
+            <% } %>
             <% const isVideo = (m.type || m.media_type) === 'VIDEO'; %>
             <% if (isVideo) { %>
             <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">

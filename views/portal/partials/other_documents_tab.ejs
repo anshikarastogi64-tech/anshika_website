@@ -1,0 +1,102 @@
+<%
+  const mode = typeof otherDocsMode !== 'undefined' ? otherDocsMode : 'client';
+  const list = typeof otherDocs !== 'undefined' && Array.isArray(otherDocs) ? otherDocs : [];
+  const proj = typeof project !== 'undefined' ? project : null;
+  const adminBase = proj ? '/portal/admin/projects/' + proj.id : '';
+%>
+<div class="tab-pane fade" id="tab-other-docs" role="tabpanel">
+  <div class="card card-portal mb-4">
+    <div class="card-header serif text-warning">Other documents</div>
+    <div class="card-body">
+      <% if (mode === 'admin') { %>
+      <p class="small text-muted mb-3">Upload reference files (PDF, images, video). <strong>Clients</strong> only see documents after you approve them. <strong>Your uploads</strong> are hidden from the designer until you check &ldquo;Share with designer&rdquo; (or enable it later). <strong>Designer uploads</strong> are visible to you and the designer by default; you can hide a file from the designer if needed.</p>
+      <form method="post" action="<%= adminBase %>/media" enctype="multipart/form-data" class="d-flex flex-wrap gap-3 align-items-end mb-4">
+        <div>
+          <label class="form-label small text-muted mb-0">File</label>
+          <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:260px" accept="image/*,video/*,.pdf,application/pdf" required />
+        </div>
+        <input type="hidden" name="category" value="OTHER_DOCS" />
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" name="share_with_designer" value="1" id="otherDocShareDesigner" />
+          <label class="form-check-label small" for="otherDocShareDesigner">Share with designer</label>
+        </div>
+        <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+      </form>
+      <% } else if (mode === 'designer') { %>
+      <p class="small text-muted mb-3">Upload supporting documents. The admin must approve before the client can see them. By default your uploads are visible to you and the admin; the admin can hide a file from you if needed.</p>
+      <form method="post" action="/portal/designer/projects/<%= proj.id %>/media" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end mb-4">
+        <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:260px" accept="image/*,video/*,.pdf,application/pdf" required />
+        <input type="hidden" name="category" value="OTHER_DOCS" />
+        <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+      </form>
+      <% } else { %>
+      <p class="small text-muted mb-3">Approved project documents shared by your team.</p>
+      <% } %>
+
+      <% if (list.length === 0) { %>
+      <p class="text-muted mb-0">No documents in this section yet.</p>
+      <% } else { %>
+      <ul class="list-unstyled mb-0">
+        <% list.forEach(function(m) {
+          const isVid = (m.type || '') === 'VIDEO';
+          const isPdf = (m.type || '') === 'DOCUMENT' || (m.url || '').toLowerCase().indexOf('.pdf') !== -1;
+          const by = (m.uploaded_by_role || '').toUpperCase();
+        %>
+        <li class="border-bottom border-secondary py-3">
+          <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+            <div class="d-flex align-items-start gap-2">
+              <% if (isPdf) { %><i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
+              <% } else if (isVid) { %><i class="bi bi-film text-warning fs-4"></i>
+              <% } else { %><i class="bi bi-file-earmark-image text-warning fs-4"></i><% } %>
+              <div>
+                <a href="<%= m.url %>" target="_blank" rel="noopener" class="text-warning text-decoration-none"><%= m.file_name || m.url %></a>
+                <div class="small text-muted mt-1">
+                  <%= new Date(m.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
+                  <% if (mode !== 'client') { %>
+                  · Uploaded by <strong><%= by === 'ADMIN' ? 'Admin' : by === 'DESIGNER' ? 'Designer' : 'Team' %></strong>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+            <% if (mode === 'admin') { %>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <% if (!m.approved) { %>
+              <span class="badge bg-secondary">Pending client approval</span>
+              <form method="post" action="<%= adminBase %>/other-docs/<%= m.id %>/approve" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-gold">Approve for client</button>
+              </form>
+              <% } else { %>
+              <span class="badge bg-success">Approved for client</span>
+              <% } %>
+              <% if (Number(m.visible_to_designer) === 1) { %>
+              <span class="badge bg-info text-dark">Visible to designer</span>
+              <% } else { %>
+              <span class="badge bg-dark border border-secondary">Hidden from designer</span>
+              <% } %>
+              <form method="post" action="<%= adminBase %>/other-docs/<%= m.id %>/visibility" class="d-inline">
+                <input type="hidden" name="visible_to_designer" value="<%= Number(m.visible_to_designer) === 1 ? '0' : '1' %>" />
+                <button type="submit" class="btn btn-sm btn-outline-gold">
+                  <%= Number(m.visible_to_designer) === 1 ? 'Hide from designer' : 'Show to designer' %>
+                </button>
+              </form>
+              <form method="post" action="<%= adminBase %>/other-docs/<%= m.id %>/delete" class="d-inline" onsubmit="return confirm('Delete this document?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+            </div>
+            <% } else if (mode === 'designer') { %>
+            <div class="small text-muted text-end">
+              <% if (!m.approved) { %>
+              <span class="badge bg-secondary">Awaiting admin approval for client</span>
+              <% } else { %>
+              <span class="badge bg-success">Approved for client</span>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+        </li>
+        <% }); %>
+      </ul>
+      <% } %>
+    </div>
+  </div>
+</div>

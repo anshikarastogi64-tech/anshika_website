@@ -3,6 +3,25 @@
 <% if (pendingFollowUps && pendingFollowUps.length > 0) { %>
 <div class="alert alert-warning mb-4">You have <strong><%= pendingFollowUps.length %></strong> pending follow-up(s). <a href="/portal/designer/leads" class="alert-link">View leads</a></div>
 <% } %>
+<% if (typeof notifications !== 'undefined' && notifications.length > 0) { %>
+<div class="card card-portal mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span>Recent notifications</span>
+    <a href="/portal/notifications" class="btn btn-outline-gold btn-sm">View all</a>
+  </div>
+  <div class="card-body py-2">
+    <ul class="list-unstyled mb-0 small">
+      <% notifications.slice(0, 6).forEach(function(n) { %>
+      <li class="border-bottom border-secondary py-2">
+        <% if (!n.read_at) { %><span class="badge bg-warning text-dark me-1">New</span><% } %>
+        <% if (n.link_url) { %><a href="/portal/notifications/go/<%= n.id %>" class="text-warning text-decoration-none"><%= n.message %></a><% } else { %><%= n.message %><% } %>
+        <span class="text-muted"> · <%= n.created_at %></span>
+      </li>
+      <% }); %>
+    </ul>
+  </div>
+</div>
+<% } %>
 <div class="row g-4">
   <div class="col-md-6">
     <div class="card card-portal">

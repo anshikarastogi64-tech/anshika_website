@@ -1,0 +1,65 @@
+<h1 class="serif text-warning mb-2">Notification routing</h1>
+<p class="text-muted small mb-4">
+  Choose which <strong>categories</strong> send alerts to clients, admins, or designers. Designers never receive <strong>FINANCE</strong> alerts (enforced in code) so financial data stays off their inbox.
+</p>
+<% if (typeof query !== 'undefined' && query && query.msg) { %>
+<div class="alert alert-success border border-success mb-3"><%= query.msg %></div>
+<% } %>
+<form method="post" action="/portal/admin/notification-settings" class="card card-portal">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span>Categories</span>
+    <a href="/portal/notifications" class="btn btn-outline-gold btn-sm">Your notifications</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm table-bordered border-secondary mb-0 align-middle">
+        <thead>
+          <tr class="text-muted small">
+            <th>Category</th>
+            <th class="text-center">Client</th>
+            <th class="text-center">Admin</th>
+            <th class="text-center">Designer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (routing || []).forEach(function(row) {
+               var cat = row.category;
+          %>
+          <tr>
+            <td>
+              <strong class="text-warning"><%= cat %></strong>
+              <% if (cat === 'SYSTEM') { %><div class="small text-muted">Referral points, system messages</div><% } %>
+              <% if (cat === 'PROJECT') { %><div class="small text-muted">Assignments, stage changes</div><% } %>
+              <% if (cat === 'FINANCE') { %><div class="small text-muted">Quotations, variations, payments</div><% } %>
+              <% if (cat === 'DESIGN') { %><div class="small text-muted">Design vault, approvals</div><% } %>
+              <% if (cat === 'MEDIA') { %><div class="small text-muted">Uploads, site log</div><% } %>
+              <% if (cat === 'TIMELINE') { %><div class="small text-muted">Schedules, extensions</div><% } %>
+              <% if (cat === 'DAILY') { %><div class="small text-muted">Daily progress posts</div><% } %>
+              <% if (cat === 'DOCUMENTS') { %><div class="small text-muted">Warranty, Vastu, documents</div><% } %>
+              <% if (cat === 'LEAD') { %><div class="small text-muted">Lead notes &amp; CRM</div><% } %>
+              <% if (cat === 'COMMENT') { %><div class="small text-muted">Comments on costs / designs</div><% } %>
+            </td>
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input" name="client_<%= cat %>" value="1" <%= Number(row.notify_client) === 1 ? 'checked' : '' %> />
+            </td>
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input" name="admin_<%= cat %>" value="1" <%= Number(row.notify_admin) === 1 ? 'checked' : '' %> />
+            </td>
+            <td class="text-center">
+              <% if (cat === 'FINANCE') { %>
+              <span class="text-muted small" title="Never sent to designers">—</span>
+              <input type="hidden" name="designer_<%= cat %>" value="0" />
+              <% } else { %>
+              <input type="checkbox" class="form-check-input" name="designer_<%= cat %>" value="1" <%= Number(row.notify_designer) === 1 ? 'checked' : '' %> />
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-footer border-secondary">
+    <button type="submit" class="btn btn-gold">Save settings</button>
+  </div>
+</form>

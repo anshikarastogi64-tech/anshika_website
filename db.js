@@ -243,6 +243,45 @@ db.serialize(() => {
   );
   db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_see_finance INTEGER NOT NULL DEFAULT 1', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_view_mirror INTEGER NOT NULL DEFAULT 1', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_start TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_end TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_duration_days INTEGER', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_visible_to_client INTEGER NOT NULL DEFAULT 0', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_start TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_end TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_duration_days INTEGER', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_visible_to_client INTEGER NOT NULL DEFAULT 0', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_completed_date TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN execution_timeline_completed_date TEXT', () => {});
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_client_payments (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      received_date TEXT NOT NULL,
+      note TEXT,
+      approved_for_client INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_timeline_extensions (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      phase TEXT NOT NULL,
+      extra_days INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      requested_by_user_id TEXT,
+      requested_by_role TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'PENDING',
+      reviewed_by_user_id TEXT,
+      reviewed_at TEXT,
+      review_note TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_quotations (
       id TEXT PRIMARY KEY,
@@ -315,6 +354,8 @@ db.serialize(() => {
   );
   db.run("ALTER TABLE portal_media ADD COLUMN approved INTEGER NOT NULL DEFAULT 0", () => {});
   db.run("ALTER TABLE portal_media ADD COLUMN vastu_category_name TEXT", () => {});
+  db.run("ALTER TABLE portal_media ADD COLUMN uploaded_by_role TEXT", () => {});
+  db.run("ALTER TABLE portal_media ADD COLUMN visible_to_designer INTEGER NOT NULL DEFAULT 1", () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_daily_updates (
       id TEXT PRIMARY KEY,
@@ -338,6 +379,14 @@ db.serialize(() => {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (update_id) REFERENCES portal_daily_updates(id)
     )`
+  );
+  db.run(
+    "ALTER TABLE portal_daily_updates ADD COLUMN visible_to_client INTEGER NOT NULL DEFAULT 1",
+    () => {}
+  );
+  db.run(
+    "UPDATE portal_daily_updates SET visible_to_client = 1 WHERE visible_to_client IS NULL",
+    () => {}
   );
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_designs (
@@ -408,6 +457,36 @@ db.serialize(() => {
       FOREIGN KEY (user_id) REFERENCES portal_users(id)
     )`
   );
+  db.run('ALTER TABLE portal_notifications ADD COLUMN category TEXT NOT NULL DEFAULT \'SYSTEM\'', () => {});
+  db.run('ALTER TABLE portal_notifications ADD COLUMN link_url TEXT', () => {});
+  db.run('ALTER TABLE portal_notifications ADD COLUMN project_id TEXT', () => {});
+  db.run('ALTER TABLE portal_notifications ADD COLUMN read_at TEXT', () => {});
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_notification_routing (
+      category TEXT PRIMARY KEY,
+      notify_client INTEGER NOT NULL DEFAULT 1,
+      notify_admin INTEGER NOT NULL DEFAULT 1,
+      notify_designer INTEGER NOT NULL DEFAULT 0
+    )`
+  );
+  const notifyCats = [
+    ['SYSTEM', 1, 1, 0],
+    ['PROJECT', 1, 1, 1],
+    ['FINANCE', 1, 1, 0],
+    ['DESIGN', 1, 1, 1],
+    ['MEDIA', 1, 1, 1],
+    ['TIMELINE', 1, 1, 1],
+    ['DAILY', 1, 1, 1],
+    ['DOCUMENTS', 1, 1, 1],
+    ['LEAD', 0, 1, 1],
+    ['COMMENT', 1, 1, 1],
+  ];
+  notifyCats.forEach(([cat, c, a, d]) => {
+    db.run(
+      'INSERT OR IGNORE INTO portal_notification_routing (category, notify_client, notify_admin, notify_designer) VALUES (?, ?, ?, ?)',
+      [cat, c, a, d]
+    );
+  });
   db.run(
     `CREATE TABLE IF NOT EXISTS style_discovery_leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

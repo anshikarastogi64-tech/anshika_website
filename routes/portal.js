@@ -9,12 +9,31 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const portalDb = require('../lib/portal-db');
 const { sendWelcomeEmail } = require('../lib/portal-email');
-const { LIFECYCLE_STAGES, calculateProjectTotal, uuid, LEAD_STATUSES, groupMediaByDate, buildVaultMediaList } = require('../lib/portal');
+const {
+  LIFECYCLE_STAGES,
+  calculateProjectTotal,
+  sumApprovedClientPayments,
+  balanceDueAfterPublishedPayments,
+  uuid,
+  LEAD_STATUSES,
+  groupMediaByDate,
+  buildVaultMediaList,
+} = require('../lib/portal');
+const timelineUtil = require('../lib/portal-timeline');
+const portalNotify = require('../lib/portal-notify');
+const { CATEGORIES: NC } = portalNotify;
 const multer = require('multer');
 const fs = require('fs');
 
 const portalUploadDir = path.join(__dirname, '..', 'Kelly', 'assets', 'uploads', 'portal');
 if (!fs.existsSync(portalUploadDir)) fs.mkdirSync(portalUploadDir, { recursive: true });
+
+function inferPortalUploadMediaType(file) {
+  if (!file || !file.mimetype) return 'PHOTO';
+  if (file.mimetype.startsWith('video')) return 'VIDEO';
+  if (file.mimetype === 'application/pdf' || String(file.originalname || '').toLowerCase().endsWith('.pdf')) return 'DOCUMENT';
+  return 'PHOTO';
+}
 const portalUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, portalUploadDir),
@@ -24,7 +43,7 @@ const portalUpload = multer({
 });
 
 async function renderPortal(req, res, view, data = {}) {
-  const merged = { ...res.locals, ...data };
+  const merged = { ...res.locals, ...data, timelineUtil };
   try {
     const bodyHtml = await ejs.renderFile(path.join(__dirname, '..', 'views', view + '.ejs'), merged);
     res.render('portal/layout', { ...merged, body: bodyHtml });
@@ -135,8 +154,8 @@ router.get('/client/refer', requirePortalAuth, (req, res, next) => {
   renderPortal(req, res, 'portal/client/refer_form', { error: '', query: req.query });
 });
 
-// ----- Portal layout locals -----
-router.use(requirePortalAuth, (req, res, next) => {
+// ----- Portal layout locals (unread notification count for bell) -----
+router.use(requirePortalAuth, async (req, res, next) => {
   res.locals.portalUser = {
     id: req.session[PORTAL_USER_ID],
     email: req.session[PORTAL_USER_EMAIL],
@@ -144,7 +163,59 @@ router.use(requirePortalAuth, (req, res, next) => {
     name: req.session[PORTAL_USER_NAME],
   };
   res.locals.LIFECYCLE_STAGES = LIFECYCLE_STAGES;
+  try {
+    res.locals.portalUnreadCount = await portalDb.countUnreadNotifications(req.session[PORTAL_USER_ID]);
+  } catch (e) {
+    res.locals.portalUnreadCount = 0;
+  }
   next();
+});
+
+// ----- Notifications (all roles) -----
+router.get('/notifications', requirePortalAuth, async (req, res) => {
+  const list = await portalDb.getNotificationsForUser(req.session[PORTAL_USER_ID], 100);
+  renderPortal(req, res, 'portal/notifications', { notifications: list || [], query: req.query });
+});
+
+router.get('/notifications/go/:id', requirePortalAuth, async (req, res) => {
+  const n = await portalDb.getPortalNotificationForUser(req.params.id, req.session[PORTAL_USER_ID]);
+  if (!n) return res.redirect('/portal/notifications');
+  await portalDb.markNotificationRead(req.params.id, req.session[PORTAL_USER_ID]);
+  let dest = (n.link_url && String(n.link_url).trim()) || '/portal/notifications';
+  if (!dest.startsWith('/') || dest.startsWith('//')) dest = '/portal/notifications';
+  res.redirect(dest);
+});
+
+router.post('/notifications/:id/read', requirePortalAuth, async (req, res) => {
+  await portalDb.markNotificationRead(req.params.id, req.session[PORTAL_USER_ID]);
+  res.redirect('/portal/notifications');
+});
+
+router.post('/notifications/read-all', requirePortalAuth, async (req, res) => {
+  await portalDb.markAllNotificationsRead(req.session[PORTAL_USER_ID]);
+  res.redirect('/portal/notifications');
+});
+
+// ----- Admin: notification routing settings -----
+router.get('/admin/notification-settings', requirePortalAuth, requireAdmin, async (req, res) => {
+  const routing = await portalDb.getAllNotificationRouting();
+  renderPortal(req, res, 'portal/admin/notification_settings', {
+    routing: routing || [],
+    query: req.query,
+  });
+});
+
+router.post('/admin/notification-settings', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const body = req.body || {};
+  const rows = await portalDb.getAllNotificationRouting();
+  for (const row of rows || []) {
+    const cat = row.category;
+    const c = body[`client_${cat}`] === '1' ? 1 : 0;
+    const a = body[`admin_${cat}`] === '1' ? 1 : 0;
+    const d = body[`designer_${cat}`] === '1' ? 1 : 0;
+    await portalDb.updateNotificationRouting(cat, c, a, d);
+  }
+  res.redirect('/portal/admin/notification-settings?msg=Saved');
 });
 
 // ----- Admin Dashboard -----
@@ -244,12 +315,36 @@ router.get('/admin/leads/:id', requirePortalAuth, requireAdmin, async (req, res)
 
 router.post('/admin/leads/:id/assign', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   await portalDb.updateLead(req.params.id, { assigned_designer_id: req.body.designer_id || null });
+  const lead = await portalDb.getLeadById(req.params.id);
+  if (lead) {
+    portalNotify.safeNotify(
+      portalNotify.notifyLeadStakeholders(portalDb, {
+        category: NC.LEAD,
+        message: `Lead assignment updated for «${lead.name}».`,
+        leadId: req.params.id,
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.redirect('/portal/admin/leads/' + req.params.id);
 });
 
 router.post('/admin/leads/:id/note', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   const note = (req.body.note || '').trim();
-  if (note) await portalDb.addLeadActivity(req.params.id, note);
+  if (note) {
+    await portalDb.addLeadActivity(req.params.id, note);
+    const lead = await portalDb.getLeadById(req.params.id);
+    if (lead) {
+      portalNotify.safeNotify(
+        portalNotify.notifyLeadStakeholders(portalDb, {
+          category: NC.LEAD,
+          message: `New admin note on lead «${lead.name}».`,
+          leadId: req.params.id,
+          excludeUserIds: [req.session[PORTAL_USER_ID]],
+        })
+      );
+    }
+  }
   res.redirect('/portal/admin/leads/' + req.params.id);
 });
 
@@ -278,6 +373,15 @@ router.post('/admin/projects/new', express.urlencoded({ extended: false }), requ
     loginEmail: client.email,
     tempPassword: null,
   }).catch(() => {});
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.PROJECT,
+      message: `New project «${title.trim()}» is available in your portal.`,
+      projectId,
+      tabSuffix: '#tab-updates',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + projectId);
 });
 
@@ -309,16 +413,27 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const vaultMediaList = buildVaultMediaList(mediaList);
   const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE');
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU');
-  const [projectDesigns, pendingDesignVersions, dailyUpdates] = await Promise.all([
+  const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS');
+  const [projectDesigns, pendingDesignVersions, dailyUpdates, timelineExtensions, clientPayments] = await Promise.all([
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
     portalDb.getPendingDesignVersionsForProject(project.id),
     portalDb.getDailyUpdatesByProject(project.id),
+    portalDb.getTimelineExtensions(project.id),
+    portalDb.getClientPaymentsByProject(project.id),
   ]);
+  const financePaidPublished = sumApprovedClientPayments(clientPayments);
+  const financePaidPending = (clientPayments || []).filter((p) => Number(p.approved_for_client) !== 1).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+  const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPayments);
   renderPortal(req, res, 'portal/admin/project_detail', {
     project,
     quotation,
     extraCosts,
     total,
+    financePaidPublished,
+    financePaidPending,
+    financeBalanceDue,
+    clientPayments: clientPayments || [],
+    query: req.query,
     designers,
     media: mediaList,
     mediaByCategory,
@@ -329,6 +444,8 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     dailyUpdates: dailyUpdates || [],
     warrantyDocs,
     vastuDocs,
+    otherDocs,
+    timelineExtensions: timelineExtensions || [],
     isMirror: false,
   });
 });
@@ -337,14 +454,16 @@ router.post('/admin/projects/:id/assign', express.urlencoded({ extended: false }
   const designer_id = (req.body.designer_id || '').trim() || null;
   if (!designer_id) return res.redirect('/portal/admin/projects/' + req.params.id);
   await portalDb.updateProject(req.params.id, { designer_id });
-  res.redirect('/portal/admin/projects/' + req.params.id);
-});
-
-router.post('/admin/projects/:id/designer-finance-visibility', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
-  const project = await portalDb.getProjectById(req.params.id);
-  if (!project) return res.status(404).send('Project not found');
-  const designer_can_see_finance = req.body.designer_can_see_finance === '1' ? 1 : 0;
-  await portalDb.updateProject(req.params.id, { designer_can_see_finance });
+  const p = await portalDb.getProjectById(req.params.id);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.PROJECT,
+      message: `Designer assignment was updated for «${p?.title || 'Project'}».`,
+      projectId: req.params.id,
+      tabSuffix: '#tab-updates',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + req.params.id);
 });
 
@@ -356,6 +475,364 @@ router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded
   res.redirect('/portal/admin/projects/' + req.params.id);
 });
 
+const DEFAULT_DESIGN_TIMELINE_DAYS = 15;
+const DEFAULT_EXECUTION_TIMELINE_DAYS = 45;
+
+function redirectTimeline(req, res, projectId, isAdmin, query) {
+  const base = isAdmin ? '/portal/admin/projects/' : '/portal/designer/projects/';
+  const q = query ? '?' + query : '';
+  res.redirect(base + projectId + q + '#tab-timelines');
+}
+
+// ----- Project timelines (design & execution) -----
+router.post('/admin/projects/:id/timeline/design/init', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (project.design_timeline_start) return redirectTimeline(req, res, projectId, true, 'msg=Design+timeline+already+exists+use+update');
+  const start = (req.body.start_date || '').trim();
+  if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+start+date');
+  const dur = Math.max(1, parseInt(req.body.duration_days, 10) || DEFAULT_DESIGN_TIMELINE_DAYS);
+  const end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  await portalDb.updateProject(projectId, { design_timeline_start: start, design_timeline_end: end, design_timeline_duration_days: dur });
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/design/update', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const start = (req.body.start_date || '').trim();
+  if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+start+date');
+  let end = (req.body.end_date || '').trim();
+  let dur = parseInt(req.body.duration_days, 10);
+  if (timelineUtil.isValidISODate(end)) {
+    if (timelineUtil.compareISODates(end, start) < 0) return redirectTimeline(req, res, projectId, true, 'msg=End+date+before+start');
+    dur = timelineUtil.inclusiveDayCount(start, end);
+    if (!dur) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+date+range');
+  } else if (dur >= 1) {
+    end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  } else {
+    dur = Math.max(1, parseInt(project.design_timeline_duration_days, 10) || DEFAULT_DESIGN_TIMELINE_DAYS);
+    end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  }
+  await portalDb.updateProject(projectId, { design_timeline_start: start, design_timeline_end: end, design_timeline_duration_days: dur });
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/execution/init', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (project.execution_timeline_start) return redirectTimeline(req, res, projectId, true, 'msg=Execution+timeline+already+exists');
+  const start = (req.body.start_date || '').trim();
+  if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+start+date');
+  const dur = Math.max(1, parseInt(req.body.duration_days, 10) || DEFAULT_EXECUTION_TIMELINE_DAYS);
+  const end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  await portalDb.updateProject(projectId, { execution_timeline_start: start, execution_timeline_end: end, execution_timeline_duration_days: dur });
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/execution/update', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const start = (req.body.start_date || '').trim();
+  if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+start+date');
+  let end = (req.body.end_date || '').trim();
+  let dur = parseInt(req.body.duration_days, 10);
+  if (timelineUtil.isValidISODate(end)) {
+    if (timelineUtil.compareISODates(end, start) < 0) return redirectTimeline(req, res, projectId, true, 'msg=End+date+before+start');
+    dur = timelineUtil.inclusiveDayCount(start, end);
+    if (!dur) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+date+range');
+  } else if (dur >= 1) {
+    end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  } else {
+    dur = Math.max(1, parseInt(project.execution_timeline_duration_days, 10) || DEFAULT_EXECUTION_TIMELINE_DAYS);
+    end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  }
+  await portalDb.updateProject(projectId, { execution_timeline_start: start, execution_timeline_end: end, execution_timeline_duration_days: dur });
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/design/publish-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project || !project.design_timeline_start) return redirectTimeline(req, res, req.params.id, true, 'msg=Set+design+dates+first');
+  await portalDb.updateProject(req.params.id, { design_timeline_visible_to_client: 1 });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Design schedule for «${project.title}» is now visible in your portal.`,
+      projectId: project.id,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/design/unpublish-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  await portalDb.updateProject(req.params.id, { design_timeline_visible_to_client: 0 });
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/execution/publish-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project || !project.execution_timeline_start) return redirectTimeline(req, res, req.params.id, true, 'msg=Set+execution+dates+first');
+  await portalDb.updateProject(req.params.id, { execution_timeline_visible_to_client: 1 });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Execution schedule for «${project.title}» is now visible in your portal.`,
+      projectId: project.id,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/execution/unpublish-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  await portalDb.updateProject(req.params.id, { execution_timeline_visible_to_client: 0 });
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/extension', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const phase = (req.body.phase || '').toUpperCase();
+  if (phase !== 'DESIGN' && phase !== 'EXECUTION') return redirectTimeline(req, res, projectId, true, 'msg=Invalid+phase');
+  const extra = parseInt(req.body.extra_days, 10);
+  const reason = (req.body.reason || '').trim();
+  if (!reason || !Number.isFinite(extra) || extra < 1 || extra > 999) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+extension');
+  const curEnd = phase === 'DESIGN' ? project.design_timeline_end : project.execution_timeline_end;
+  if (!curEnd) return redirectTimeline(req, res, projectId, true, 'msg=Complete+timeline+for+that+phase+first');
+  await portalDb.createTimelineExtension(projectId, phase, extra, reason, req.session[PORTAL_USER_ID], 'ADMIN');
+  const p = await portalDb.getProjectById(projectId);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `A ${phase === 'DESIGN' ? 'design' : 'execution'} timeline extension (+${extra}d) was recorded for «${p?.title || 'Project'}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/extension/:extId/approve', requirePortalAuth, requireAdmin, async (req, res) => {
+  const ext = await portalDb.getTimelineExtensionById(req.params.extId);
+  if (!ext || ext.project_id !== req.params.id) return redirectTimeline(req, res, req.params.id, true, 'msg=Not+found');
+  const project = await portalDb.getProjectById(ext.project_id);
+  const curEnd = ext.phase === 'DESIGN' ? project.design_timeline_end : project.execution_timeline_end;
+  if (!curEnd) return redirectTimeline(req, res, req.params.id, true, 'msg=Missing+end+date');
+  const ok = await portalDb.approveTimelineExtension(ext.id, req.session[PORTAL_USER_ID]);
+  if (!ok) return redirectTimeline(req, res, req.params.id, true, 'msg=Could+not+approve');
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `A timeline extension was approved for «${project.title}» (${ext.phase}).`,
+      projectId: project.id,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/extension/:extId/reject', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const ext = await portalDb.getTimelineExtensionById(req.params.extId);
+  if (!ext || ext.project_id !== req.params.id) return redirectTimeline(req, res, req.params.id, true, 'msg=Not+found');
+  const note = (req.body.review_note || '').trim() || null;
+  await portalDb.rejectTimelineExtension(ext.id, req.session[PORTAL_USER_ID], note);
+  const project = await portalDb.getProjectById(ext.project_id);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `A timeline extension request was declined for «${project?.title || 'Project'}».`,
+      projectId: ext.project_id,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/design/complete', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (!project.design_timeline_start) return redirectTimeline(req, res, projectId, true, 'msg=Set+design+schedule+first');
+  if (project.design_timeline_completed_date) return redirectTimeline(req, res, projectId, true, 'msg=Design+phase+already+marked+complete');
+  let d = (req.body.completion_date || '').trim();
+  if (!d) d = timelineUtil.todayLocalISO();
+  if (!timelineUtil.isValidISODate(d)) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+completion+date');
+  await portalDb.updateProject(projectId, { design_timeline_completed_date: d });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Design phase was marked complete for «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/design/clear-complete', requirePortalAuth, requireAdmin, async (req, res) => {
+  await portalDb.updateProject(req.params.id, { design_timeline_completed_date: null });
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/execution/complete', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (!project.execution_timeline_start) return redirectTimeline(req, res, projectId, true, 'msg=Set+execution+schedule+first');
+  if (project.execution_timeline_completed_date) return redirectTimeline(req, res, projectId, true, 'msg=Execution+phase+already+marked+complete');
+  let d = (req.body.completion_date || '').trim();
+  if (!d) d = timelineUtil.todayLocalISO();
+  if (!timelineUtil.isValidISODate(d)) return redirectTimeline(req, res, projectId, true, 'msg=Invalid+completion+date');
+  await portalDb.updateProject(projectId, { execution_timeline_completed_date: d });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Execution phase was marked complete for «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  redirectTimeline(req, res, projectId, true, '');
+});
+
+router.post('/admin/projects/:id/timeline/execution/clear-complete', requirePortalAuth, requireAdmin, async (req, res) => {
+  await portalDb.updateProject(req.params.id, { execution_timeline_completed_date: null });
+  redirectTimeline(req, res, req.params.id, true, '');
+});
+
+router.post('/designer/projects/:id/timeline/design/complete', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project.design_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Set+design+schedule+first');
+  if (project.design_timeline_completed_date) return redirectTimeline(req, res, projectId, false, 'msg=Design+phase+already+marked+complete');
+  let d = (req.body.completion_date || '').trim();
+  if (!d) d = timelineUtil.todayLocalISO();
+  if (!timelineUtil.isValidISODate(d)) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+completion+date');
+  await portalDb.updateProject(projectId, { design_timeline_completed_date: d });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Design phase was marked complete for «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  redirectTimeline(req, res, projectId, false, '');
+});
+
+router.post('/designer/projects/:id/timeline/execution/complete', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project.execution_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Set+execution+schedule+first');
+  if (project.execution_timeline_completed_date) return redirectTimeline(req, res, projectId, false, 'msg=Execution+phase+already+marked+complete');
+  let d = (req.body.completion_date || '').trim();
+  if (!d) d = timelineUtil.todayLocalISO();
+  if (!timelineUtil.isValidISODate(d)) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+completion+date');
+  await portalDb.updateProject(projectId, { execution_timeline_completed_date: d });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Execution phase was marked complete for «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  redirectTimeline(req, res, projectId, false, '');
+});
+
+router.post('/designer/projects/:id/timeline/design/init', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (project.design_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Design+timeline+already+set');
+  const start = (req.body.start_date || '').trim();
+  if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+start+date');
+  const dur = Math.max(1, parseInt(req.body.duration_days, 10) || DEFAULT_DESIGN_TIMELINE_DAYS);
+  const end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  await portalDb.updateProject(projectId, { design_timeline_start: start, design_timeline_end: end, design_timeline_duration_days: dur });
+  const p = await portalDb.getProjectById(projectId);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Design timeline was set for «${p?.title || 'Project'}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  redirectTimeline(req, res, projectId, false, '');
+});
+
+router.post('/designer/projects/:id/timeline/execution/init', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (project.execution_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Execution+timeline+already+set');
+  const start = (req.body.start_date || '').trim();
+  if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+start+date');
+  const dur = Math.max(1, parseInt(req.body.duration_days, 10) || DEFAULT_EXECUTION_TIMELINE_DAYS);
+  const end = timelineUtil.endDateFromStartAndDuration(start, dur);
+  await portalDb.updateProject(projectId, { execution_timeline_start: start, execution_timeline_end: end, execution_timeline_duration_days: dur });
+  const p2 = await portalDb.getProjectById(projectId);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.TIMELINE,
+      message: `Execution timeline was set for «${p2?.title || 'Project'}».`,
+      projectId,
+      tabSuffix: '#tab-timelines',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  redirectTimeline(req, res, projectId, false, '');
+});
+
+router.post('/designer/projects/:id/timeline/extension', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  const phase = (req.body.phase || '').toUpperCase();
+  if (phase !== 'DESIGN' && phase !== 'EXECUTION') return redirectTimeline(req, res, projectId, false, 'msg=Invalid+phase');
+  const extra = parseInt(req.body.extra_days, 10);
+  const reason = (req.body.reason || '').trim();
+  if (!reason || !Number.isFinite(extra) || extra < 1 || extra > 999) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+extension');
+  const curEnd = phase === 'DESIGN' ? project.design_timeline_end : project.execution_timeline_end;
+  if (!curEnd) return redirectTimeline(req, res, projectId, false, 'msg=Complete+timeline+for+that+phase+first');
+  await portalDb.createTimelineExtension(projectId, phase, extra, reason, req.session[PORTAL_USER_ID], 'DESIGNER');
+  portalNotify.safeNotify(
+    portalNotify.notifyAdmins(portalDb, {
+      category: NC.TIMELINE,
+      message: `Designer requested +${extra} day(s) on ${phase} timeline for «${project.title}».`,
+      linkUrl: `/portal/admin/projects/${projectId}#tab-timelines`,
+      projectId,
+    })
+  );
+  redirectTimeline(req, res, projectId, false, '');
+});
+
 // Admin Design Vault upload (2D/3D go to design review; SITE_LOG/OFFICIAL_DOCS as before)
 router.post('/admin/projects/:id/media', requirePortalAuth, requireAdmin, portalUpload.single('file'), async (req, res) => {
   const projectId = req.params.id;
@@ -363,18 +840,68 @@ router.post('/admin/projects/:id/media', requirePortalAuth, requireAdmin, portal
   if (!project) return res.status(404).send('Project not found');
   const category = (req.body?.category || 'SITE_LOG').toUpperCase();
   if (!req.file) {
-    const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+    const redirectTab =
+      category === 'OTHER_DOCS'
+        ? '#tab-other-docs'
+        : category === 'VASTU'
+          ? '#tab-vastu'
+          : category === 'WARRANTY_GUARANTEE'
+            ? '#tab-warranty'
+            : '#tab-vault';
     return res.redirect('/portal/admin/projects/' + projectId + '?msg=No+file' + redirectTab);
   }
   const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
-  const vastuCategoryName = category === 'VASTU' ? (req.body?.vastu_category_name || '').trim() || null : null;
-  const mediaId = await portalDb.addProjectMedia(projectId, url, req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO', category, req.file.originalname, req.file.size, vastuCategoryName);
+  let seventhArg = { uploadedByRole: 'ADMIN' };
+  if (category === 'VASTU') {
+    seventhArg = {
+      uploadedByRole: 'ADMIN',
+      vastuCategoryName: (req.body?.vastu_category_name || '').trim() || null,
+    };
+  } else if (category === 'OTHER_DOCS') {
+    seventhArg = {
+      uploadedByRole: 'ADMIN',
+      visibleToDesigner: req.body?.share_with_designer === '1' ? 1 : 0,
+    };
+  }
+  const uploadType =
+    category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS'
+      ? req.file.mimetype.startsWith('video')
+        ? 'VIDEO'
+        : 'PHOTO'
+      : inferPortalUploadMediaType(req.file);
+  const mediaId = await portalDb.addProjectMedia(projectId, url, uploadType, category, req.file.originalname, req.file.size, seventhArg);
   if (category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS') {
     const areaTag = (req.body?.area_tag || '').trim() || (req.body?.area_tag_custom || '').trim() || 'General';
     const designId = await portalDb.createDesign(projectId, category, areaTag);
     await portalDb.createDesignVersion(designId, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
   }
-  const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+  const redirectTab =
+    category === 'OTHER_DOCS'
+      ? '#tab-other-docs'
+      : category === 'VASTU'
+        ? '#tab-vastu'
+        : category === 'WARRANTY_GUARANTEE'
+          ? '#tab-warranty'
+          : '#tab-vault';
+  const catLabel =
+    category === 'SITE_LOG'
+      ? 'site log'
+      : category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS'
+        ? 'design vault'
+        : category.replace(/_/g, ' ').toLowerCase();
+  const isDesignVaultPending = category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS';
+  const needsAdminDocPublish = ['WARRANTY_GUARANTEE', 'VASTU', 'OTHER_DOCS'].includes(category);
+  const notifyClient = !isDesignVaultPending && !needsAdminDocPublish;
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEDIA,
+      message: `New ${catLabel} media was added to «${project.title}».`,
+      projectId,
+      tabSuffix: redirectTab,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: notifyClient,
+    })
+  );
   res.redirect('/portal/admin/projects/' + projectId + redirectTab);
 });
 
@@ -391,6 +918,88 @@ router.post('/admin/projects/:id/daily-updates', requirePortalAuth, requireAdmin
     const type = f.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO';
     await portalDb.addDailyUpdateMedia(updateId, url, type, f.originalname, f.size);
   }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DAILY,
+      message: `New daily progress update on «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-daily',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-daily');
+});
+
+router.post('/admin/projects/:id/daily-updates/:updateId/edit', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const updateId = req.params.updateId;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const existing = await portalDb.getDailyUpdateById(updateId);
+  if (!existing || existing.project_id !== projectId) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Update+not+found#tab-daily');
+  const text = req.body && req.body.text != null ? String(req.body.text).trim() : '';
+  const mediaRows = await portalDb.all(
+    'SELECT id FROM portal_daily_update_media WHERE update_id = ?',
+    [updateId]
+  );
+  if (!text && (!mediaRows || mediaRows.length === 0)) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=Add+text+or+keep+at+least+one+file#tab-daily');
+  }
+  await portalDb.updateDailyUpdateText(updateId, text || null);
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-daily');
+});
+
+router.post('/admin/projects/:id/daily-updates/:updateId/delete', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const updateId = req.params.updateId;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const ok = await portalDb.deleteDailyUpdateForProject(projectId, updateId);
+  if (!ok) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Update+not+found#tab-daily');
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-daily');
+});
+
+router.post('/admin/projects/:id/daily-updates/:updateId/publish-client', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const existing = await portalDb.getDailyUpdateById(req.params.updateId);
+  if (!existing || existing.project_id !== projectId) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=Update+not+found#tab-daily');
+  }
+  const wasHidden = Number(existing.visible_to_client) !== 1;
+  const ok = await portalDb.setDailyUpdateVisibleToClient(projectId, req.params.updateId, true);
+  if (!ok) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Update+not+found#tab-daily');
+  if (wasHidden) {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DAILY,
+        message: `A daily progress update was published for «${project.title}».`,
+        projectId,
+        tabSuffix: '#tab-daily',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-daily');
+});
+
+router.post('/admin/projects/:id/daily-updates/:updateId/media/:mediaId/delete', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const updateId = req.params.updateId;
+  const mediaId = req.params.mediaId;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  const existing = await portalDb.getDailyUpdateById(updateId);
+  if (!existing || existing.project_id !== projectId) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Update+not+found#tab-daily');
+  const ok = await portalDb.deleteDailyUpdateMediaForProject(projectId, mediaId);
+  if (!ok) return res.redirect('/portal/admin/projects/' + projectId + '?msg=File+not+found#tab-daily');
+  const after = await portalDb.getDailyUpdateById(updateId);
+  const mediaLeft = await portalDb.all('SELECT id FROM portal_daily_update_media WHERE update_id = ?', [updateId]);
+  const hasText = after && after.text && String(after.text).trim();
+  if ((!mediaLeft || mediaLeft.length === 0) && !hasText) {
+    await portalDb.deleteDailyUpdateForProject(projectId, updateId);
+  }
   res.redirect('/portal/admin/projects/' + projectId + '#tab-daily');
 });
 
@@ -404,6 +1013,15 @@ router.post('/admin/projects/:id/quotation/update', express.urlencoded({ extende
   let items = req.body.items;
   try { items = items ? JSON.parse(items) : quotation.items ? JSON.parse(quotation.items) : []; } catch (_) { items = []; }
   await portalDb.updateQuotation(quotation.id, { base_total, items: JSON.stringify(items) });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `Quotation was updated for «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
 
@@ -418,6 +1036,15 @@ router.post('/admin/projects/:id/quotation/upload-pdf', requirePortalAuth, requi
   if (!req.file) return res.redirect('/portal/admin/projects/' + req.params.id + '?msg=Select+PDF#tab-finance');
   const pdfUrl = '/assets/uploads/portal/' + path.basename(req.file.filename);
   await portalDb.updateQuotation(quotation.id, { pdf_url: pdfUrl });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `Quotation PDF was updated for «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
 
@@ -430,6 +1057,15 @@ router.post('/admin/projects/:id/extra-cost', express.urlencoded({ extended: fal
   const amount = parseFloat(req.body.amount);
   if (!description || Number.isNaN(amount)) return res.redirect('/portal/admin/projects/' + req.params.id + '?msg=Description+and+amount+required#tab-finance');
   await portalDb.createExtraCost(quotation.id, description, amount, (req.body.comment || '').trim());
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `A new extra cost / variation was added on «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
 
@@ -441,7 +1077,18 @@ router.post('/admin/projects/:id/extra-cost/:ecId/respond', express.urlencoded({
   const q = await portalDb.getQuotationById(ec.quotation_id);
   if (!q || q.project_id !== project.id) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
   const message = (req.body.response_note != null ? String(req.body.response_note) : '').trim();
-  if (message) await portalDb.addExtraCostComment(ec.id, 'ADMIN', req.session[PORTAL_USER_ID], message);
+  if (message) {
+    await portalDb.addExtraCostComment(ec.id, 'ADMIN', req.session[PORTAL_USER_ID], message);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `Admin replied on a variation for «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-finance',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
 
@@ -457,6 +1104,65 @@ router.post('/admin/projects/:id/extra-cost/:ecId/edit', express.urlencoded({ ex
   if (!description || Number.isNaN(amount)) return res.redirect('/portal/admin/projects/' + req.params.id + '?msg=Description+and+amount+required#tab-finance');
   await portalDb.createExtraCost(q.id, description, amount, (req.body.comment || '').trim(), ec.id);
   await portalDb.updateExtraCost(ec.id, { status: 'SUPERSEDED' });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `A variation was revised on «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
+});
+
+router.post('/admin/projects/:id/payments', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  const amount = parseFloat(req.body.amount);
+  const receivedDate = (req.body.received_date || '').trim();
+  const note = (req.body.note || '').trim() || null;
+  if (!receivedDate || !/^\d{4}-\d{2}-\d{2}$/.test(receivedDate) || Number.isNaN(amount) || amount <= 0) {
+    return res.redirect('/portal/admin/projects/' + req.params.id + '?msg=Invalid+payment#tab-finance');
+  }
+  await portalDb.addClientPayment(project.id, amount, receivedDate, note);
+  portalNotify.safeNotify(
+    portalNotify.notifyAdmins(portalDb, {
+      category: NC.FINANCE,
+      message: `Payment recorded for «${project.title}» (₹${amount.toLocaleString('en-IN')}).`,
+      linkUrl: `/portal/admin/projects/${project.id}#tab-finance`,
+      projectId: project.id,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
+});
+
+router.post('/admin/projects/:id/payments/:paymentId/approve-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  const ok = await portalDb.setClientPaymentApprovedForClient(req.params.paymentId, req.params.id, true);
+  if (!ok) return res.redirect('/portal/admin/projects/' + req.params.id + '?msg=Payment+not+found#tab-finance');
+  const project = await portalDb.getProjectById(req.params.id);
+  if (project) {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.FINANCE,
+        message: `A payment was shared with you on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-finance',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
+});
+
+router.post('/admin/projects/:id/payments/:paymentId/hide-from-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  await portalDb.setClientPaymentApprovedForClient(req.params.paymentId, req.params.id, false);
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
+});
+
+router.post('/admin/projects/:id/payments/:paymentId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
+  await portalDb.deleteClientPayment(req.params.paymentId, req.params.id);
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
 });
 
@@ -472,8 +1178,20 @@ router.post('/admin/projects/:id/complete', express.urlencoded({ extended: false
   if (lead && lead.referrer_id) {
     const reward = finalTotal * 0.04;
     await portalDb.updateDvPoints(lead.referrer_id, reward);
-    await portalDb.createNotification(lead.referrer_id, `You've earned ₹${Math.round(reward).toLocaleString()} DV points from your referral! (4% of project completion)`);
+    await portalDb.createNotification(lead.referrer_id, `You've earned ₹${Math.round(reward).toLocaleString()} DV points from your referral! (4% of project completion)`, {
+      category: NC.SYSTEM,
+      linkUrl: '/portal/client',
+    });
   }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.PROJECT,
+      message: `Project «${project.title}» was marked completed.`,
+      projectId,
+      tabSuffix: '#tab-updates',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + projectId);
 });
 
@@ -491,6 +1209,17 @@ router.post('/admin/projects/:id/design-version/:versionId/approve', requirePort
   const { version, design, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
   if (version) await portalDb.updateDesignVersion(version.id, { admin_status: 'APPROVED' });
+  if (project && version) {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DESIGN,
+        message: `A design version was approved by admin on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
 });
 
@@ -498,6 +1227,18 @@ router.post('/admin/projects/:id/design-version/:versionId/reject', requirePorta
   const { version, design, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
   if (version) await portalDb.updateDesignVersion(version.id, { admin_status: 'REJECTED' });
+  if (project && version) {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DESIGN,
+        message: `A design version needs revision on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: false,
+      })
+    );
+  }
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
 });
 
@@ -515,7 +1256,20 @@ router.post('/admin/projects/:id/design-version/:versionId/comment', express.url
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
   const message = (req.body.message || '').trim();
-  if (version && message) await portalDb.addDesignComment(version.id, 'ADMIN', req.session[PORTAL_USER_ID], message);
+  if (version && message) {
+    await portalDb.addDesignComment(version.id, 'ADMIN', req.session[PORTAL_USER_ID], message);
+    const clientSeesVersion = version.admin_status === 'APPROVED';
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `New design comment from admin on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: clientSeesVersion,
+      })
+    );
+  }
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
 });
 
@@ -554,6 +1308,33 @@ router.post('/admin/projects/:id/media/:mediaId/delete', requirePortalAuth, requ
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
 });
 
+router.post('/admin/projects/:id/media/:mediaId/publish-client', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  const mediaRow = await portalDb.get(
+    'SELECT approved, category FROM portal_media WHERE id = ? AND project_id = ?',
+    [req.params.mediaId, project.id]
+  );
+  if (!mediaRow || (mediaRow.category !== 'SITE_LOG' && mediaRow.category !== 'OFFICIAL_DOCS')) {
+    return res.redirect('/portal/admin/projects/' + project.id + '?msg=Only+site+log+or+official+docs+can+be+published+here#tab-vault');
+  }
+  const wasHidden = Number(mediaRow.approved) !== 1;
+  const ok = await portalDb.approveSiteLogOrOfficialForClient(project.id, req.params.mediaId);
+  if (!ok) return res.redirect('/portal/admin/projects/' + project.id + '?msg=Could+not+publish#tab-vault');
+  if (wasHidden) {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.MEDIA,
+        message: `New approved site or document media is available for «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
+  res.redirect('/portal/admin/projects/' + project.id + '#tab-vault');
+});
+
 router.post('/admin/projects/:id/design-version/:versionId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
@@ -566,6 +1347,15 @@ router.post('/admin/projects/:id/warranty/:mediaId/approve', requirePortalAuth, 
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.status(404).send('Project not found');
   await portalDb.run('UPDATE portal_media SET approved = 1 WHERE id = ? AND project_id = ? AND category = ?', [req.params.mediaId, project.id, 'WARRANTY_GUARANTEE']);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DOCUMENTS,
+      message: `A warranty document was published for «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-warranty',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-warranty');
 });
 
@@ -581,6 +1371,15 @@ router.post('/admin/projects/:id/vastu/:mediaId/approve', requirePortalAuth, req
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.status(404).send('Project not found');
   await portalDb.run('UPDATE portal_media SET approved = 1 WHERE id = ? AND project_id = ? AND category = ?', [req.params.mediaId, project.id, 'VASTU']);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DOCUMENTS,
+      message: `A Vastu document was published for «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-vastu',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vastu');
 });
 
@@ -591,11 +1390,35 @@ router.post('/admin/projects/:id/vastu/:mediaId/delete', requirePortalAuth, requ
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vastu');
 });
 
-router.post('/admin/projects/:id/warranty/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
+router.post('/admin/projects/:id/other-docs/:mediaId/approve', requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  await portalDb.updateOtherDocMedia(project.id, req.params.mediaId, { approved: true });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DOCUMENTS,
+      message: `An other document was published for «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-other-docs',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect('/portal/admin/projects/' + project.id + '#tab-other-docs');
+});
+
+router.post('/admin/projects/:id/other-docs/:mediaId/visibility', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  const visible = req.body?.visible_to_designer === '1';
+  await portalDb.updateOtherDocMedia(project.id, req.params.mediaId, { visible_to_designer: visible });
+  res.redirect('/portal/admin/projects/' + project.id + '#tab-other-docs');
+});
+
+router.post('/admin/projects/:id/other-docs/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.status(404).send('Project not found');
   await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
-  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-warranty');
+  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-other-docs');
 });
 
 // Admin: add new version to existing design (upload) – same behavior as designer route but under /admin
@@ -618,18 +1441,29 @@ router.post('/admin/projects/:id/design/:designId/version', requirePortalAuth, r
   // New version should not auto-carry old 2D/3D links; admin/designer explicitly relink.
   await portalDb.clearDesignLinks(design.id);
   await portalDb.createDesignVersion(design.id, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DESIGN,
+      message: `New design version uploaded on «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-vault',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
   res.redirect('/portal/admin/projects/' + projectId + '#tab-vault');
 });
 
 // ----- Designer Dashboard -----
 router.get('/designer', requirePortalAuth, requireDesigner, async (req, res) => {
   const designerId = req.session[PORTAL_USER_ID];
-  const [leads, projects] = await Promise.all([
+  const [leads, projects, notifications] = await Promise.all([
     portalDb.getLeadsForDesigner(designerId),
     portalDb.getProjectsForDesigner(designerId),
+    portalDb.getNotificationsForUser(designerId, 15),
   ]);
   const pendingFollowUps = leads.filter((l) => l.next_follow_up && new Date(l.next_follow_up) <= new Date());
-  renderPortal(req, res, 'portal/designer/dashboard', { leads, projects, pendingFollowUps });
+  renderPortal(req, res, 'portal/designer/dashboard', { leads, projects, pendingFollowUps, notifications: notifications || [] });
 });
 
 router.get('/designer/leads', requirePortalAuth, requireDesigner, async (req, res) => {
@@ -653,7 +1487,17 @@ router.post('/designer/leads/:id/note', express.urlencoded({ extended: false }),
     return res.status(403).send('Forbidden');
   }
   const note = (req.body.note || '').trim();
-  if (note) await portalDb.addLeadActivity(req.params.id, note);
+  if (note) {
+    await portalDb.addLeadActivity(req.params.id, note);
+    portalNotify.safeNotify(
+      portalNotify.notifyLeadStakeholders(portalDb, {
+        category: NC.LEAD,
+        message: `New designer note on lead «${lead.name}».`,
+        leadId: req.params.id,
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.redirect('/portal/designer/leads/' + req.params.id);
 });
 
@@ -712,15 +1556,6 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
   if (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN') {
     return res.status(403).send('Forbidden');
   }
-  const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
-  let extraCosts = [];
-  if (quotation) extraCosts = await portalDb.getExtraCostsByQuotationId(quotation.id);
-  const ecIds = extraCosts.map((e) => e.id);
-  const allComments = ecIds.length ? await portalDb.getCommentsByExtraCostIds(ecIds) : [];
-  const commentsByEc = {};
-  allComments.forEach((c) => { if (!commentsByEc[c.extra_cost_id]) commentsByEc[c.extra_cost_id] = []; commentsByEc[c.extra_cost_id].push(c); });
-  extraCosts.forEach((ec) => { ec.comments = commentsByEc[ec.id] || []; });
-  const total = calculateProjectTotal(quotation, extraCosts);
   const media = await portalDb.getProjectMedia(project.id);
   const mediaList = media || [];
   const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG');
@@ -734,13 +1569,19 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
   };
   const vaultMediaList = buildVaultMediaList(mediaList.filter((m) => m.category !== 'ARCHITECTURAL_PLANS' && m.category !== 'VISUALIZATIONS'));
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU');
-  const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
-  const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false });
+  const otherDocs = mediaList.filter(
+    (m) =>
+      m.category === 'OTHER_DOCS' &&
+      (Number(m.visible_to_designer) === 1 || m.visible_to_designer == null)
+  );
+  const [dailyUpdates, projectDesigns, timelineExtensions] = await Promise.all([
+    portalDb.getDailyUpdatesByProject(project.id),
+    portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
+    portalDb.getTimelineExtensions(project.id),
+  ]);
   renderPortal(req, res, 'portal/designer/project_detail', {
     project,
-    quotation,
-    extraCosts,
-    total,
+    query: req.query,
     media: mediaList,
     mediaByCategory,
     byYearMonth,
@@ -748,6 +1589,8 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     dailyUpdates: dailyUpdates || [],
     projectDesigns,
     vastuDocs,
+    otherDocs,
+    timelineExtensions: timelineExtensions || [],
   });
 });
 
@@ -760,7 +1603,22 @@ router.post('/designer/projects/:id/update', express.urlencoded({ extended: fals
   if (req.body.current_stage !== undefined) updates.current_stage = parseInt(req.body.current_stage, 10);
   if (req.body.title !== undefined) updates.title = req.body.title;
   if (req.body.rtsp_link !== undefined) updates.rtsp_link = req.body.rtsp_link || null;
-  if (Object.keys(updates).length) await portalDb.updateProject(req.params.id, updates);
+  if (Object.keys(updates).length) {
+    await portalDb.updateProject(req.params.id, updates);
+    const p = await portalDb.getProjectById(req.params.id);
+    if (p) {
+      portalNotify.safeNotify(
+        portalNotify.notifyProjectStakeholders(portalDb, {
+          category: NC.PROJECT,
+          message: `Project details were updated on «${p.title}».`,
+          projectId: p.id,
+          tabSuffix: '#tab-updates',
+          excludeUserIds: [req.session[PORTAL_USER_ID]],
+          includeClient: false,
+        })
+      );
+    }
+  }
   res.redirect('/portal/designer/projects/' + req.params.id);
 });
 
@@ -772,18 +1630,62 @@ router.post('/designer/projects/:id/media', requirePortalAuth, requireDesigner, 
   }
   const category = (req.body?.category || 'SITE_LOG').toUpperCase();
   if (!req.file) {
-    const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+    const redirectTab =
+      category === 'OTHER_DOCS'
+        ? '#tab-other-docs'
+        : category === 'VASTU'
+          ? '#tab-vastu'
+          : category === 'WARRANTY_GUARANTEE'
+            ? '#tab-warranty'
+            : '#tab-vault';
     return res.redirect('/portal/designer/projects/' + projectId + '?msg=No+file' + redirectTab);
   }
   const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
-  const vastuCategoryName = category === 'VASTU' ? (req.body?.vastu_category_name || '').trim() || null : null;
-  const mediaId = await portalDb.addProjectMedia(projectId, url, req.file.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO', category, req.file.originalname, req.file.size, vastuCategoryName);
+  let seventhArg = { uploadedByRole: 'DESIGNER' };
+  if (category === 'VASTU') {
+    seventhArg = {
+      uploadedByRole: 'DESIGNER',
+      vastuCategoryName: (req.body?.vastu_category_name || '').trim() || null,
+    };
+  } else if (category === 'OTHER_DOCS') {
+    seventhArg = { uploadedByRole: 'DESIGNER', visibleToDesigner: 1 };
+  }
+  const uploadType =
+    category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS'
+      ? req.file.mimetype.startsWith('video')
+        ? 'VIDEO'
+        : 'PHOTO'
+      : inferPortalUploadMediaType(req.file);
+  const mediaId = await portalDb.addProjectMedia(projectId, url, uploadType, category, req.file.originalname, req.file.size, seventhArg);
   if (category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS') {
     const areaTag = (req.body?.area_tag || '').trim() || (req.body?.area_tag_custom || '').trim() || 'General';
     const designId = await portalDb.createDesign(projectId, category, areaTag);
     await portalDb.createDesignVersion(designId, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
   }
-  const redirectTab = category === 'VASTU' ? '#tab-vastu' : category === 'WARRANTY_GUARANTEE' ? '#tab-warranty' : '#tab-vault';
+  const redirectTab =
+    category === 'OTHER_DOCS'
+      ? '#tab-other-docs'
+      : category === 'VASTU'
+        ? '#tab-vastu'
+        : category === 'WARRANTY_GUARANTEE'
+          ? '#tab-warranty'
+          : '#tab-vault';
+  const catLabel =
+    category === 'SITE_LOG'
+      ? 'site log'
+      : category === 'ARCHITECTURAL_PLANS' || category === 'VISUALIZATIONS'
+        ? 'design vault'
+        : category.replace(/_/g, ' ').toLowerCase();
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEDIA,
+      message: `New ${catLabel} media was added to «${project.title}».`,
+      projectId,
+      tabSuffix: redirectTab,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
   res.redirect('/portal/designer/projects/' + projectId + redirectTab);
 });
 
@@ -802,6 +1704,16 @@ router.post('/designer/projects/:id/daily-updates', requirePortalAuth, requireDe
     const type = f.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO';
     await portalDb.addDailyUpdateMedia(updateId, url, type, f.originalname, f.size);
   }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DAILY,
+      message: `New daily progress update was submitted for «${project.title}» (pending admin publish to client).`,
+      projectId,
+      tabSuffix: '#tab-daily',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
   res.redirect('/portal/designer/projects/' + projectId + '#tab-daily');
 });
 
@@ -809,8 +1721,9 @@ function canEditQuotation(quotation) {
   return quotation && quotation.status !== 'APPROVED';
 }
 
-function designerCanSeeFinance(project, session) {
-  return session[PORTAL_USER_ROLE] === 'ADMIN' || (project && project.designer_can_see_finance !== 0);
+/** Finance is managed from the admin project screen only (not designer routes). */
+function designerCanSeeFinance() {
+  return false;
 }
 
 router.post('/designer/projects/:id/quotation/update', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
@@ -818,13 +1731,13 @@ router.post('/designer/projects/:id/quotation/update', express.urlencoded({ exte
   if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
-  if (!quotation || !canEditQuotation(quotation)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Quotation+locked#tab-finance');
+  if (!quotation || !canEditQuotation(quotation)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Quotation+locked#tab-updates');
   const base_total = parseFloat(req.body.base_total);
-  if (Number.isNaN(base_total)) return res.redirect('/portal/designer/projects/' + req.params.id + '#tab-finance');
+  if (Number.isNaN(base_total)) return res.redirect('/portal/designer/projects/' + req.params.id + '#tab-updates');
   let items = req.body.items;
   try { items = items ? JSON.parse(items) : quotation.items ? JSON.parse(quotation.items) : []; } catch (_) { items = []; }
   await portalDb.updateQuotation(quotation.id, { base_total, items: JSON.stringify(items) });
-  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-finance');
+  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-updates');
 });
 
 router.post('/designer/projects/:id/quotation/upload-pdf', requirePortalAuth, requireDesigner, portalUpload.single('pdf'), async (req, res) => {
@@ -836,10 +1749,10 @@ router.post('/designer/projects/:id/quotation/upload-pdf', requirePortalAuth, re
     const qid = await portalDb.createQuotation(project.id, 0, []);
     quotation = await portalDb.getQuotationById(qid);
   }
-  if (!req.file) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Select+PDF#tab-finance');
+  if (!req.file) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Select+PDF#tab-updates');
   const pdfUrl = '/assets/uploads/portal/' + path.basename(req.file.filename);
   await portalDb.updateQuotation(quotation.id, { pdf_url: pdfUrl });
-  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-finance');
+  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-updates');
 });
 
 router.post('/designer/projects/:id/extra-cost', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
@@ -847,10 +1760,10 @@ router.post('/designer/projects/:id/extra-cost', express.urlencoded({ extended: 
   if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
-  if (!quotation) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=No+quotation#tab-finance');
+  if (!quotation) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=No+quotation#tab-updates');
   const description = (req.body.description || '').trim();
   const amount = parseFloat(req.body.amount);
-  if (!description || Number.isNaN(amount)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Description+and+amount+required#tab-finance');
+  if (!description || Number.isNaN(amount)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Description+and+amount+required#tab-updates');
   await portalDb.createExtraCost(quotation.id, description, amount, (req.body.comment || '').trim());
   res.redirect('/portal/designer/projects/' + req.params.id);
 });
@@ -878,10 +1791,10 @@ router.post('/designer/projects/:id/extra-cost/:ecId/edit', express.urlencoded({
   if (!q || q.project_id !== project.id) return res.redirect('/portal/designer/projects/' + req.params.id);
   const description = (req.body.description || '').trim();
   const amount = parseFloat(req.body.amount);
-  if (!description || Number.isNaN(amount)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Description+and+amount+required#tab-finance');
+  if (!description || Number.isNaN(amount)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Description+and+amount+required#tab-updates');
   await portalDb.createExtraCost(q.id, description, amount, (req.body.comment || '').trim(), ec.id);
   await portalDb.updateExtraCost(ec.id, { status: 'SUPERSEDED' });
-  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-finance');
+  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-updates');
 });
 
 // Designer: add new version to existing design (upload)
@@ -898,6 +1811,16 @@ router.post('/designer/projects/:id/design/:designId/version', requirePortalAuth
   // Existing links are cleared so that designer/admin explicitly relink for the new version.
   await portalDb.clearDesignLinks(design.id);
   await portalDb.createDesignVersion(design.id, mediaId, req.session[PORTAL_USER_ID], 'PENDING_ADMIN', 'PENDING');
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DESIGN,
+      message: `New design version uploaded on «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-vault',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
   res.redirect('/portal/designer/projects/' + projectId + '#tab-vault');
 });
 
@@ -916,7 +1839,20 @@ router.post('/designer/projects/:id/design-version/:versionId/comment', express.
   const canAccess = project.designer_id === req.session[PORTAL_USER_ID] || req.session[PORTAL_USER_ROLE] === 'ADMIN';
   if (!canAccess) return res.status(403).send('Forbidden');
   const message = (req.body.message || '').trim();
-  if (version && message) await portalDb.addDesignComment(version.id, 'DESIGNER', req.session[PORTAL_USER_ID], message);
+  if (version && message) {
+    await portalDb.addDesignComment(version.id, 'DESIGNER', req.session[PORTAL_USER_ID], message);
+    const clientSeesVersion = version && version.admin_status === 'APPROVED';
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `New design comment from designer on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: clientSeesVersion,
+      })
+    );
+  }
   res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
 });
 
@@ -1000,6 +1936,17 @@ router.post('/client/projects/:id/design-version/:versionId/approve', requirePor
   const { version, design, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id || project.client_id !== req.session[PORTAL_USER_ID]) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   if (version && version.admin_status === 'APPROVED') await portalDb.updateDesignVersion(version.id, { client_status: 'APPROVED' });
+  if (project && version && version.admin_status === 'APPROVED') {
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DESIGN,
+        message: `Client approved a design version on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
 });
 
@@ -1011,6 +1958,15 @@ router.post('/client/projects/:id/design-version/:versionId/deny', express.urlen
   if (version && version.admin_status === 'APPROVED') {
     await portalDb.updateDesignVersion(version.id, { client_status: 'DENIED' });
     if (message) await portalDb.addDesignComment(version.id, 'CLIENT', req.session[PORTAL_USER_ID], message);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DESIGN,
+        message: `Client declined a design version on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
   }
   res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
 });
@@ -1020,7 +1976,18 @@ router.post('/client/projects/:id/design-version/:versionId/comment', express.ur
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id || project.client_id !== req.session[PORTAL_USER_ID]) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   const message = (req.body.message || '').trim();
-  if (version && version.admin_status === 'APPROVED' && message) await portalDb.addDesignComment(version.id, 'CLIENT', req.session[PORTAL_USER_ID], message);
+  if (version && version.admin_status === 'APPROVED' && message) {
+    await portalDb.addDesignComment(version.id, 'CLIENT', req.session[PORTAL_USER_ID], message);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `Client commented on a design on «${project.title}».`,
+        projectId: project.id,
+        tabSuffix: '#tab-vault',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
 });
 
@@ -1039,25 +2006,48 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const total = calculateProjectTotal(quotation, extraCosts);
   const media = await portalDb.getProjectMedia(project.id);
   const mediaList = media || [];
-  const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG');
+  const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG' && Number(m.approved) === 1);
   const byYearMonth = groupMediaByDate(siteLog);
-  // Mirror uses client view rules: 2D/3D only via approved design versions
+  // Client sees only admin-approved site log & official docs; 2D/3D only via approved design versions
   const mediaByCategory = {
     ARCHITECTURAL_PLANS: [],
     VISUALIZATIONS: [],
     SITE_LOG: siteLog,
-    OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS'),
+    OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS' && Number(m.approved) === 1),
   };
-  const vaultMediaList = buildVaultMediaList(mediaList.filter((m) => m.category !== 'ARCHITECTURAL_PLANS' && m.category !== 'VISUALIZATIONS'));
-  const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
+  const vaultMediaList = buildVaultMediaList(
+    mediaList.filter(
+      (m) =>
+        m.category !== 'ARCHITECTURAL_PLANS' &&
+        m.category !== 'VISUALIZATIONS' &&
+        ((m.category === 'SITE_LOG' || m.category === 'OFFICIAL_DOCS') && Number(m.approved) === 1)
+    )
+  );
+  const dailyUpdatesRaw = await portalDb.getDailyUpdatesByProject(project.id);
+  const dailyUpdates = (dailyUpdatesRaw || []).filter((u) => Number(u.visible_to_client) === 1);
   const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true });
   const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE' && m.approved === 1);
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU' && m.approved === 1);
+  const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS' && m.approved === 1);
+  const timelineExtensionsRaw = await portalDb.getTimelineExtensions(project.id);
+  const timelineExtensions = (timelineExtensionsRaw || []).filter(
+    (e) =>
+      e.status === 'APPROVED' &&
+      ((e.phase === 'DESIGN' && Number(project.design_timeline_visible_to_client) === 1) ||
+        (e.phase === 'EXECUTION' && Number(project.execution_timeline_visible_to_client) === 1))
+  );
+  const clientPaymentsAll = await portalDb.getClientPaymentsByProject(project.id);
+  const clientPaymentsPublished = (clientPaymentsAll || []).filter((p) => Number(p.approved_for_client) === 1);
+  const financePaidPublished = sumApprovedClientPayments(clientPaymentsAll);
+  const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPaymentsAll);
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
     extraCosts,
     total,
+    financePaidPublished,
+    financeBalanceDue,
+    clientPayments: clientPaymentsPublished,
     media: mediaList,
     byYearMonth,
     mediaByCategory,
@@ -1066,6 +2056,8 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     projectDesigns,
     warrantyDocs,
     vastuDocs,
+    otherDocs,
+    timelineExtensions,
     readOnly: false,
   });
 });
@@ -1089,29 +2081,58 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const total = calculateProjectTotal(quotation, extraCosts);
   const media = await portalDb.getProjectMedia(project.id);
   const mediaList = media || [];
-  const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG');
+  const siteLog = mediaList.filter((m) => m.category === 'SITE_LOG' && Number(m.approved) === 1);
   const byYearMonth = groupMediaByDate(siteLog);
   const mediaByCategory = {
-    ARCHITECTURAL_PLANS: mediaList.filter((m) => m.category === 'ARCHITECTURAL_PLANS'),
-    VISUALIZATIONS: mediaList.filter((m) => m.category === 'VISUALIZATIONS'),
+    ARCHITECTURAL_PLANS: [],
+    VISUALIZATIONS: [],
     SITE_LOG: siteLog,
-    OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS'),
+    OFFICIAL_DOCS: mediaList.filter((m) => m.category === 'OFFICIAL_DOCS' && Number(m.approved) === 1),
   };
-  const vaultMediaList = buildVaultMediaList(mediaList);
-  const dailyUpdates = await portalDb.getDailyUpdatesByProject(project.id);
+  const vaultMediaList = buildVaultMediaList(
+    mediaList.filter(
+      (m) =>
+        m.category !== 'ARCHITECTURAL_PLANS' &&
+        m.category !== 'VISUALIZATIONS' &&
+        ((m.category === 'SITE_LOG' || m.category === 'OFFICIAL_DOCS') && Number(m.approved) === 1)
+    )
+  );
+  const dailyUpdatesRawM = await portalDb.getDailyUpdatesByProject(project.id);
+  const dailyUpdates = (dailyUpdatesRawM || []).filter((u) => Number(u.visible_to_client) === 1);
   const projectDesigns = await portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true });
+  const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE' && m.approved === 1);
+  const vastuDocs = mediaList.filter((m) => m.category === 'VASTU' && m.approved === 1);
+  const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS' && m.approved === 1);
+  const timelineExtensionsRaw = await portalDb.getTimelineExtensions(project.id);
+  const timelineExtensions = (timelineExtensionsRaw || []).filter(
+    (e) =>
+      e.status === 'APPROVED' &&
+      ((e.phase === 'DESIGN' && Number(project.design_timeline_visible_to_client) === 1) ||
+        (e.phase === 'EXECUTION' && Number(project.execution_timeline_visible_to_client) === 1))
+  );
+  const clientPaymentsAll = await portalDb.getClientPaymentsByProject(project.id);
+  const clientPaymentsPublished = (clientPaymentsAll || []).filter((p) => Number(p.approved_for_client) === 1);
+  const financePaidPublished = sumApprovedClientPayments(clientPaymentsAll);
+  const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPaymentsAll);
   res.locals.mirrorBanner = true;
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
     extraCosts,
     total,
+    financePaidPublished,
+    financeBalanceDue,
+    clientPayments: clientPaymentsPublished,
     media: mediaList,
     byYearMonth,
     mediaByCategory,
     vaultMediaList,
     dailyUpdates: dailyUpdates || [],
     projectDesigns,
+    warrantyDocs,
+    vastuDocs,
+    otherDocs,
+    timelineExtensions,
     readOnly: true,
   });
 });
@@ -1122,7 +2143,6 @@ router.get('/api/quotation/:projectId/total', requirePortalAuth, async (req, res
   if (!project) return res.status(404).json({ error: 'Project not found' });
   const canAccess =
     req.session[PORTAL_USER_ROLE] === 'ADMIN' ||
-    project.designer_id === req.session[PORTAL_USER_ID] ||
     project.client_id === req.session[PORTAL_USER_ID];
   if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
@@ -1138,6 +2158,15 @@ router.post('/api/quotation/:id/approve', express.json(), express.urlencoded({ e
   const project = await portalDb.getProjectById(q.project_id);
   if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
   await portalDb.updateQuotation(req.params.id, { status: 'APPROVED' });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `Client approved the quotation for «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.json({ ok: true });
 });
 
@@ -1148,6 +2177,15 @@ router.post('/api/extra-cost/:id/approve', requirePortalAuth, async (req, res) =
   const project = await portalDb.getProjectById(q.project_id);
   if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
   await portalDb.updateExtraCost(req.params.id, { status: 'APPROVED' });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `Client approved an extra cost on «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.json({ ok: true });
 });
 
@@ -1160,6 +2198,15 @@ router.post('/api/extra-cost/:id/reject', express.json(), express.urlencoded({ e
   const reason = (req.body && (req.body.reason || req.body.rejection_reason)) ? String(req.body.reason || req.body.rejection_reason).trim() : '';
   if (!reason) return res.status(400).json({ error: 'Reason for rejection is required' });
   await portalDb.updateExtraCost(req.params.id, { status: 'REJECTED', client_note: reason });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.FINANCE,
+      message: `Client rejected an extra cost on «${project.title}».`,
+      projectId: project.id,
+      tabSuffix: '#tab-finance',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
   res.json({ ok: true });
 });
 
@@ -1170,11 +2217,19 @@ router.post('/api/extra-cost/:id/comment', express.json(), express.urlencoded({ 
   const project = await portalDb.getProjectById(q.project_id);
   if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
   const comment = req.body && req.body.comment != null ? String(req.body.comment).trim() : '';
-  if (comment) await portalDb.addExtraCostComment(req.params.id, 'CLIENT', req.session[PORTAL_USER_ID], comment);
-  const msg = 'Client commented on extra cost: ' + (ec.description || 'Variation').substring(0, 50) + (ec.description && ec.description.length > 50 ? '…' : '');
-  if (project.designer_id) await portalDb.createNotification(project.designer_id, msg);
-  const admins = await portalDb.getUsersByRole('ADMIN');
-  for (const a of admins) { if (a.id) await portalDb.createNotification(a.id, msg); }
+  if (comment) {
+    await portalDb.addExtraCostComment(req.params.id, 'CLIENT', req.session[PORTAL_USER_ID], comment);
+    const msg = `Client commented on a variation for «${project.title}».`;
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: msg,
+        projectId: project.id,
+        tabSuffix: '#tab-finance',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+  }
   res.json({ ok: true });
 });
 

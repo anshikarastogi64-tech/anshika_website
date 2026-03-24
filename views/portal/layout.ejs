@@ -93,6 +93,7 @@
           <li class="nav-item"><a class="nav-link" href="/portal/admin/users">Users</a></li>
           <li class="nav-item"><a class="nav-link" href="/portal/admin/leads">Leads</a></li>
           <li class="nav-item"><a class="nav-link" href="/portal/admin/projects">Projects</a></li>
+          <li class="nav-item"><a class="nav-link" href="/portal/admin/notification-settings">Alert settings</a></li>
           <% } else if (portalUser.role === 'DESIGNER') { %>
           <li class="nav-item"><a class="nav-link" href="/portal/designer">Dashboard</a></li>
           <li class="nav-item"><a class="nav-link" href="/portal/designer/leads">Leads</a></li>
@@ -101,6 +102,12 @@
           <li class="nav-item"><a class="nav-link" href="/portal/client">Dashboard</a></li>
           <% } %>
         </ul>
+        <a class="nav-link position-relative me-2" href="/portal/notifications" title="Notifications">
+          <i class="bi bi-bell fs-5"></i>
+          <% var _unc = typeof portalUnreadCount !== 'undefined' ? portalUnreadCount : 0; if (_unc > 0) { %>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark" style="font-size:0.65rem"><%= _unc > 99 ? '99+' : _unc %></span>
+          <% } %>
+        </a>
         <a class="nav-link me-2" href="/">Main website</a>
         <span class="navbar-text me-3">Signed in as <strong><%= portalUser.name || portalUser.email %></strong></span>
         <form method="post" action="/portal/logout" class="d-inline">

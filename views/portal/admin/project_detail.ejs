@@ -1,9 +1,15 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Client: <%= project.client_name %> | Designer: <strong><%= project.designer_name %></strong> | Stage: <%= LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage %> | Status: <%= project.status %></p>
+<% if (typeof query !== 'undefined' && query && query.msg) { %>
+<div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
+<% } %>
 
 <ul class="nav nav-tabs portal-tabs mb-3" id="projectTabs" role="tablist">
   <li class="nav-item" role="presentation">
     <button class="nav-link active" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
   </li>
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
@@ -20,6 +26,9 @@
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
   </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-other-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-other-docs" type="button" role="tab">Other documents</button>
+  </li>
 </ul>
 <div class="tab-content" id="projectTabsContent">
   <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
@@ -33,12 +42,6 @@
             <% }); } %>
           </select>
           <button type="submit" class="btn btn-gold btn-sm">Assign</button>
-        </form>
-        <form method="post" action="/portal/admin/projects/<%= project.id %>/designer-finance-visibility" class="d-flex align-items-center gap-2 mb-2">
-          <input type="hidden" name="designer_can_see_finance" value="0" />
-          <input type="checkbox" class="form-check-input" name="designer_can_see_finance" value="1" id="designerCanSeeFinance" <%= (typeof project.designer_can_see_finance === 'undefined' || project.designer_can_see_finance !== 0) ? 'checked' : '' %> />
-          <label class="form-check-label small mb-0" for="designerCanSeeFinance">Designer can see Finance for this project</label>
-          <button type="submit" class="btn btn-outline-gold btn-sm">Save</button>
         </form>
         <form method="post" action="/portal/admin/projects/<%= project.id %>/designer-mirror-visibility" class="d-flex align-items-center gap-2">
           <input type="hidden" name="designer_can_view_mirror" value="0" />
@@ -58,6 +61,7 @@
       <% } %>
     </p>
   </div>
+  <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'admin', timelineBasePath: '/portal/admin/projects/' + project.id + '/timeline' }) %>
   <div class="tab-pane fade" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/admin/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], pendingDesignVersions: typeof pendingDesignVersions !== 'undefined' ? pendingDesignVersions : [], showDailyOnly: false }) %>
   </div>
@@ -143,15 +147,122 @@
         <% } %>
       </div>
     </div>
-    <div class="card card-portal mb-4">
-      <div class="card-header">Financials</div>
+    <div class="card card-portal mb-4 border-warning border-opacity-25">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span class="serif text-warning mb-0">Financial summary</span>
+        <span class="small text-muted">Contract = approved quotation + approved extras</span>
+      </div>
       <div class="card-body">
-        <p class="serif h4 text-warning">Total Project Value: ₹<%= typeof total !== 'undefined' ? total.toLocaleString() : '0' %></p>
+        <div class="row g-3 mb-0">
+          <div class="col-sm-6 col-xl-3">
+            <div class="rounded-3 p-3 h-100" style="background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.25);">
+              <div class="small text-muted text-uppercase mb-1" style="letter-spacing: 0.04em;">Contract total</div>
+              <div class="serif fs-4 text-warning mb-0">₹<%= (typeof total !== 'undefined' ? total : 0).toLocaleString('en-IN') %></div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="rounded-3 p-3 h-100 bg-dark border border-secondary">
+              <div class="small text-muted text-uppercase mb-1" style="letter-spacing: 0.04em;">Shared with client</div>
+              <div class="serif fs-5 text-success mb-0">₹<%= (typeof financePaidPublished !== 'undefined' ? financePaidPublished : 0).toLocaleString('en-IN') %></div>
+              <div class="small text-muted mt-1">Sum of payments you marked visible</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="rounded-3 p-3 h-100 bg-dark border border-secondary">
+              <div class="small text-muted text-uppercase mb-1" style="letter-spacing: 0.04em;">Recorded, not shared</div>
+              <div class="serif fs-5 text-secondary mb-0">₹<%= (typeof financePaidPending !== 'undefined' ? financePaidPending : 0).toLocaleString('en-IN') %></div>
+              <div class="small text-muted mt-1">Internal until you approve for client</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="rounded-3 p-3 h-100" style="background: rgba(255, 193, 7, 0.06); border: 1px solid rgba(255, 193, 7, 0.35);">
+              <div class="small text-muted text-uppercase mb-1" style="letter-spacing: 0.04em;">Client balance due</div>
+              <div class="serif fs-4 text-warning mb-0">₹<%= (typeof financeBalanceDue !== 'undefined' ? financeBalanceDue : 0).toLocaleString('en-IN') %></div>
+              <div class="small text-muted mt-1">After shared payments only</div>
+            </div>
+          </div>
+        </div>
         <% if (quotation) { %>
-        <p>Quotation base: ₹<%= quotation.base_total.toLocaleString() %> – Status: <%= quotation.status %></p>
-        <p>Extra costs: <%= extraCosts.length %> (<%= extraCosts.filter(e => e.status === 'APPROVED').length %> approved)</p>
+        <p class="small text-muted mt-3 mb-0">Quotation base ₹<%= quotation.base_total.toLocaleString('en-IN') %> · <%= quotation.status %> · <%= extraCosts.length %> extra line(s), <%= extraCosts.filter(function(e) { return e.status === 'APPROVED'; }).length %> approved</p>
         <% } else { %>
-        <p>No quotation yet.</p>
+        <p class="small text-muted mt-3 mb-0">No quotation yet — contract total stays ₹0 until a quotation is approved.</p>
+        <% } %>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>Client payments</span>
+        <span class="small text-muted fw-normal">Log what you received; use <strong>Share with client</strong> when the client should see it.</span>
+      </div>
+      <div class="card-body">
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/payments" class="row g-2 align-items-end flex-wrap mb-4 pb-3 border-bottom border-secondary">
+          <div class="col-auto">
+            <label class="form-label small mb-0">Amount (₹)</label>
+            <input type="number" name="amount" step="0.01" min="0.01" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:130px" required placeholder="0" />
+          </div>
+          <div class="col-auto">
+            <label class="form-label small mb-0">Date received</label>
+            <input type="date" name="received_date" class="form-control form-control-sm bg-dark text-light border-secondary" required />
+          </div>
+          <div class="col-auto flex-grow-1" style="min-width:200px">
+            <label class="form-label small mb-0">Note <span class="text-muted">(optional)</span></label>
+            <input type="text" name="note" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g. Advance — NEFT ref. 123" />
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-gold btn-sm">Record payment</button>
+          </div>
+        </form>
+        <% var payList = typeof clientPayments !== 'undefined' && clientPayments ? clientPayments : []; %>
+        <% if (!payList.length) { %>
+        <p class="text-muted small mb-0">No payments recorded yet.</p>
+        <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-dark table-sm table-borderless align-middle mb-0">
+            <thead>
+              <tr class="text-muted small">
+                <th>Received on</th>
+                <th class="text-end">Amount</th>
+                <th>Note</th>
+                <th>Client visibility</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% payList.forEach(function(p) {
+                   var d = p.received_date ? new Date(String(p.received_date) + 'T12:00:00') : null;
+                   var dStr = d && !isNaN(d.getTime()) ? d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : (p.received_date || '—');
+                   var shared = Number(p.approved_for_client) === 1;
+              %>
+              <tr class="border-top border-secondary">
+                <td><%= dStr %></td>
+                <td class="text-end font-monospace">₹<%= (Number(p.amount) || 0).toLocaleString('en-IN') %></td>
+                <td class="small text-muted"><%= p.note ? String(p.note) : '—' %></td>
+                <td>
+                  <% if (shared) { %>
+                  <span class="badge bg-success">Visible to client</span>
+                  <% } else { %>
+                  <span class="badge bg-secondary">Internal only</span>
+                  <% } %>
+                </td>
+                <td class="text-end text-nowrap">
+                  <% if (!shared) { %>
+                  <form method="post" action="/portal/admin/projects/<%= project.id %>/payments/<%= p.id %>/approve-client" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-success">Share with client</button>
+                  </form>
+                  <% } else { %>
+                  <form method="post" action="/portal/admin/projects/<%= project.id %>/payments/<%= p.id %>/hide-from-client" class="d-inline" onsubmit="return confirm('Hide this payment from the client portal?');">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Hide from client</button>
+                  </form>
+                  <% } %>
+                  <form method="post" action="/portal/admin/projects/<%= project.id %>/payments/<%= p.id %>/delete" class="d-inline ms-1" onsubmit="return confirm('Delete this payment record?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
         <% } %>
       </div>
     </div>
@@ -277,6 +388,7 @@
       </div>
     </div>
   </div>
+  <%- include('../partials/other_documents_tab', { project, otherDocs: typeof otherDocs !== 'undefined' ? otherDocs : [], otherDocsMode: 'admin' }) %>
 </div>
 
 <!-- Gallery Modal: Reuses vaultGalleryModal from design_vault partial if available, otherwise creates one -->

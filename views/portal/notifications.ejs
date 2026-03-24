@@ -1,0 +1,42 @@
+<h1 class="serif text-warning mb-2">Notifications</h1>
+<p class="text-muted small mb-4">Updates from your projects and the studio. Open marks the item read and takes you to the linked page.</p>
+<% if (typeof query !== 'undefined' && query && query.msg) { %>
+<div class="alert alert-success border border-success mb-3"><%= query.msg %></div>
+<% } %>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <form method="post" action="/portal/notifications/read-all" class="d-inline">
+    <button type="submit" class="btn btn-outline-gold btn-sm">Mark all read</button>
+  </form>
+  <% if (portalUser.role === 'ADMIN') { %>
+  <a href="/portal/admin/notification-settings" class="btn btn-outline-secondary btn-sm">Who receives what</a>
+  <% } %>
+</div>
+<% if (!notifications || notifications.length === 0) { %>
+<p class="text-muted">No notifications yet.</p>
+<% } else { %>
+<div class="list-group border border-secondary rounded overflow-hidden">
+  <% notifications.forEach(function(n) {
+       var unread = !n.read_at;
+       var cat = n.category || 'SYSTEM';
+  %>
+  <div class="list-group-item list-group-item-dark border-secondary d-flex flex-wrap gap-2 justify-content-between align-items-start <%= unread ? 'border-start border-warning border-3' : '' %>">
+    <div class="flex-grow-1" style="min-width:200px">
+      <% if (unread) { %><span class="badge bg-warning text-dark me-1">New</span><% } %>
+      <span class="badge bg-secondary me-1 text-uppercase" style="font-size:0.65rem"><%= cat %></span>
+      <div class="mt-1"><%= n.message %></div>
+      <small class="text-muted"><%= n.created_at %></small>
+    </div>
+    <div class="d-flex flex-wrap gap-1 align-items-center">
+      <% if (n.link_url) { %>
+      <a href="/portal/notifications/go/<%= n.id %>" class="btn btn-gold btn-sm">Open</a>
+      <% } %>
+      <% if (unread) { %>
+      <form method="post" action="/portal/notifications/<%= n.id %>/read" class="d-inline">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Mark read</button>
+      </form>
+      <% } %>
+    </div>
+  </div>
+  <% }); %>
+</div>
+<% } %>
