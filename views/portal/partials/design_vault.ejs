@@ -470,7 +470,9 @@
     <% } %>
   </div>
   <div class="card-body">
+    <% if (typeof showUpload !== 'undefined' && showUpload && projectId && dailyUpdatePostUrl) { %>
     <p class="small text-muted mb-3">Add text and/or photos and videos. Click any media to open the gallery.</p>
+    <% } %>
     <% if (dailyUpdatesList.length === 0) { %>
     <p class="text-muted mb-0">No daily updates yet.<% if (typeof showUpload !== 'undefined' && showUpload) { %> Use the form above to post an update (text, photos, or videos).<% } %></p>
     <% } else { %>

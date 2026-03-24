@@ -504,21 +504,34 @@ router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded
 router.post('/admin/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.status(404).send('Project not found');
-  if (req.body.lifecycle_update !== '1') {
+  const updates = {};
+  if (req.body.lifecycle_update === '1') {
+    Object.assign(updates, buildLifecycleUpdates(req.body));
+  }
+  if (req.body.title !== undefined) {
+    const t = String(req.body.title).trim();
+    if (t && t !== project.title) updates.title = t;
+  }
+  if (Object.keys(updates).length === 0) {
     return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-updates');
   }
-  const updates = buildLifecycleUpdates(req.body);
   await portalDb.updateProject(req.params.id, updates);
   const p = await portalDb.getProjectById(req.params.id);
   if (p) {
+    const hadLifecycle = req.body.lifecycle_update === '1';
+    const hadTitle = updates.title !== undefined;
+    let message = `Project details were updated on «${p.title}».`;
+    if (hadLifecycle && hadTitle) message = `Project lifecycle and name were updated on «${p.title}».`;
+    else if (hadLifecycle) message = `Project lifecycle stages were updated on «${p.title}».`;
+    else if (hadTitle) message = `Project name was updated to «${p.title}».`;
     portalNotify.safeNotify(
       portalNotify.notifyProjectStakeholders(portalDb, {
         category: NC.PROJECT,
-        message: `Project lifecycle stages were updated on «${p.title}».`,
+        message,
         projectId: p.id,
         tabSuffix: '#tab-updates',
         excludeUserIds: [req.session[PORTAL_USER_ID]],
-        includeClient: true,
+        includeClient: hadLifecycle || hadTitle,
       })
     );
   }
@@ -1656,23 +1669,35 @@ router.post('/designer/projects/:id/update', express.urlencoded({ extended: true
   if (req.body.lifecycle_update === '1') {
     Object.assign(updates, buildLifecycleUpdates(req.body));
   }
-  if (req.body.title !== undefined) updates.title = req.body.title;
-  if (req.body.rtsp_link !== undefined) updates.rtsp_link = req.body.rtsp_link || null;
+  if (req.body.title !== undefined) {
+    const t = String(req.body.title).trim();
+    if (t && t !== project.title) updates.title = t;
+  }
+  if (req.body.rtsp_link !== undefined) {
+    const v = String(req.body.rtsp_link).trim() || null;
+    const prev = project.rtsp_link || null;
+    if (v !== prev) updates.rtsp_link = v;
+  }
   if (Object.keys(updates).length) {
     await portalDb.updateProject(req.params.id, updates);
     const p = await portalDb.getProjectById(req.params.id);
     if (p) {
+      const hadLifecycle = req.body.lifecycle_update === '1';
+      const hadTitle = updates.title !== undefined;
+      const hadRtsp = updates.rtsp_link !== undefined;
+      let message = `Project details were updated on «${p.title}».`;
+      if (hadLifecycle && (hadTitle || hadRtsp)) message = `Project lifecycle and details were updated on «${p.title}».`;
+      else if (hadLifecycle) message = `Project lifecycle stages were updated on «${p.title}».`;
+      else if (hadTitle) message = `Project name was updated to «${p.title}».`;
+      else if (hadRtsp) message = `Live site view link was updated on «${p.title}».`;
       portalNotify.safeNotify(
         portalNotify.notifyProjectStakeholders(portalDb, {
           category: NC.PROJECT,
-          message:
-            req.body.lifecycle_update === '1'
-              ? `Project lifecycle stages were updated on «${p.title}».`
-              : `Project details were updated on «${p.title}».`,
+          message,
           projectId: p.id,
           tabSuffix: '#tab-updates',
           excludeUserIds: [req.session[PORTAL_USER_ID]],
-          includeClient: false,
+          includeClient: !hadLifecycle && (hadTitle || hadRtsp),
         })
       );
     }
