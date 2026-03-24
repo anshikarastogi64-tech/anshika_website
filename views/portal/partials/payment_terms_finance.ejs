@@ -24,7 +24,10 @@
 <% } %>
     <% if (edit) { %>
     <p class="small text-muted mb-3">Every milestone <strong>%</strong> applies to the <strong>contract total</strong> (approved quotation plus approved extra costs). When the filled rows add up to <strong>100%</strong>, the rupee previews below add up to that contract total.</p>
-    <p class="small text-warning mb-2"><strong>Required:</strong> every filled row’s percentages must add up to exactly <strong>100%</strong>. You can add or remove rows; leave unused rows blank.</p>
+    <p class="small text-warning mb-2"><strong>Required:</strong> every filled row’s percentages must add up to exactly <strong>100%</strong>. You can have up to <strong>10</strong> milestones — use <strong>Add below</strong> on a row, or <strong>Remove</strong> to delete a row. Reorder with the arrows.</p>
+    <% if (pt.items && pt.items.length > 10) { %>
+    <p class="small text-danger mb-2">This project has more than 10 stored milestones; only the first 10 are editable below. Saving will drop any extra rows — contact a developer if you need to preserve them.</p>
+    <% } %>
     <div class="small mb-3 p-2 rounded border border-secondary border-opacity-25 bg-dark bg-opacity-25">
       <div class="text-muted mb-1">Contract breakdown (same as Finance summary)</div>
       <ul class="mb-0 ps-3">
@@ -33,8 +36,8 @@
         <li class="fw-semibold text-light">Contract total (100% of schedule): <strong class="text-warning">₹<%= ct.toLocaleString('en-IN') %></strong></li>
       </ul>
     </div>
-    <% var rowMax = Math.min(24, Math.max((pt.items && pt.items.length) || 0, 7) + 4); %>
-    <form method="post" action="/portal/admin/projects/<%= pid %>/payment-terms" class="mb-3" id="portal-payment-terms-form" data-contract-total="<%= ct %>">
+    <% var rowMax = Math.min(10, Math.max((pt.items && pt.items.length) || 0, 1)); %>
+    <form method="post" action="/portal/admin/projects/<%= pid %>/payment-terms" class="mb-3" id="portal-payment-terms-form" data-contract-total="<%= ct %>" data-pt-max-rows="10">
       <label class="form-label small text-muted">Introduction or conditions (optional)</label>
       <textarea name="payment_terms_intro" class="form-control form-control-sm bg-dark text-light border-secondary mb-3" rows="3" placeholder="e.g. All amounts exclude GST unless noted. Milestones are due on the dates agreed in writing."><%= pt.intro || '' %></textarea>
       <div class="table-responsive mb-3">
@@ -46,28 +49,35 @@
               <th style="width:6rem">% of contract</th>
               <th style="width:11rem">Due date</th>
               <th style="width:9rem" class="text-end">Preview (₹)</th>
+              <th style="width:7.5rem" class="text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="portal-payment-terms-tbody">
             <% for (var i = 0; i < rowMax; i++) {
               var row = (pt.items && pt.items[i]) ? pt.items[i] : {};
               var preview = (Number(row.percent) || 0) * ct / 100;
             %>
-            <tr>
-              <td class="text-muted small"><%= i + 1 %></td>
+            <tr class="js-pt-row">
+              <td class="text-muted small js-pt-row-num"><%= i + 1 %></td>
               <td>
-                <input type="hidden" name="pt_basis_<%= i %>" value="TOTAL" />
+                <input type="hidden" name="pt_basis_<%= i %>" value="TOTAL" class="js-pt-basis" />
                 <input type="text" name="pt_label_<%= i %>" class="form-control form-control-sm bg-dark text-light border-secondary js-pt-label" value="<%= row.label != null ? row.label : '' %>" placeholder="Milestone name" autocomplete="off" />
               </td>
               <td><input type="number" name="pt_pct_<%= i %>" step="0.01" min="0" max="100" class="form-control form-control-sm bg-dark text-light border-secondary js-pt-pct" value="<%= row.percent != null && row.percent !== '' ? row.percent : '' %>" placeholder="%" /></td>
-              <td><input type="date" name="pt_due_<%= i %>" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= row.dueDate ? row.dueDate : '' %>" title="Optional target date for this milestone" /></td>
+              <td><input type="date" name="pt_due_<%= i %>" class="form-control form-control-sm bg-dark text-light border-secondary js-pt-due" value="<%= row.dueDate ? row.dueDate : '' %>" title="Optional target date for this milestone" /></td>
               <td class="text-end small pt-admin-preview text-muted" data-pt-preview-row="<%= i %>"><%= (row.label && row.percent != null && row.percent !== '') ? ('₹' + Math.round(preview).toLocaleString('en-IN')) : '—' %></td>
+              <td class="text-nowrap text-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 me-0 js-pt-add-after" title="Add row below"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 js-pt-move-up" title="Move up"><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 js-pt-move-down" title="Move down"><i class="bi bi-arrow-down" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 js-pt-remove" title="Remove row"><i class="bi bi-trash" aria-hidden="true"></i></button>
+              </td>
             </tr>
             <% } %>
           </tbody>
           <tfoot>
             <tr class="border-secondary">
-              <td colspan="4" class="text-end small text-muted align-top pt-2">Live calculation <span class="d-none d-md-inline">(rows with a milestone name)</span></td>
+              <td colspan="5" class="text-end small text-muted align-top pt-2">Live calculation <span class="d-none d-md-inline">(rows with a milestone name)</span></td>
               <td class="text-end small align-top pt-2">
                 <div id="pt-live-totals" class="d-inline-block text-start px-2 py-2 rounded border border-secondary border-opacity-50 bg-dark bg-opacity-25" style="min-width: 11rem;">
                   <div class="mb-1"><span class="text-muted">% total</span> <strong id="pt-live-sum-pct" class="text-light ms-1">0.00</strong></div>
@@ -80,6 +90,24 @@
           </tfoot>
         </table>
       </div>
+      <template id="portal-pt-row-template">
+        <tr class="js-pt-row">
+          <td class="text-muted small js-pt-row-num">1</td>
+          <td>
+            <input type="hidden" name="pt_basis_0" value="TOTAL" class="js-pt-basis" />
+            <input type="text" name="pt_label_0" class="form-control form-control-sm bg-dark text-light border-secondary js-pt-label" value="" placeholder="Milestone name" autocomplete="off" />
+          </td>
+          <td><input type="number" name="pt_pct_0" step="0.01" min="0" max="100" class="form-control form-control-sm bg-dark text-light border-secondary js-pt-pct" value="" placeholder="%" /></td>
+          <td><input type="date" name="pt_due_0" class="form-control form-control-sm bg-dark text-light border-secondary js-pt-due" value="" title="Optional target date for this milestone" /></td>
+          <td class="text-end small pt-admin-preview text-muted" data-pt-preview-row="0">—</td>
+          <td class="text-nowrap text-center">
+            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 me-0 js-pt-add-after" title="Add row below"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 js-pt-move-up" title="Move up"><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 js-pt-move-down" title="Move down"><i class="bi bi-arrow-down" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 js-pt-remove" title="Remove row"><i class="bi bi-trash" aria-hidden="true"></i></button>
+          </td>
+        </tr>
+      </template>
       <button type="submit" class="btn btn-gold btn-sm">Save payment terms</button>
     </form>
     <form method="post" action="/portal/admin/projects/<%= pid %>/payment-terms" class="d-inline" onsubmit="return confirm('Reset this project to the default studio payment schedule?');">
@@ -90,9 +118,46 @@
     (function () {
       var form = document.getElementById('portal-payment-terms-form');
       if (!form) return;
+      var tbody = document.getElementById('portal-payment-terms-tbody');
+      var tpl = document.getElementById('portal-pt-row-template');
+      if (!tbody || !tpl) return;
+
       var ct = parseFloat(form.getAttribute('data-contract-total'));
       if (!Number.isFinite(ct)) ct = 0;
-      var rowMax = <%= rowMax %>;
+      var maxRows = parseInt(form.getAttribute('data-pt-max-rows'), 10);
+      if (!Number.isFinite(maxRows) || maxRows < 1) maxRows = 10;
+
+      function rowCount() {
+        return tbody.querySelectorAll('tr.js-pt-row').length;
+      }
+
+      function reindexRows() {
+        var rows = tbody.querySelectorAll('tr.js-pt-row');
+        var n = rows.length;
+        rows.forEach(function (tr, i) {
+          var num = tr.querySelector('.js-pt-row-num');
+          if (num) num.textContent = String(i + 1);
+          var basis = tr.querySelector('input.js-pt-basis');
+          if (basis) basis.name = 'pt_basis_' + i;
+          var label = tr.querySelector('.js-pt-label');
+          if (label) label.name = 'pt_label_' + i;
+          var pct = tr.querySelector('.js-pt-pct');
+          if (pct) pct.name = 'pt_pct_' + i;
+          var due = tr.querySelector('.js-pt-due');
+          if (due) due.name = 'pt_due_' + i;
+          var previewEl = tr.querySelector('.pt-admin-preview');
+          if (previewEl) previewEl.setAttribute('data-pt-preview-row', String(i));
+
+          var addBtn = tr.querySelector('.js-pt-add-after');
+          if (addBtn) addBtn.disabled = n >= maxRows;
+          var upBtn = tr.querySelector('.js-pt-move-up');
+          if (upBtn) upBtn.disabled = i === 0;
+          var downBtn = tr.querySelector('.js-pt-move-down');
+          if (downBtn) downBtn.disabled = i === n - 1;
+          var rmBtn = tr.querySelector('.js-pt-remove');
+          if (rmBtn) rmBtn.disabled = n <= 1;
+        });
+      }
 
       function parsePct(v) {
         if (v === '' || v == null) return null;
@@ -108,7 +173,8 @@
         var sumPct = 0;
         var sumAmtRounded = 0;
         var filledCount = 0;
-        for (var i = 0; i < rowMax; i++) {
+        var n = rowCount();
+        for (var i = 0; i < n; i++) {
           var labelEl = form.querySelector('[name="pt_label_' + i + '"]');
           var pctEl = form.querySelector('[name="pt_pct_' + i + '"]');
           var previewEl = form.querySelector('[data-pt-preview-row="' + i + '"]');
@@ -169,8 +235,73 @@
         }
       }
 
-      form.addEventListener('input', recalc);
-      form.addEventListener('change', recalc);
+      function addRowAfter(tr) {
+        if (rowCount() >= maxRows) return;
+        var frag = tpl.content.cloneNode(true);
+        var newTr = frag.querySelector('tr');
+        if (!newTr) return;
+        tr.parentNode.insertBefore(newTr, tr.nextSibling);
+        reindexRows();
+        recalc();
+      }
+
+      function moveRowUp(tr) {
+        var prev = tr.previousElementSibling;
+        if (!prev || !prev.classList.contains('js-pt-row')) return;
+        tr.parentNode.insertBefore(tr, prev);
+        reindexRows();
+        recalc();
+      }
+
+      function moveRowDown(tr) {
+        var next = tr.nextElementSibling;
+        if (!next || !next.classList.contains('js-pt-row')) return;
+        tr.parentNode.insertBefore(next, tr);
+        reindexRows();
+        recalc();
+      }
+
+      function removeRow(tr) {
+        if (rowCount() <= 1) {
+          tr.querySelectorAll('.js-pt-label, .js-pt-pct, .js-pt-due').forEach(function (el) {
+            el.value = '';
+          });
+          reindexRows();
+          recalc();
+          return;
+        }
+        tr.remove();
+        reindexRows();
+        recalc();
+      }
+
+      tbody.addEventListener('click', function (e) {
+        var btn = e.target.closest('button');
+        if (!btn || !tbody.contains(btn)) return;
+        var tr = btn.closest('tr.js-pt-row');
+        if (!tr) return;
+        if (btn.classList.contains('js-pt-add-after')) {
+          e.preventDefault();
+          addRowAfter(tr);
+        } else if (btn.classList.contains('js-pt-move-up')) {
+          e.preventDefault();
+          moveRowUp(tr);
+        } else if (btn.classList.contains('js-pt-move-down')) {
+          e.preventDefault();
+          moveRowDown(tr);
+        } else if (btn.classList.contains('js-pt-remove')) {
+          e.preventDefault();
+          removeRow(tr);
+        }
+      });
+
+      form.addEventListener('input', function () {
+        recalc();
+      });
+      form.addEventListener('change', function () {
+        recalc();
+      });
+      reindexRows();
       recalc();
     })();
     </script>

@@ -61,7 +61,7 @@ function buildLifecycleUpdates(body) {
 function buildPaymentTermsFromBody(body) {
   const intro = (body.payment_terms_intro || '').trim();
   const items = [];
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 10; i++) {
     const label = body[`pt_label_${i}`];
     if (!label || !String(label).trim()) continue;
     const pct = parseFloat(body[`pt_pct_${i}`]);
