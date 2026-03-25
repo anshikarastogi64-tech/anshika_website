@@ -17,6 +17,7 @@ const {
   calculateProjectTotal,
   sumApprovedClientPayments,
   balanceDueAfterPublishedPayments,
+  canMarkProjectCompletedByBalance,
   uuid,
   LEAD_STATUSES,
   groupMediaByDate,
@@ -519,6 +520,7 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const financePaidPublished = sumApprovedClientPayments(clientPayments);
   const financePaidPending = (clientPayments || []).filter((p) => Number(p.approved_for_client) !== 1).reduce((s, p) => s + (Number(p.amount) || 0), 0);
   const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPayments);
+  const canMarkProjectCompleted = canMarkProjectCompletedByBalance(total, clientPayments);
   const paymentTerms = parsePaymentTermsJson(project.payment_terms_json);
   const quotationBaseForTerms =
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
@@ -531,6 +533,7 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     financePaidPublished,
     financePaidPending,
     financeBalanceDue,
+    canMarkProjectCompleted,
     clientPayments: clientPayments || [],
     query: req.query,
     designers,
@@ -1390,6 +1393,14 @@ router.post('/admin/projects/:id/complete', express.urlencoded({ extended: false
   const quotation = await portalDb.getLatestQuotationByProjectId(projectId);
   const extraCosts = quotation ? await portalDb.getExtraCostsByQuotationId(quotation.id) : [];
   const finalTotal = calculateProjectTotal(quotation, extraCosts);
+  const clientPayments = await portalDb.getClientPaymentsByProject(projectId);
+  if (!canMarkProjectCompletedByBalance(finalTotal, clientPayments)) {
+    return res.redirect(
+      `/portal/admin/projects/${projectId}?msg=${encodeURIComponent(
+        'Mark Completed is only allowed when client balance due is zero or less (published payments must cover the contract total). See Finance tab.'
+      )}`
+    );
+  }
   await portalDb.updateProject(projectId, { status: 'COMPLETED', final_total_cost: finalTotal, dv_points_processed: 1 });
   const lead = await portalDb.getLeadByConvertedProjectId(projectId);
   if (lead && lead.referrer_id) {

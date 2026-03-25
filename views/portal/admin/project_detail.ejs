@@ -63,20 +63,19 @@
         </form>
       </div>
     </div>
-    <div class="card card-portal mb-4">
-      <div class="card-header">Lifecycle progress</div>
-      <div class="card-body">
-        <p class="small text-muted mb-3">Mark stages as completed or in progress. Multiple stages can be in progress at once. Green, yellow, and grey match what the client sees.</p>
-        <%- include('../partials/project_stage_picker', { project, formAction: '/portal/admin/projects/' + project.id + '/update' }) %>
-      </div>
-    </div>
+    <%- include('../partials/lifecycle_progress_collapsible', { project, formAction: '/portal/admin/projects/' + project.id + '/update', lifecycleCollapseSuffix: 'admin' }) %>
     <p class="d-flex flex-wrap gap-2">
       <a href="/portal/mirror/<%= project.id %>" class="btn btn-gold">View as Client (Mirror)</a>
       <button type="button" class="btn btn-outline-gold" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button>
-      <% if (project.status !== 'COMPLETED') { %>
+      <% if (project.status !== 'COMPLETED') {
+        var adminCanMarkCompleted = typeof canMarkProjectCompleted !== 'undefined' && canMarkProjectCompleted;
+      %>
       <form method="post" action="/portal/admin/projects/<%= project.id %>/complete" class="d-inline ms-2">
-        <button type="submit" class="btn btn-outline-gold">Mark Completed</button>
+        <button type="submit" class="btn btn-outline-gold" <%= adminCanMarkCompleted ? '' : 'disabled aria-disabled="true"' %> title="<%= adminCanMarkCompleted ? 'Mark this project completed' : 'Disabled until client balance due is ₹0 or less (published payments cover the contract total).' %>">Mark Completed</button>
       </form>
+      <% if (!adminCanMarkCompleted) { %>
+      <span class="small text-muted ms-2 align-self-center">Complete only when <strong>Finance</strong> shows client balance due <strong>₹0</strong> (shared payments cover the contract).</span>
+      <% } %>
       <% } %>
     </p>
   </div>

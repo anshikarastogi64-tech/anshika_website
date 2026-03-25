@@ -26,13 +26,10 @@
 </ul>
 <div class="tab-content" id="projectTabsContent">
   <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
+    <%- include('../partials/lifecycle_progress_collapsible', { project, formAction: '/portal/designer/projects/' + project.id + '/update', lifecycleCollapseSuffix: 'designer' }) %>
     <div class="card card-portal mb-4">
       <div class="card-header">Update project</div>
       <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label small text-muted mb-2 d-block">Lifecycle progress</label>
-          <%- include('../partials/project_stage_picker', { project, formAction: '/portal/designer/projects/' + project.id + '/update' }) %>
-        </div>
         <form method="post" action="/portal/designer/projects/<%= project.id %>/update" class="mb-0">
           <div class="mb-3">
             <label class="form-label small text-muted mb-0" for="designerProjectTitle">Project name</label>
