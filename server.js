@@ -9,6 +9,14 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 
 const { db, getBlock, getBlocksForHome, saveBlock, incrementVisitCount, getVisitCount } = require('./db');
+const {
+  seoForPath,
+  forPortfolioProject,
+  forTestimonialDetail,
+  forRecording,
+  buildSitemapXml,
+  publicBaseUrl,
+} = require('./lib/seo');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -70,6 +78,11 @@ app.use('/assets', express.static(path.join(__dirname, 'Kelly', 'assets')));
 app.use((req, res, next) => {
   res.locals.isAdmin = !!req.session.adminId;
   res.locals.adminUsername = req.session.adminUsername || '';
+  next();
+});
+
+app.use((req, res, next) => {
+  res.locals.seo = seoForPath(req.path, publicBaseUrl(req));
   next();
 });
 
@@ -143,6 +156,7 @@ app.get('/recording/:slug', (req, res) => {
     if (err || !row) return res.status(404).send('Recording not found');
     db.run('UPDATE audio_recordings SET view_count = COALESCE(view_count, 0) + 1 WHERE id = ?', [row.id], (updateErr) => {
       if (updateErr) console.error('View count update error:', updateErr);
+      res.locals.seo = forRecording(res.locals.seo, row, publicBaseUrl(req));
       res.render('recording', { recording: row });
     });
   });
@@ -225,6 +239,7 @@ app.get('/testimonials/:id', async (req, res) => {
   ]);
   if (!testimonial) return res.status(404).send('Testimonial not found');
   try {
+    res.locals.seo = forTestimonialDetail(res.locals.seo, testimonial, publicBaseUrl(req));
     const body = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'testimonial-detail.ejs'), { testimonial, testimonialMedia });
     res.render('testimonials', { footerName, body, active: 'testimonials' });
   } catch (e) {
@@ -298,6 +313,7 @@ app.get('/portfolio/project/:id', async (req, res) => {
   ]);
   if (!project) return res.status(404).send('Project not found');
   try {
+    res.locals.seo = forPortfolioProject(res.locals.seo, project, publicBaseUrl(req));
     const body = await ejs.renderFile(path.join(__dirname, 'views', 'partials', 'portfolio-project.ejs'), { project, projectMedia, testimonials: projectTestimonials });
     res.render('portfolio', { footerName, body, active: 'portfolio' });
   } catch (e) {
@@ -1285,6 +1301,59 @@ app.get('/style-discovery/result', (req, res) => {
       personaEssence: lead?.persona_essence || 'A reflection of your style choices.',
       calendlyLink: process.env.CALENDLY_LINK || 'https://calendly.com',
     });
+  });
+});
+
+app.get('/robots.txt', (req, res) => {
+  const base = publicBaseUrl(req);
+  res.type('text/plain');
+  res.send(
+    `User-agent: *
+Allow: /
+
+# Admin and authenticated app areas — not for indexing
+Disallow: /admin
+Disallow: /portal/
+Allow: /portal/login
+
+Sitemap: ${base}/sitemap.xml
+`
+  );
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const base = publicBaseUrl(req);
+  const staticPaths = [
+    { loc: `${base}/`, priority: '1.0', changefreq: 'weekly' },
+    { loc: `${base}/about-new`, priority: '0.9', changefreq: 'monthly' },
+    { loc: `${base}/services`, priority: '0.9', changefreq: 'monthly' },
+    { loc: `${base}/portfolio`, priority: '0.95', changefreq: 'weekly' },
+    { loc: `${base}/testimonials`, priority: '0.85', changefreq: 'weekly' },
+    { loc: `${base}/contact`, priority: '0.9', changefreq: 'monthly' },
+    { loc: `${base}/experience`, priority: '0.75', changefreq: 'monthly' },
+    { loc: `${base}/womens-day`, priority: '0.5', changefreq: 'yearly' },
+    { loc: `${base}/style-discovery`, priority: '0.8', changefreq: 'monthly' },
+    { loc: `${base}/portal/login`, priority: '0.4', changefreq: 'yearly' },
+  ];
+  db.all('SELECT id FROM portfolio_projects ORDER BY id ASC', (err, projRows) => {
+    const projectUrls = (projRows || []).map((r) => ({
+      loc: `${base}/portfolio/project/${r.id}`,
+      priority: '0.85',
+      changefreq: 'weekly',
+    }));
+    db.all(
+      "SELECT id FROM testimonials WHERE status = 'approved' ORDER BY id ASC",
+      (e2, testRows) => {
+        const testimonialUrls = (testRows || []).map((r) => ({
+          loc: `${base}/testimonials/${r.id}`,
+          priority: '0.7',
+          changefreq: 'monthly',
+        }));
+        const xml = buildSitemapXml(base, [...staticPaths, ...projectUrls, ...testimonialUrls]);
+        res.type('application/xml');
+        res.send(xml);
+      }
+    );
   });
 });
 

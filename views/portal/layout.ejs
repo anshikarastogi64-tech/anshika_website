@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><%= typeof title !== 'undefined' ? title : 'Portal' %> – Luxury Interior</title>
+  <% var _seo = typeof seo !== 'undefined' && seo ? seo : {}; %>
+  <meta name="robots" content="<%= _seo.robots || 'noindex, nofollow' %>" />
+  <meta name="description" content="<%= _seo.description || 'Interior design client portal — project updates and documents.' %>" />
+  <% if (_seo.canonical) { %><link rel="canonical" href="<%= _seo.canonical %>" /><% } %>
+  <title><%= typeof title !== 'undefined' ? title : 'Portal' %> – Luxury Interior | Designer's Vision</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />

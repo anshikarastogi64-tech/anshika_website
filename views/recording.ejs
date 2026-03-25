@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Listen – <%= recording.title || 'Audio Recording' %></title>
+  <%- include('partials/seo-minimal') %>
   <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
       <div class="mb-4">
         <i class="bi bi-music-note-beamed display-4" style="color: #d63384;"></i>
         <h1 class="h4 mt-2 mb-0"><%= recording.title || 'Audio Recording' %></h1>
-        <p class="brand mt-1 mb-0">Designers Vision</p>
+        <p class="brand mt-1 mb-0">Designer's Vision</p>
       </div>
       <div class="audio-wrapper mb-3">
         <audio controls preload="metadata" class="w-100">

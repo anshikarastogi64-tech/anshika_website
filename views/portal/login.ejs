@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Portal Login – Luxury Interior</title>
+  <%- include('../partials/seo-minimal') %>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -23,7 +23,8 @@
     <a href="/" class="text-warning text-decoration-none"><small>← Back to main website</small></a>
   </div>
   <div class="login-card p-4 w-100">
-    <h1 class="mb-4">Portal Login</h1>
+    <h1 class="mb-4">Client portal login</h1>
+    <p class="small text-secondary mb-4">Track your interior design project—documents, site updates, and milestones. Designer's Vision: turnkey interiors in Hyderabad, across India, and remote projects worldwide.</p>
     <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
     <form method="post" action="/portal/login">
       <div class="mb-3">

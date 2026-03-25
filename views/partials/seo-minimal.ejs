@@ -1,0 +1,20 @@
+<% var _seo = typeof seo !== 'undefined' && seo ? seo : {}; %>
+<% if (_seo.title) { %><title><%= _seo.title %></title><% } %>
+<% if (_seo.description) { %><meta name="description" content="<%= _seo.description %>" /><% } %>
+<% if (_seo.robots) { %><meta name="robots" content="<%= _seo.robots %>" /><% } %>
+<% if (_seo.canonical) { %>
+<link rel="canonical" href="<%= _seo.canonical %>" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="<%= _seo.title %>" />
+<meta property="og:description" content="<%= _seo.description %>" />
+<meta property="og:url" content="<%= _seo.canonical %>" />
+<% if (_seo.ogImage) { %>
+<meta property="og:image" content="<%= _seo.ogImage %>" />
+<% } %>
+<meta name="twitter:card" content="<%= _seo.ogImage ? 'summary_large_image' : 'summary' %>" />
+<meta name="twitter:title" content="<%= _seo.title %>" />
+<meta name="twitter:description" content="<%= _seo.description %>" />
+<% if (_seo.ogImage) { %>
+<meta name="twitter:image" content="<%= _seo.ogImage %>" />
+<% } %>
+<% } %>

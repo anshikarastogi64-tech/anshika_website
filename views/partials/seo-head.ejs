@@ -1,0 +1,32 @@
+<% var _seo = typeof seo !== 'undefined' && seo ? seo : {}; %>
+<% var _title = _seo.title || "Anshika Rastogi | Interior Designer Hyderabad | Designer's Vision"; %>
+<% var _desc = _seo.description || ''; %>
+<% var _canonical = _seo.canonical || ''; %>
+<% var _og = _seo.ogImage || ''; %>
+<% var _robots = _seo.robots || 'index, follow'; %>
+<title><%= _title %></title>
+<meta name="description" content="<%= _desc %>" />
+<meta name="robots" content="<%= _robots %>" />
+<link rel="canonical" href="<%= _canonical %>" />
+<meta name="author" content="Anshika Rastogi" />
+<meta name="geo.region" content="IN-TG" />
+<meta name="geo.placename" content="Hyderabad" />
+<meta name="language" content="English" />
+<meta property="og:locale" content="en_IN" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="<%= _title %>" />
+<meta property="og:description" content="<%= _desc %>" />
+<meta property="og:url" content="<%= _canonical %>" />
+<% if (_og) { %>
+<meta property="og:image" content="<%= _og %>" />
+<meta property="og:image:alt" content="Anshika Rastogi — interior design Hyderabad, turnkey homes and offices" />
+<% } %>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="<%= _title %>" />
+<meta name="twitter:description" content="<%= _desc %>" />
+<% if (_og) { %>
+<meta name="twitter:image" content="<%= _og %>" />
+<% } %>
+<% if (_seo.jsonLd && _seo.jsonLd.length) { _seo.jsonLd.forEach(function (block) { %>
+<script type="application/ld+json"><%- JSON.stringify(block).replace(/</g, '\\u003c') %></script>
+<% }); } %>
