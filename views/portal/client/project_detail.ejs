@@ -1,34 +1,69 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Progress: <strong><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></strong></p>
-
+<% var tabOrderClient = ['updates','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs'];
+   var cTabs = typeof clientAllowedTabs !== 'undefined' && clientAllowedTabs ? clientAllowedTabs : {};
+   tabOrderClient.forEach(function(k) { if (cTabs[k] === undefined) cTabs[k] = true; });
+   var anyClientTab = tabOrderClient.some(function(k) { return cTabs[k]; });
+   var firstVis = tabOrderClient.find(function(k) { return cTabs[k]; }) || 'updates';
+%>
+<% if (!anyClientTab) { %>
+<div class="alert alert-warning border border-warning text-dark">No sections are enabled for your account on this project. Please contact the studio.</div>
+<% } else { %>
 <ul class="nav nav-tabs portal-tabs mb-3" id="projectTabs" role="tablist">
+  <% if (cTabs.updates) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
+    <button class="nav-link<%= firstVis === 'updates' ? ' active' : '' %>" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
   </li>
+  <% } %>
+  <% if (cTabs.timelines) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
+    <button class="nav-link<%= firstVis === 'timelines' ? ' active' : '' %>" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
   </li>
+  <% } %>
+  <% if (cTabs['mood-board']) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
+    <button class="nav-link<%= firstVis === 'mood-board' ? ' active' : '' %>" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
   </li>
+  <% } %>
+  <% if (cTabs.vault) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
+    <button class="nav-link<%= firstVis === 'vault' ? ' active' : '' %>" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
   </li>
+  <% } %>
+  <% if (cTabs['material-selection']) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
+    <button class="nav-link<%= firstVis === 'material-selection' ? ' active' : '' %>" id="tab-material-selection-btn" data-bs-toggle="tab" data-bs-target="#tab-material-selection" type="button" role="tab">Material Selection</button>
   </li>
+  <% } %>
+  <% if (cTabs.daily) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-warranty-btn" data-bs-toggle="tab" data-bs-target="#tab-warranty" type="button" role="tab">Warranty &amp; Guarantee</button>
+    <button class="nav-link<%= firstVis === 'daily' ? ' active' : '' %>" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
   </li>
+  <% } %>
+  <% if (cTabs.finance) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+    <button class="nav-link<%= firstVis === 'finance' ? ' active' : '' %>" id="tab-finance-btn" data-bs-toggle="tab" data-bs-target="#tab-finance" type="button" role="tab">Finance</button>
   </li>
+  <% } %>
+  <% if (cTabs.warranty) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-other-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-other-docs" type="button" role="tab">Other documents</button>
+    <button class="nav-link<%= firstVis === 'warranty' ? ' active' : '' %>" id="tab-warranty-btn" data-bs-toggle="tab" data-bs-target="#tab-warranty" type="button" role="tab">Warranty &amp; Guarantee</button>
   </li>
+  <% } %>
+  <% if (cTabs.vastu) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'vastu' ? ' active' : '' %>" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+  </li>
+  <% } %>
+  <% if (cTabs['other-docs']) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'other-docs' ? ' active' : '' %>" id="tab-other-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-other-docs" type="button" role="tab">Other documents</button>
+  </li>
+  <% } %>
 </ul>
 <div class="tab-content" id="projectTabsContent">
-  <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
+  <% if (cTabs.updates) { %>
+  <div class="tab-pane fade<%= firstVis === 'updates' ? ' show active' : '' %>" id="tab-updates" role="tabpanel">
     <!-- Progress stepper -->
     <div class="card card-portal mb-4">
       <div class="card-header">Progress</div>
@@ -81,14 +116,30 @@
     </div>
     <p><button type="button" class="btn btn-outline-gold btn-sm" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button></p>
   </div>
-  <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'client', timelineBasePath: '' }) %>
-  <div class="tab-pane fade" id="tab-vault" role="tabpanel">
+  <% } %>
+  <% if (cTabs.timelines) { %>
+  <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'client', timelineBasePath: '', timelineTabPaneClass: firstVis === 'timelines' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (cTabs['mood-board']) { %>
+  <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'client', moodBoardTabPaneClass: firstVis === 'mood-board' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (cTabs.vault) { %>
+  <div class="tab-pane fade<%= firstVis === 'vault' ? ' show active' : '' %>" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], project, readOnly: typeof readOnly !== 'undefined' ? readOnly : false, showDailyOnly: false }) %>
   </div>
-  <div class="tab-pane fade" id="tab-daily" role="tabpanel">
-    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], project, readOnly: typeof readOnly !== 'undefined' ? readOnly : false, dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true }) %>
+  <% } %>
+  <% if (cTabs['material-selection']) { %>
+  <div class="tab-pane fade<%= firstVis === 'material-selection' ? ' show active' : '' %>" id="tab-material-selection" role="tabpanel">
+    <%- include('../partials/material_selection_tab', { project, materialSelections: typeof materialSelections !== 'undefined' ? materialSelections : [], readOnly: typeof readOnly !== 'undefined' ? readOnly : false }) %>
   </div>
-  <div class="tab-pane fade" id="tab-finance" role="tabpanel">
+  <% } %>
+  <% if (cTabs.daily) { %>
+  <div class="tab-pane fade<%= firstVis === 'daily' ? ' show active' : '' %>" id="tab-daily" role="tabpanel">
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], project, readOnly: typeof readOnly !== 'undefined' ? readOnly : false, dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true, includeVaultGalleryModal: !cTabs.vault }) %>
+  </div>
+  <% } %>
+  <% if (cTabs.finance) { %>
+  <div class="tab-pane fade<%= firstVis === 'finance' ? ' show active' : '' %>" id="tab-finance" role="tabpanel">
     <div class="card card-portal mb-4 border-warning border-opacity-25">
       <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
         <span class="serif text-warning mb-0">Your project value &amp; balance</span>
@@ -121,7 +172,7 @@
         <%- include('../partials/payment_finance_panel', { project, paymentScheduleProgress: typeof paymentScheduleProgress !== 'undefined' ? paymentScheduleProgress : null, showPaymentScheduleExplain: false, paymentTerms: typeof paymentTerms !== 'undefined' ? paymentTerms : null, quotationBaseForTerms: typeof quotationBaseForTerms !== 'undefined' ? quotationBaseForTerms : 0, contractTotal: typeof total !== 'undefined' ? total : 0, paymentTermsEditMode: false }) %>
         <% if (quotation) { %>
         <p>Quotation (base): ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
-        <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" target="_blank" class="text-warning">View / Download quotation PDF</a></p><% } %>
+        <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" class="text-warning" data-portal-pdf="1" data-portal-pdf-name="Quotation">View quotation PDF</a></p><% } %>
         <% if (!readOnly && quotation.status === 'PENDING') { %>
         <button type="button" class="btn btn-gold btn-sm" data-quotation-id="<%= quotation.id %>" onclick="approveQuotation(this)">Approve Quotation</button>
         <% } %>
@@ -200,15 +251,18 @@
       </div>
     </div>
   </div>
-  <div class="tab-pane fade" id="tab-warranty" role="tabpanel">
+  <% } %>
+  <% if (cTabs.warranty) { %>
+  <div class="tab-pane fade<%= firstVis === 'warranty' ? ' show active' : '' %>" id="tab-warranty" role="tabpanel">
     <div class="card card-portal mb-4">
       <div class="card-header serif text-warning">Warranty &amp; Guarantee</div>
       <div class="card-body">
         <% if (typeof warrantyDocs !== 'undefined' && warrantyDocs.length > 0) { %>
         <ul class="list-unstyled mb-0">
           <% warrantyDocs.forEach(function(m) { %>
+          <% var wPdf = (m.type || '') === 'DOCUMENT' || (m.url || '').toLowerCase().indexOf('.pdf') !== -1; %>
           <li class="mb-2">
-            <a href="<%= m.url %>" target="_blank" class="text-warning text-decoration-none">
+            <a href="<%= m.url %>" class="text-warning text-decoration-none" <% if (wPdf) { %>data-portal-pdf="1" data-portal-pdf-name="<%= String(m.file_name || 'Warranty').replace(/"/g, '&quot;') %>"<% } else { %>target="_blank" rel="noopener"<% } %>>
               <i class="bi bi-file-earmark-text me-1"></i><%= m.file_name || m.url %>
             </a>
           </li>
@@ -220,7 +274,9 @@
       </div>
     </div>
   </div>
-  <div class="tab-pane fade" id="tab-vastu" role="tabpanel">
+  <% } %>
+  <% if (cTabs.vastu) { %>
+  <div class="tab-pane fade<%= firstVis === 'vastu' ? ' show active' : '' %>" id="tab-vastu" role="tabpanel">
     <div class="card card-portal mb-4">
       <div class="card-header serif text-warning">Vastu Documents</div>
       <div class="card-body">
@@ -268,8 +324,12 @@
       </div>
     </div>
   </div>
-  <%- include('../partials/other_documents_tab', { project, otherDocs: typeof otherDocs !== 'undefined' ? otherDocs : [], otherDocsMode: 'client' }) %>
+  <% } %>
+  <% if (cTabs['other-docs']) { %>
+  <%- include('../partials/other_documents_tab', { project, otherDocs: typeof otherDocs !== 'undefined' ? otherDocs : [], otherDocsMode: 'client', otherDocsTabPaneClass: firstVis === 'other-docs' ? ' show active' : '' }) %>
+  <% } %>
 </div>
+<% } %>
 
 <!-- Gallery Modal for Vastu Documents -->
 <div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true">
@@ -335,9 +395,10 @@
       
       if (fileType === 'VIDEO' || urlLower.indexOf('.mp4') !== -1 || urlLower.indexOf('.mov') !== -1 || urlLower.indexOf('.webm') !== -1) {
         html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded" style="max-width:100%;max-height:85vh;"></video>';
-      } else if (urlLower.indexOf('.pdf') !== -1) {
+      } else if ((window.portalAssetLooksLikePdf && window.portalAssetLooksLikePdf(m.url, m.file_name, m.type)) || urlLower.indexOf('.pdf') !== -1) {
+        var safe = (m.url || '').replace(/"/g, '&quot;');
         var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-        html = '<div class="text-center"><a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold btn-lg">Open PDF</a><p class="text-muted small mt-3">' + fn + '</p></div>';
+        html = '<div class="portal-pdf-embed-shell w-100" style="height:82vh;min-height:280px;background:#111;"><iframe class="portal-pdf-embed-iframe w-100 h-100 border-0" src="' + safe + '" title="PDF"></iframe></div><p class="text-muted small mt-2 mb-0 text-center"><a href="' + safe + '" target="_blank" rel="noopener" class="text-warning text-decoration-none">Open in new tab</a></p><p class="text-muted small text-center mb-0">' + fn + '</p>';
       } else {
         html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded" style="max-width:100%;max-height:85vh;object-fit:contain;">';
       }

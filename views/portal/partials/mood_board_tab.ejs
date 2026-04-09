@@ -1,0 +1,97 @@
+<%
+  const mode = typeof moodBoardMode !== 'undefined' ? moodBoardMode : 'designer';
+  const list = typeof moodBoardFiles !== 'undefined' && Array.isArray(moodBoardFiles) ? moodBoardFiles : [];
+  const proj = typeof project !== 'undefined' ? project : null;
+  const uploadAction = mode === 'admin'
+    ? '/portal/admin/projects/' + proj.id + '/mood-board'
+    : '/portal/designer/projects/' + proj.id + '/mood-board';
+  const deleteBase = mode === 'admin'
+    ? '/portal/admin/projects/' + proj.id + '/media/'
+    : '/portal/designer/projects/' + proj.id + '/media/';
+  function moodFmtSize(n) {
+    if (n == null || n === '') return '';
+    var b = Number(n);
+    if (!b || isNaN(b)) return '';
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  function moodIsImageThumb(m) {
+    var t = (m.type || '').toUpperCase();
+    if (t === 'VIDEO' || t === 'DOCUMENT') return false;
+    var n = ((m.file_name || m.url || '') + '').toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(n);
+  }
+  function moodIsPdf(m) {
+    var n = ((m.file_name || m.url || '') + '').toLowerCase();
+    return (m.type || '').toUpperCase() === 'DOCUMENT' && (n.endsWith('.pdf') || (m.url || '').toLowerCase().indexOf('.pdf') !== -1);
+  }
+%>
+<div class="tab-pane fade<%= typeof moodBoardTabPaneClass !== 'undefined' ? moodBoardTabPaneClass : '' %>" id="tab-mood-board" role="tabpanel">
+  <div class="card card-portal mb-4">
+    <div class="card-header serif text-warning">Mood board</div>
+    <div class="card-body">
+      <% if (mode === 'client') { %>
+      <p class="small text-muted mb-3">Inspiration and reference files shared by your design team (view only).</p>
+      <% } else { %>
+      <p class="small text-muted mb-3">Upload inspiration and reference files for this project (images, PDF, PowerPoint, Word, Excel, etc.). Clients see this tab only when <strong>Client portal access</strong> includes Mood board for their account. Maximum file size <strong>50&nbsp;MB</strong> per upload.</p>
+      <form method="post" action="<%= uploadAction %>" enctype="multipart/form-data" class="row g-2 align-items-end mb-4 flex-wrap">
+        <div class="col-auto">
+          <label class="form-label small mb-0">File</label>
+          <input type="file" name="file" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:260px" required />
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+        </div>
+      </form>
+      <% } %>
+      <% if (list.length === 0) { %>
+      <p class="text-muted mb-0">No mood board files yet.</p>
+      <% } else { %>
+      <div class="vault-grid">
+        <% list.slice().sort(function(a,b) { return new Date(b.created_at||0) - new Date(a.created_at||0); }).forEach(function(m) {
+          var isVideo = (m.type || '') === 'VIDEO';
+          var isPdf = moodIsPdf(m);
+          var imgThumb = moodIsImageThumb(m);
+          var by = (m.uploaded_by_role || '').toUpperCase();
+        %>
+        <div class="vault-item-wrapper mb-3">
+          <div class="vault-item rounded overflow-hidden border border-secondary border-opacity-25">
+            <% if (isVideo) { %>
+            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center" style="min-height:140px">
+              <i class="bi bi-film text-warning" style="font-size:2rem"></i>
+            </div>
+            <% } else if (isPdf) { %>
+            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center" style="min-height:140px">
+              <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size:2rem"></i>
+            </div>
+            <% } else if (imgThumb) { %>
+            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+              <img src="<%= m.url %>" alt="" loading="lazy" style="max-height:180px;object-fit:contain;width:100%" />
+            </div>
+            <% } else { %>
+            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center" style="min-height:140px">
+              <i class="bi bi-file-earmark text-secondary" style="font-size:2rem"></i>
+            </div>
+            <% } %>
+            <div class="p-2 small">
+              <a href="<%= m.url %>" class="text-warning text-decoration-none d-block text-truncate" title="<%= m.file_name || m.url %>" <% if (isPdf) { %>data-portal-pdf="1" data-portal-pdf-name="<%= String(m.file_name || 'PDF').replace(/"/g, '&quot;') %>"<% } else { %>target="_blank" rel="noopener"<% } %>><%= m.file_name || 'Download' %></a>
+              <div class="text-muted mt-1">
+                <%= new Date(m.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
+                <% if (moodFmtSize(m.file_size)) { %> · <%= moodFmtSize(m.file_size) %><% } %>
+                · <%= by === 'ADMIN' ? 'Admin' : by === 'DESIGNER' ? 'Designer' : 'Team' %>
+              </div>
+              <% if (mode !== 'client') { %>
+              <form method="post" action="<%= deleteBase %><%= m.id %>/delete" class="mt-2 mb-0" onsubmit="return confirm('Delete this file?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+              </form>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>

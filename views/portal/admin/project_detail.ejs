@@ -1,5 +1,8 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
-<p class="mb-3">Client: <%= project.client_name %> | Designer: <strong><%= project.designer_name %></strong> | Progress: <%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %> | Status: <%= project.status %></p>
+<% var _designerNames = (typeof projectDesigners !== 'undefined' && projectDesigners && projectDesigners.length)
+  ? projectDesigners.map(function(d) { return d.full_name + (Number(d.is_primary_designer) === 1 ? ' (primary)' : ''); }).join(', ')
+  : (project.designer_name || '—'); %>
+<p class="mb-3">Client: <%= project.client_name %> | Designers: <strong><%= _designerNames %></strong> | Progress: <%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %> | Status: <%= project.status %></p>
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
@@ -12,7 +15,13 @@
     <button class="nav-link" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
   </li>
   <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
+  </li>
+  <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-material-selection-btn" data-bs-toggle="tab" data-bs-target="#tab-material-selection" type="button" role="tab">Material Selection</button>
   </li>
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
@@ -45,15 +54,16 @@
       </div>
     </div>
     <div class="card card-portal mb-4">
-      <div class="card-header">Assign designer</div>
+      <div class="card-header">Primary designer</div>
       <div class="card-body">
+        <p class="small text-muted mb-3">The <strong>primary</strong> designer is the main contact on the project. Changing primary removes the previous primary from the team unless you add them again below.</p>
         <form method="post" action="/portal/admin/projects/<%= project.id %>/assign" class="d-flex gap-2 align-items-end flex-wrap mb-3">
           <select name="designer_id" class="form-select bg-dark text-light border-secondary" style="max-width:220px" required>
             <% if (typeof designers !== 'undefined' && designers) { designers.forEach(function(d) { %>
             <option value="<%= d.id %>" <%= project.designer_id === d.id ? 'selected' : '' %>><%= d.full_name %></option>
             <% }); } %>
           </select>
-          <button type="submit" class="btn btn-gold btn-sm">Assign</button>
+          <button type="submit" class="btn btn-gold btn-sm">Set primary</button>
         </form>
         <form method="post" action="/portal/admin/projects/<%= project.id %>/designer-mirror-visibility" class="d-flex align-items-center gap-2">
           <input type="hidden" name="designer_can_view_mirror" value="0" />
@@ -61,6 +71,138 @@
           <label class="form-check-label small mb-0" for="designerCanViewMirror">Designer can open Client Mirror for this project</label>
           <button type="submit" class="btn btn-outline-gold btn-sm">Save</button>
         </form>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Designer portal access</div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">Add more <strong>DESIGNER</strong> accounts to this project. Each designer only sees the tabs you allow.</p>
+        <% if (typeof portalDesignersAvailable !== 'undefined' && portalDesignersAvailable.length) { %>
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/designers/add" class="row g-2 align-items-end mb-4 flex-wrap">
+          <div class="col-auto">
+            <label class="form-label small text-muted mb-0">Add designer</label>
+            <select name="user_id" class="form-select form-select-sm bg-dark text-light border-secondary" required style="min-width:240px">
+              <option value="">Select…</option>
+              <% portalDesignersAvailable.forEach(function(d) { %>
+              <option value="<%= d.id %>"><%= d.full_name %> (<%= d.email %>)</option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Add to project</button></div>
+        </form>
+        <% } else { %>
+        <p class="small text-muted mb-3">Every designer is already on this project (or there are no other designer accounts).</p>
+        <% } %>
+        <% if (typeof projectDesigners !== 'undefined' && projectDesigners.length) {
+          var dtabLabels = { updates: 'Updates', timelines: 'Timelines', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', vastu: 'Vastu', 'mood-board': 'Mood board', 'other-docs': 'Other docs' };
+          var dtabKeys = typeof designerPortalTabKeys !== 'undefined' && designerPortalTabKeys.length ? designerPortalTabKeys : ['updates','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
+        %>
+        <% projectDesigners.forEach(function(dm) {
+          var dtabSet = {};
+          try {
+            var da = JSON.parse(dm.allowed_tabs || '[]');
+            if (Array.isArray(da)) da.forEach(function(k) { dtabSet[k] = true; });
+          } catch (e) {}
+        %>
+        <div class="border border-secondary border-opacity-25 rounded p-3 mb-3 bg-dark bg-opacity-25">
+          <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-2">
+            <div>
+              <strong class="text-light"><%= dm.full_name %></strong>
+              <div class="small text-muted"><%= dm.email %><% if (Number(dm.is_primary_designer) === 1) { %> · <span class="text-warning">Primary designer</span><% } %></div>
+            </div>
+            <% if (Number(dm.is_primary_designer) !== 1) { %>
+            <form method="post" action="/portal/admin/projects/<%= project.id %>/designers/remove" class="m-0" onsubmit="return confirm('Remove this designer from the project?');">
+              <input type="hidden" name="user_id" value="<%= dm.user_id %>" />
+              <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+            </form>
+            <% } %>
+          </div>
+          <form method="post" action="/portal/admin/projects/<%= project.id %>/designers/tabs" class="small mt-2">
+            <input type="hidden" name="user_id" value="<%= dm.user_id %>" />
+            <div class="row row-cols-2 row-cols-md-4 g-2">
+              <% dtabKeys.forEach(function(key) {
+                var fid = 'dt_' + dm.user_id + '_' + String(key).replace(/-/g, '_');
+                var fname = 'dtab_' + String(key).replace(/-/g, '_');
+              %>
+              <div class="col">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" name="<%= fname %>" value="1" id="<%= fid %>" <%= dtabSet[key] ? 'checked' : '' %> />
+                  <label class="form-check-label" for="<%= fid %>"><%= dtabLabels[key] || key %></label>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+            <button type="submit" class="btn btn-outline-gold btn-sm mt-2">Save tabs for this designer</button>
+          </form>
+        </div>
+        <% }); %>
+        <% } %>
+      </div>
+    </div>
+    <div class="card card-portal mb-4">
+      <div class="card-header serif text-warning">Client portal access</div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">Link additional <strong>CLIENT</strong> accounts to this project. Each person only sees the tabs you allow. Notifications go to everyone with portal access.</p>
+        <% if (typeof portalClientsAvailable !== 'undefined' && portalClientsAvailable.length) { %>
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/members/add" class="row g-2 align-items-end mb-4 flex-wrap">
+          <div class="col-auto">
+            <label class="form-label small text-muted mb-0">Add client</label>
+            <select name="user_id" class="form-select form-select-sm bg-dark text-light border-secondary" required style="min-width:240px">
+              <option value="">Select…</option>
+              <% portalClientsAvailable.forEach(function(c) { %>
+              <option value="<%= c.id %>"><%= c.full_name %> (<%= c.email %>)</option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="col-auto"><button type="submit" class="btn btn-gold btn-sm">Add to project</button></div>
+        </form>
+        <% } else { %>
+        <p class="small text-muted mb-3">Every client user is already linked to this project (or there are no other client accounts).</p>
+        <% } %>
+        <% if (typeof projectMembers !== 'undefined' && projectMembers.length) {
+          var tabLabels = { updates: 'Updates', timelines: 'Timelines', 'mood-board': 'Mood board', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', finance: 'Finance', warranty: 'Warranty', vastu: 'Vastu', 'other-docs': 'Other docs' };
+          var tabKeys = typeof clientPortalTabKeys !== 'undefined' && clientPortalTabKeys.length ? clientPortalTabKeys : ['updates','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs'];
+        %>
+        <% projectMembers.forEach(function(m) {
+          var tabSet = {};
+          try {
+            var ta = JSON.parse(m.allowed_tabs || '[]');
+            if (Array.isArray(ta)) ta.forEach(function(k) { tabSet[k] = true; });
+          } catch (e) {}
+        %>
+        <div class="border border-secondary border-opacity-25 rounded p-3 mb-3 bg-dark bg-opacity-25">
+          <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-2">
+            <div>
+              <strong class="text-light"><%= m.full_name %></strong>
+              <div class="small text-muted"><%= m.email %><% if (Number(m.is_primary_client) === 1) { %> · <span class="text-warning">Primary client</span><% } %></div>
+            </div>
+            <% if (Number(m.is_primary_client) !== 1) { %>
+            <form method="post" action="/portal/admin/projects/<%= project.id %>/members/remove" class="m-0" onsubmit="return confirm('Remove this user from the project portal?');">
+              <input type="hidden" name="user_id" value="<%= m.user_id %>" />
+              <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+            </form>
+            <% } %>
+          </div>
+          <form method="post" action="/portal/admin/projects/<%= project.id %>/members/tabs" class="small mt-2">
+            <input type="hidden" name="user_id" value="<%= m.user_id %>" />
+            <div class="row row-cols-2 row-cols-md-4 g-2">
+              <% tabKeys.forEach(function(key) {
+                var fid = 'mt_' + m.user_id + '_' + String(key).replace(/-/g, '_');
+                var fname = 'tab_' + String(key).replace(/-/g, '_');
+              %>
+              <div class="col">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" name="<%= fname %>" value="1" id="<%= fid %>" <%= tabSet[key] ? 'checked' : '' %> />
+                  <label class="form-check-label" for="<%= fid %>"><%= tabLabels[key] || key %></label>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+            <button type="submit" class="btn btn-outline-gold btn-sm mt-2">Save tabs for this user</button>
+          </form>
+        </div>
+        <% }); %>
+        <% } %>
       </div>
     </div>
     <%- include('../partials/lifecycle_progress_collapsible', { project, formAction: '/portal/admin/projects/' + project.id + '/update', lifecycleCollapseSuffix: 'admin' }) %>
@@ -83,8 +225,11 @@
   <div class="tab-pane fade" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/admin/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], pendingDesignVersions: typeof pendingDesignVersions !== 'undefined' ? pendingDesignVersions : [], showDailyOnly: false }) %>
   </div>
+  <div class="tab-pane fade" id="tab-material-selection" role="tabpanel">
+    <%- include('../partials/material_selection_tab', { project, materialSelections: typeof materialSelections !== 'undefined' ? materialSelections : [], designsForMaterialLink: typeof designsForMaterialLink !== 'undefined' ? designsForMaterialLink : [], materialUploadUrl: '/portal/admin/projects/' + project.id + '/material-selection' }) %>
+  </div>
   <div class="tab-pane fade" id="tab-daily" role="tabpanel">
-    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/admin/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], pendingDesignVersions: typeof pendingDesignVersions !== 'undefined' ? pendingDesignVersions : [], dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true }) %>
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/admin/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], pendingDesignVersions: typeof pendingDesignVersions !== 'undefined' ? pendingDesignVersions : [], dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true, includeVaultGalleryModal: false }) %>
   </div>
   <div class="tab-pane fade" id="tab-finance" role="tabpanel">
     <div class="card card-portal mb-4">
@@ -92,7 +237,7 @@
   <div class="card-body">
     <% if (quotation) { %>
     <p class="mb-2">Base total: ₹<%= quotation.base_total.toLocaleString() %> – Status: <strong><%= quotation.status %></strong></p>
-    <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" target="_blank" class="text-warning">View quotation PDF</a></p><% } %>
+    <% if (quotation.pdf_url) { %><p class="mb-2"><a href="<%= quotation.pdf_url %>" class="text-warning" data-portal-pdf="1" data-portal-pdf-name="Quotation">View quotation PDF</a></p><% } %>
     <% if (quotation.status !== 'APPROVED') { %>
     <form method="post" action="/portal/admin/projects/<%= project.id %>/quotation/update" class="mb-3">
       <div class="row g-2 align-items-end">
@@ -293,8 +438,9 @@
         <% if (typeof warrantyDocs !== 'undefined' && warrantyDocs.length > 0) { %>
         <ul class="list-unstyled mb-0">
           <% warrantyDocs.forEach(function(m) { %>
+          <% var wPdf = (m.type || '') === 'DOCUMENT' || (m.url || '').toLowerCase().indexOf('.pdf') !== -1; %>
           <li class="mb-2">
-            <a href="<%= m.url %>" target="_blank" class="text-warning text-decoration-none">
+            <a href="<%= m.url %>" class="text-warning text-decoration-none" <% if (wPdf) { %>data-portal-pdf="1" data-portal-pdf-name="<%= String(m.file_name || 'Warranty').replace(/"/g, '&quot;') %>"<% } else { %>target="_blank" rel="noopener"<% } %>>
               <i class="bi bi-file-earmark-text me-1"></i><%= m.file_name || m.url %>
             </a>
             <% if (!m.approved) { %>
@@ -481,9 +627,10 @@
       
       if (fileType === 'VIDEO' || urlLower.indexOf('.mp4') !== -1 || urlLower.indexOf('.mov') !== -1 || urlLower.indexOf('.webm') !== -1) {
         html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded" style="max-width:100%;max-height:85vh;"></video>';
-      } else if (urlLower.indexOf('.pdf') !== -1) {
+      } else if ((window.portalAssetLooksLikePdf && window.portalAssetLooksLikePdf(m.url, m.file_name, m.type)) || urlLower.indexOf('.pdf') !== -1) {
+        var safe = (m.url || '').replace(/"/g, '&quot;');
         var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-        html = '<div class="text-center"><a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold btn-lg">Open PDF</a><p class="text-muted small mt-3">' + fn + '</p></div>';
+        html = '<div class="portal-pdf-embed-shell w-100" style="height:82vh;min-height:280px;background:#111;"><iframe class="portal-pdf-embed-iframe w-100 h-100 border-0" src="' + safe + '" title="PDF"></iframe></div><p class="text-muted small mt-2 mb-0 text-center"><a href="' + safe + '" target="_blank" rel="noopener" class="text-warning text-decoration-none">Open in new tab</a></p><p class="text-muted small text-center mb-0">' + fn + '</p>';
       } else {
         html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded" style="max-width:100%;max-height:85vh;object-fit:contain;" onerror="console.error(\'Image failed to load:\', this.src);">';
       }

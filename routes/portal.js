@@ -38,6 +38,8 @@ const fs = require('fs');
 
 const portalUploadDir = path.join(__dirname, '..', 'Kelly', 'assets', 'uploads', 'portal');
 if (!fs.existsSync(portalUploadDir)) fs.mkdirSync(portalUploadDir, { recursive: true });
+const materialsUploadDir = path.join(portalUploadDir, 'materials');
+if (!fs.existsSync(materialsUploadDir)) fs.mkdirSync(materialsUploadDir, { recursive: true });
 
 function parseLifecycleIndicesFromBody(body, field) {
   let raw = body[`${field}[]`] !== undefined ? body[`${field}[]`] : body[field];
@@ -91,6 +93,19 @@ function buildPaymentScheduleViewForProject(project, quotation, extraCosts, clie
   });
 }
 
+async function assertDesignerTab(req, projectId, tabKey) {
+  if (req.session[PORTAL_USER_ROLE] === 'ADMIN') return true;
+  const access = await portalDb.getDesignerProjectPortalAccess(req.session[PORTAL_USER_ID], projectId);
+  return !!(access && access.allowedTabs.has(tabKey));
+}
+
+function designerTabKeyForMediaCategory(category) {
+  const c = String(category || '').toUpperCase();
+  if (c === 'VASTU') return 'vastu';
+  if (c === 'OTHER_DOCS') return 'other-docs';
+  return 'vault';
+}
+
 async function getPaymentScheduleContext(projectId) {
   const project = await portalDb.getProjectById(projectId);
   if (!project) return null;
@@ -123,10 +138,28 @@ async function maybeNotifyPaymentScheduleIfChanged(projectId, excludeUserIds) {
 
 function inferPortalUploadMediaType(file) {
   if (!file || !file.mimetype) return 'PHOTO';
-  if (file.mimetype.startsWith('video')) return 'VIDEO';
-  if (file.mimetype === 'application/pdf' || String(file.originalname || '').toLowerCase().endsWith('.pdf')) return 'DOCUMENT';
+  const rawMt = String(file.mimetype).toLowerCase();
+  const mt = rawMt.split(';')[0].trim();
+  const name = String(file.originalname || '').toLowerCase();
+  if (mt.startsWith('video/')) return 'VIDEO';
+  if (mt.startsWith('image/')) return 'PHOTO';
+  if (mt === 'application/pdf' || name.endsWith('.pdf')) return 'DOCUMENT';
+  const docExact = new Set([
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain',
+    'application/rtf',
+    'application/zip',
+  ]);
+  if (docExact.has(mt)) return 'DOCUMENT';
+  if (/\.(ppt|pptx|doc|docx|xls|xlsx|txt|zip|rar|7z|key|pages|numbers|ai|eps|sketch|fig|csv)$/i.test(name)) return 'DOCUMENT';
   return 'PHOTO';
 }
+
 const portalUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, portalUploadDir),
@@ -134,6 +167,30 @@ const portalUpload = multer({
   }),
   limits: { fileSize: 15 * 1024 * 1024 },
 });
+
+const moodBoardUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, portalUploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + (file.originalname || 'file').replace(/\s/g, '-')),
+  }),
+  limits: { fileSize: 50 * 1024 * 1024 },
+});
+
+const materialsUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, materialsUploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + (file.originalname || 'img').replace(/\s/g, '-')),
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+});
+
+function unlinkPortalMaterialFile(imageUrl) {
+  if (!imageUrl || typeof imageUrl !== 'string') return;
+  const prefix = '/assets/uploads/portal/materials/';
+  if (!imageUrl.startsWith(prefix)) return;
+  const fp = path.join(materialsUploadDir, path.basename(imageUrl));
+  fs.unlink(fp, () => {});
+}
 
 async function renderPortal(req, res, view, data = {}) {
   const merged = { ...res.locals, ...data, timelineUtil };
@@ -150,6 +207,30 @@ const PORTAL_USER_ID = 'portalUserId';
 const PORTAL_USER_EMAIL = 'portalUserEmail';
 const PORTAL_USER_ROLE = 'portalUserRole';
 const PORTAL_USER_NAME = 'portalUserName';
+
+async function requireClientProjectAccess(req, projectId, needTab) {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return null;
+  const access = await portalDb.getClientProjectPortalAccess(req.session[PORTAL_USER_ID], projectId);
+  if (!access) return null;
+  if (needTab && !access.allowedTabs.has(needTab)) return null;
+  return access;
+}
+
+function clientTabVisibilityMap(allowedTabsSet) {
+  const m = {};
+  for (const k of portalDb.CLIENT_PORTAL_TAB_KEYS) {
+    m[k] = allowedTabsSet.has(k);
+  }
+  return m;
+}
+
+function allClientTabsVisibleMap() {
+  const m = {};
+  for (const k of portalDb.CLIENT_PORTAL_TAB_KEYS) {
+    m[k] = true;
+  }
+  return m;
+}
 
 function requirePortalAuth(req, res, next) {
   if (!req.session[PORTAL_USER_ID]) {
@@ -195,8 +276,9 @@ router.post('/login', express.urlencoded({ extended: false }), async (req, res) 
   if (!email || !password) {
     return res.render('portal/login', { error: 'Email and password required.' });
   }
+  const emailNorm = String(email).trim().toLowerCase();
   try {
-    const user = await portalDb.getUserByEmail(email.trim());
+    const user = await portalDb.getUserByEmail(emailNorm);
     if (!user || !bcrypt.compareSync(password, user.password_hash)) {
       return res.render('portal/login', { error: 'Invalid email or password.' });
     }
@@ -204,9 +286,16 @@ router.post('/login', express.urlencoded({ extended: false }), async (req, res) 
     req.session[PORTAL_USER_EMAIL] = user.email;
     req.session[PORTAL_USER_ROLE] = user.role;
     req.session[PORTAL_USER_NAME] = user.full_name;
-    if (user.role === 'ADMIN') return res.redirect('/portal/admin');
-    if (user.role === 'DESIGNER') return res.redirect('/portal/designer');
-    return res.redirect('/portal/client');
+    // Express 5: redirect before session is written can omit Set-Cookie; save first.
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error('portal login session save:', saveErr);
+        return res.render('portal/login', { error: 'Login failed. Try again.' });
+      }
+      if (user.role === 'ADMIN') return res.redirect('/portal/admin');
+      if (user.role === 'DESIGNER') return res.redirect('/portal/designer');
+      return res.redirect('/portal/client');
+    });
   } catch (e) {
     return res.render('portal/login', { error: 'Login failed. Try again.' });
   }
@@ -510,13 +599,24 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE');
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU');
   const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS');
-  const [projectDesigns, pendingDesignVersions, dailyUpdates, timelineExtensions, clientPayments] = await Promise.all([
+  const moodBoardFiles = mediaList.filter((m) => m.category === 'MOOD_BOARD');
+  const [projectDesigns, pendingDesignVersions, dailyUpdates, timelineExtensions, clientPayments, projectMembers, allPortalClients, materialSelections, designsForMaterialLink, projectDesigners] =
+    await Promise.all([
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
     portalDb.getPendingDesignVersionsForProject(project.id),
     portalDb.getDailyUpdatesByProject(project.id),
     portalDb.getTimelineExtensions(project.id),
     portalDb.getClientPaymentsByProject(project.id),
+    portalDb.getProjectMembersWithUsers(project.id),
+    portalDb.getUsersByRole('CLIENT'),
+    portalDb.getMaterialSelectionsForProject(project.id),
+    portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true }),
+    portalDb.getProjectDesignersWithUsers(project.id),
   ]);
+  const memberIdSet = new Set((projectMembers || []).map((m) => m.user_id));
+  const portalClientsAvailable = (allPortalClients || []).filter((c) => !memberIdSet.has(c.id));
+  const designerAssignedIdSet = new Set((projectDesigners || []).map((d) => d.user_id));
+  const portalDesignersAvailable = (designers || []).filter((d) => !designerAssignedIdSet.has(d.id));
   const financePaidPublished = sumApprovedClientPayments(clientPayments);
   const financePaidPending = (clientPayments || []).filter((p) => Number(p.approved_for_client) !== 1).reduce((s, p) => s + (Number(p.amount) || 0), 0);
   const financeBalanceDue = balanceDueAfterPublishedPayments(total, clientPayments);
@@ -547,18 +647,27 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     warrantyDocs,
     vastuDocs,
     otherDocs,
+    moodBoardFiles,
     timelineExtensions: timelineExtensions || [],
     isMirror: false,
     paymentTerms,
     quotationBaseForTerms,
     paymentScheduleProgress,
+    projectMembers: projectMembers || [],
+    portalClientsAvailable: portalClientsAvailable || [],
+    clientPortalTabKeys: portalDb.CLIENT_PORTAL_TAB_KEYS,
+    projectDesigners: projectDesigners || [],
+    portalDesignersAvailable: portalDesignersAvailable || [],
+    designerPortalTabKeys: portalDb.DESIGNER_PORTAL_TAB_KEYS,
+    materialSelections: materialSelections || [],
+    designsForMaterialLink: designsForMaterialLink || [],
   });
 });
 
 router.post('/admin/projects/:id/assign', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   const designer_id = (req.body.designer_id || '').trim() || null;
   if (!designer_id) return res.redirect('/portal/admin/projects/' + req.params.id);
-  await portalDb.updateProject(req.params.id, { designer_id });
+  await portalDb.setProjectPrimaryDesignerAndSyncJunction(req.params.id, designer_id);
   const p = await portalDb.getProjectById(req.params.id);
   portalNotify.safeNotify(
     portalNotify.notifyProjectStakeholders(portalDb, {
@@ -578,6 +687,92 @@ router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded
   const designer_can_view_mirror = req.body.designer_can_view_mirror === '1' ? 1 : 0;
   await portalDb.updateProject(req.params.id, { designer_can_view_mirror });
   res.redirect('/portal/admin/projects/' + req.params.id);
+});
+
+const TAB_BODY_KEYS = {
+  updates: 'tab_updates',
+  timelines: 'tab_timelines',
+  'mood-board': 'tab_mood_board',
+  vault: 'tab_vault',
+  'material-selection': 'tab_material_selection',
+  daily: 'tab_daily',
+  finance: 'tab_finance',
+  warranty: 'tab_warranty',
+  vastu: 'tab_vastu',
+  'other-docs': 'tab_other_docs',
+};
+
+const DESIGNER_TAB_BODY_KEYS = {
+  updates: 'dtab_updates',
+  timelines: 'dtab_timelines',
+  vault: 'dtab_vault',
+  'material-selection': 'dtab_material_selection',
+  daily: 'dtab_daily',
+  vastu: 'dtab_vastu',
+  'mood-board': 'dtab_mood_board',
+  'other-docs': 'dtab_other_docs',
+};
+
+router.post('/admin/projects/:id/members/add', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const userId = (req.body.user_id || '').trim();
+  if (!userId) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Select+a+user#tab-updates');
+  try {
+    await portalDb.addProjectMember(projectId, userId);
+  } catch (e) {
+    const msg = e && e.code === 'INVALID_MEMBER_ROLE' ? e.message : 'Could not add user.';
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent(msg) + '#tab-updates');
+  }
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
+});
+
+router.post('/admin/projects/:id/members/remove', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const userId = (req.body.user_id || '').trim();
+  const r = await portalDb.removeProjectMember(projectId, userId);
+  const q =
+    r.ok ? '' : r.reason === 'primary_client' ? '?msg=' + encodeURIComponent('Cannot remove the primary client. Add another primary first or re-create the project.') : '';
+  res.redirect('/portal/admin/projects/' + projectId + q + '#tab-updates');
+});
+
+router.post('/admin/projects/:id/members/tabs', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const userId = (req.body.user_id || '').trim();
+  if (!userId) return res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
+  const selected = portalDb.CLIENT_PORTAL_TAB_KEYS.filter((k) => req.body[TAB_BODY_KEYS[k]] === '1');
+  await portalDb.updateProjectMemberTabs(projectId, userId, selected);
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
+});
+
+router.post('/admin/projects/:id/designers/add', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const userId = (req.body.user_id || '').trim();
+  if (!userId) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Select+a+designer#tab-updates');
+  try {
+    await portalDb.addProjectDesigner(projectId, userId);
+  } catch (e) {
+    const msg = e && e.code ? e.message : 'Could not add designer.';
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent(msg) + '#tab-updates');
+  }
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
+});
+
+router.post('/admin/projects/:id/designers/remove', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const userId = (req.body.user_id || '').trim();
+  const r = await portalDb.removeProjectDesigner(projectId, userId);
+  const q =
+    r.ok ? '' : r.reason === 'primary_designer' ? '?msg=' + encodeURIComponent('Cannot remove the primary designer. Assign a different primary first.') : '';
+  res.redirect('/portal/admin/projects/' + projectId + q + '#tab-updates');
+});
+
+router.post('/admin/projects/:id/designers/tabs', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const userId = (req.body.user_id || '').trim();
+  if (!userId) return res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
+  const selected = portalDb.DESIGNER_PORTAL_TAB_KEYS.filter((k) => req.body[DESIGNER_TAB_BODY_KEYS[k]] === '1');
+  await portalDb.updateProjectDesignerTabs(projectId, userId, selected);
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
 });
 
 router.post('/admin/projects/:id/payment-terms', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
@@ -910,7 +1105,8 @@ router.post('/admin/projects/:id/timeline/execution/clear-complete', requirePort
 router.post('/designer/projects/:id/timeline/design/complete', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, projectId, 'timelines'))) return res.status(403).send('Forbidden');
   if (!project.design_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Set+design+schedule+first');
   if (project.design_timeline_completed_date) return redirectTimeline(req, res, projectId, false, 'msg=Design+phase+already+marked+complete');
   let d = (req.body.completion_date || '').trim();
@@ -933,7 +1129,8 @@ router.post('/designer/projects/:id/timeline/design/complete', express.urlencode
 router.post('/designer/projects/:id/timeline/execution/complete', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, projectId, 'timelines'))) return res.status(403).send('Forbidden');
   if (!project.execution_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Set+execution+schedule+first');
   if (project.execution_timeline_completed_date) return redirectTimeline(req, res, projectId, false, 'msg=Execution+phase+already+marked+complete');
   let d = (req.body.completion_date || '').trim();
@@ -956,7 +1153,8 @@ router.post('/designer/projects/:id/timeline/execution/complete', express.urlenc
 router.post('/designer/projects/:id/timeline/design/init', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, projectId, 'timelines'))) return res.status(403).send('Forbidden');
   if (project.design_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Design+timeline+already+set');
   const start = (req.body.start_date || '').trim();
   if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+start+date');
@@ -980,7 +1178,8 @@ router.post('/designer/projects/:id/timeline/design/init', express.urlencoded({ 
 router.post('/designer/projects/:id/timeline/execution/init', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, projectId, 'timelines'))) return res.status(403).send('Forbidden');
   if (project.execution_timeline_start) return redirectTimeline(req, res, projectId, false, 'msg=Execution+timeline+already+set');
   const start = (req.body.start_date || '').trim();
   if (!timelineUtil.isValidISODate(start)) return redirectTimeline(req, res, projectId, false, 'msg=Invalid+start+date');
@@ -1004,7 +1203,8 @@ router.post('/designer/projects/:id/timeline/execution/init', express.urlencoded
 router.post('/designer/projects/:id/timeline/extension', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, projectId, 'timelines'))) return res.status(403).send('Forbidden');
   const phase = (req.body.phase || '').toUpperCase();
   if (phase !== 'DESIGN' && phase !== 'EXECUTION') return redirectTimeline(req, res, projectId, false, 'msg=Invalid+phase');
   const extra = parseInt(req.body.extra_days, 10);
@@ -1096,6 +1296,82 @@ router.post('/admin/projects/:id/media', requirePortalAuth, requireAdmin, portal
   res.redirect('/portal/admin/projects/' + projectId + redirectTab);
 });
 
+router.post('/admin/projects/:id/mood-board', requirePortalAuth, requireAdmin, moodBoardUpload.single('file'), async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (!req.file) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=No+file+selected#tab-mood-board');
+  }
+  const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
+  const uploadType = inferPortalUploadMediaType(req.file);
+  await portalDb.addProjectMedia(projectId, url, uploadType, 'MOOD_BOARD', req.file.originalname, req.file.size, {
+    uploadedByRole: 'ADMIN',
+  });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEDIA,
+      message: `New mood board file was added to «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-mood-board',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-mood-board');
+});
+
+router.post(
+  '/admin/projects/:id/material-selection',
+  requirePortalAuth,
+  requireAdmin,
+  materialsUpload.single('file'),
+  async (req, res) => {
+    const projectId = req.params.id;
+    const project = await portalDb.getProjectById(projectId);
+    if (!project) return res.status(404).send('Project not found');
+    const code = (req.body && req.body.material_code) ? String(req.body.material_code).trim() : '';
+    const areaTag =
+      (req.body && (req.body.area_tag_custom || '').trim()) ||
+      (req.body && (req.body.area_tag || '').trim()) ||
+      'General';
+    const linkedDesignVersionId = (req.body && req.body.linked_design_version_id)
+      ? String(req.body.linked_design_version_id).trim()
+      : '';
+    if (!req.file || !code) {
+      return res.redirect('/portal/admin/projects/' + projectId + '?msg=Photo+and+material+code+required#tab-material-selection');
+    }
+    const imageUrl = '/assets/uploads/portal/materials/' + path.basename(req.file.filename);
+    await portalDb.createMaterialSelection({
+      projectId,
+      areaTag,
+      linkedDesignVersionId: linkedDesignVersionId || null,
+      materialCode: code,
+      imageUrl,
+      fileName: req.file.originalname,
+      uploadedByUserId: req.session[PORTAL_USER_ID],
+      uploadedByRole: 'ADMIN',
+    });
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DOCUMENTS,
+        message: `New material selection (${areaTag} · code ${code}) was added to «${project.title}». Please review and approve.`,
+        projectId,
+        tabSuffix: '#tab-material-selection',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+    res.redirect('/portal/admin/projects/' + projectId + '#tab-material-selection');
+  }
+);
+
+router.post('/admin/projects/:id/material-selection/:matId/delete', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const { id: projectId, matId } = req.params;
+  const r = await portalDb.deleteMaterialSelection(projectId, matId);
+  if (r.ok && r.image_url) unlinkPortalMaterialFile(r.image_url);
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-material-selection');
+});
+
 router.post('/admin/projects/:id/daily-updates', requirePortalAuth, requireAdmin, portalUpload.array('files', 20), async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
@@ -1103,7 +1379,8 @@ router.post('/admin/projects/:id/daily-updates', requirePortalAuth, requireAdmin
   const text = (req.body && req.body.text) ? String(req.body.text).trim() : '';
   const files = req.files || [];
   if (!text && files.length === 0) return res.redirect('/portal/admin/projects/' + projectId + '?msg=Add+text+or+files#tab-daily');
-  const updateId = await portalDb.createDailyUpdate(projectId, 'ADMIN', req.session[PORTAL_USER_ID], text || null);
+  const reportDate = req.body && req.body.report_date;
+  const updateId = await portalDb.createDailyUpdate(projectId, 'ADMIN', req.session[PORTAL_USER_ID], text || null, reportDate);
   for (const f of files) {
     const url = '/assets/uploads/portal/' + path.basename(f.filename);
     const type = f.mimetype.startsWith('video') ? 'VIDEO' : 'PHOTO';
@@ -1136,7 +1413,11 @@ router.post('/admin/projects/:id/daily-updates/:updateId/edit', express.urlencod
   if (!text && (!mediaRows || mediaRows.length === 0)) {
     return res.redirect('/portal/admin/projects/' + projectId + '?msg=Add+text+or+keep+at+least+one+file#tab-daily');
   }
-  await portalDb.updateDailyUpdateText(updateId, text || null);
+  await portalDb.updateDailyUpdateText(
+    updateId,
+    text || null,
+    req.body != null && Object.prototype.hasOwnProperty.call(req.body, 'report_date') ? req.body.report_date : undefined
+  );
   res.redirect('/portal/admin/projects/' + projectId + '#tab-daily');
 });
 
@@ -1532,8 +1813,13 @@ router.post('/admin/projects/:id/design-link/:linkId/remove', requirePortalAuth,
 router.post('/admin/projects/:id/media/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
+  const row = await portalDb.get('SELECT category FROM portal_media WHERE id = ? AND project_id = ?', [
+    req.params.mediaId,
+    req.params.id,
+  ]);
   await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
-  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
+  const hash = row && row.category === 'MOOD_BOARD' ? '#tab-mood-board' : '#tab-vault';
+  res.redirect('/portal/admin/projects/' + req.params.id + hash);
 });
 
 router.post('/admin/projects/:id/media/:mediaId/publish-client', requirePortalAuth, requireAdmin, async (req, res) => {
@@ -1783,8 +2069,15 @@ router.get('/designer/projects', requirePortalAuth, requireDesigner, async (req,
 router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectWithRelations(req.params.id);
   if (!project) return res.status(404).send('Project not found');
-  if (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN') {
-    return res.status(403).send('Forbidden');
+  let designerAllowedTabs = {};
+  if (req.session[PORTAL_USER_ROLE] === 'ADMIN') {
+    for (const k of portalDb.DESIGNER_PORTAL_TAB_KEYS) designerAllowedTabs[k] = true;
+  } else {
+    const dAccess = await portalDb.getDesignerProjectPortalAccess(req.session[PORTAL_USER_ID], project.id);
+    if (!dAccess) return res.status(403).send('Forbidden');
+    for (const k of portalDb.DESIGNER_PORTAL_TAB_KEYS) {
+      designerAllowedTabs[k] = dAccess.allowedTabs.has(k);
+    }
   }
   const media = await portalDb.getProjectMedia(project.id);
   const mediaList = media || [];
@@ -1804,10 +2097,13 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
       m.category === 'OTHER_DOCS' &&
       (Number(m.visible_to_designer) === 1 || m.visible_to_designer == null)
   );
-  const [dailyUpdates, projectDesigns, timelineExtensions] = await Promise.all([
+  const moodBoardFiles = mediaList.filter((m) => m.category === 'MOOD_BOARD');
+  const [dailyUpdates, projectDesigns, timelineExtensions, materialSelections, designsForMaterialLink] = await Promise.all([
     portalDb.getDailyUpdatesByProject(project.id),
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
     portalDb.getTimelineExtensions(project.id),
+    portalDb.getMaterialSelectionsForProject(project.id),
+    portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true }),
   ]);
   enrichProjectLifecycle(project);
   renderPortal(req, res, 'portal/designer/project_detail', {
@@ -1821,15 +2117,20 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     projectDesigns,
     vastuDocs,
     otherDocs,
+    moodBoardFiles,
     timelineExtensions: timelineExtensions || [],
+    materialSelections: materialSelections || [],
+    designsForMaterialLink: designsForMaterialLink || [],
+    designerAllowedTabs,
   });
 });
 
 router.post('/designer/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) {
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
     return res.status(403).send('Forbidden');
   }
+  if (!(await assertDesignerTab(req, req.params.id, 'updates'))) return res.status(403).send('Forbidden');
   const updates = {};
   if (req.body.lifecycle_update === '1') {
     Object.assign(updates, buildLifecycleUpdates(req.body));
@@ -1873,10 +2174,11 @@ router.post('/designer/projects/:id/update', express.urlencoded({ extended: true
 router.post('/designer/projects/:id/media', requirePortalAuth, requireDesigner, portalUpload.single('file'), async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) {
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
     return res.status(403).send('Forbidden');
   }
   const category = (req.body?.category || 'SITE_LOG').toUpperCase();
+  if (!(await assertDesignerTab(req, projectId, designerTabKeyForMediaCategory(category)))) return res.status(403).send('Forbidden');
   if (!req.file) {
     const redirectTab =
       category === 'OTHER_DOCS'
@@ -1937,12 +2239,100 @@ router.post('/designer/projects/:id/media', requirePortalAuth, requireDesigner, 
   res.redirect('/portal/designer/projects/' + projectId + redirectTab);
 });
 
+router.post('/designer/projects/:id/mood-board', requirePortalAuth, requireDesigner, moodBoardUpload.single('file'), async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'mood-board'))) return res.status(403).send('Forbidden');
+  if (!req.file) {
+    return res.redirect('/portal/designer/projects/' + projectId + '?msg=No+file+selected#tab-mood-board');
+  }
+  const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
+  const uploadType = inferPortalUploadMediaType(req.file);
+  await portalDb.addProjectMedia(projectId, url, uploadType, 'MOOD_BOARD', req.file.originalname, req.file.size, {
+    uploadedByRole: 'DESIGNER',
+  });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEDIA,
+      message: `New mood board file was added to «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-mood-board',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  res.redirect('/portal/designer/projects/' + projectId + '#tab-mood-board');
+});
+
+router.post(
+  '/designer/projects/:id/material-selection',
+  requirePortalAuth,
+  requireDesigner,
+  materialsUpload.single('file'),
+  async (req, res) => {
+    const projectId = req.params.id;
+    const project = await portalDb.getProjectById(projectId);
+    if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+      return res.status(403).send('Forbidden');
+    }
+    if (!(await assertDesignerTab(req, projectId, 'material-selection'))) return res.status(403).send('Forbidden');
+    const code = (req.body && req.body.material_code) ? String(req.body.material_code).trim() : '';
+    const areaTag =
+      (req.body && (req.body.area_tag_custom || '').trim()) ||
+      (req.body && (req.body.area_tag || '').trim()) ||
+      'General';
+    const linkedDesignVersionId = (req.body && req.body.linked_design_version_id)
+      ? String(req.body.linked_design_version_id).trim()
+      : '';
+    if (!req.file || !code) {
+      return res.redirect('/portal/designer/projects/' + projectId + '?msg=Photo+and+material+code+required#tab-material-selection');
+    }
+    const imageUrl = '/assets/uploads/portal/materials/' + path.basename(req.file.filename);
+    await portalDb.createMaterialSelection({
+      projectId,
+      areaTag,
+      linkedDesignVersionId: linkedDesignVersionId || null,
+      materialCode: code,
+      imageUrl,
+      fileName: req.file.originalname,
+      uploadedByUserId: req.session[PORTAL_USER_ID],
+      uploadedByRole: 'DESIGNER',
+    });
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DOCUMENTS,
+        message: `New material selection (${areaTag} · code ${code}) was added to «${project.title}». Please review and approve.`,
+        projectId,
+        tabSuffix: '#tab-material-selection',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+    res.redirect('/portal/designer/projects/' + projectId + '#tab-material-selection');
+  }
+);
+
+router.post('/designer/projects/:id/material-selection/:matId/delete', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const { id: projectId, matId } = req.params;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'material-selection'))) return res.status(403).send('Forbidden');
+  const r = await portalDb.deleteMaterialSelection(projectId, matId);
+  if (r.ok && r.image_url) unlinkPortalMaterialFile(r.image_url);
+  res.redirect('/portal/designer/projects/' + projectId + '#tab-material-selection');
+});
+
 router.post('/designer/projects/:id/daily-updates', requirePortalAuth, requireDesigner, portalUpload.array('files', 20), async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) {
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
     return res.status(403).send('Forbidden');
   }
+  if (!(await assertDesignerTab(req, projectId, 'daily'))) return res.status(403).send('Forbidden');
   const text = (req.body && req.body.text) ? String(req.body.text).trim() : '';
   const files = req.files || [];
   if (!text && files.length === 0) return res.redirect('/portal/designer/projects/' + projectId + '?msg=Add+text+or+files#tab-daily');
@@ -1976,7 +2366,8 @@ function designerCanSeeFinance() {
 
 router.post('/designer/projects/:id/quotation/update', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'updates'))) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   if (!quotation || !canEditQuotation(quotation)) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=Quotation+locked#tab-updates');
@@ -1990,7 +2381,8 @@ router.post('/designer/projects/:id/quotation/update', express.urlencoded({ exte
 
 router.post('/designer/projects/:id/quotation/upload-pdf', requirePortalAuth, requireDesigner, portalUpload.single('pdf'), async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'updates'))) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   let quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   if (!quotation) {
@@ -2005,7 +2397,8 @@ router.post('/designer/projects/:id/quotation/upload-pdf', requirePortalAuth, re
 
 router.post('/designer/projects/:id/extra-cost', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'updates'))) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   if (!quotation) return res.redirect('/portal/designer/projects/' + req.params.id + '?msg=No+quotation#tab-updates');
@@ -2018,7 +2411,8 @@ router.post('/designer/projects/:id/extra-cost', express.urlencoded({ extended: 
 
 router.post('/designer/projects/:id/extra-cost/:ecId/respond', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'updates'))) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   const ec = await portalDb.getExtraCostById(req.params.ecId);
   if (!ec) return res.redirect('/portal/designer/projects/' + req.params.id);
@@ -2031,7 +2425,8 @@ router.post('/designer/projects/:id/extra-cost/:ecId/respond', express.urlencode
 
 router.post('/designer/projects/:id/extra-cost/:ecId/edit', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || project.designer_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'updates'))) return res.status(403).send('Forbidden');
   if (!designerCanSeeFinance(project, req.session)) return res.status(403).send('Forbidden');
   const ec = await portalDb.getExtraCostById(req.params.ecId);
   if (!ec || ec.status === 'SUPERSEDED') return res.redirect('/portal/designer/projects/' + req.params.id);
@@ -2049,7 +2444,8 @@ router.post('/designer/projects/:id/extra-cost/:ecId/edit', express.urlencoded({
 router.post('/designer/projects/:id/design/:designId/version', requirePortalAuth, requireDesigner, portalUpload.single('file'), async (req, res) => {
   const projectId = req.params.id;
   const project = await portalDb.getProjectById(projectId);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, projectId, 'vault'))) return res.status(403).send('Forbidden');
   const design = await portalDb.getDesignById(req.params.designId);
   if (!design || design.project_id !== projectId) return res.redirect('/portal/designer/projects/' + projectId + '#tab-vault');
   if (!req.file) return res.redirect('/portal/designer/projects/' + projectId + '?msg=No+file#tab-vault');
@@ -2074,7 +2470,8 @@ router.post('/designer/projects/:id/design/:designId/version', requirePortalAuth
 
 router.post('/designer/projects/:id/design/:designId/delete', requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'vault'))) return res.status(403).send('Forbidden');
   const design = await portalDb.getDesignById(req.params.designId);
   if (!design || design.project_id !== req.params.id) return res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
   await portalDb.deleteDesign(design.id);
@@ -2084,8 +2481,9 @@ router.post('/designer/projects/:id/design/:designId/delete', requirePortalAuth,
 router.post('/designer/projects/:id/design-version/:versionId/comment', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id) return res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
-  const canAccess = project.designer_id === req.session[PORTAL_USER_ID] || req.session[PORTAL_USER_ROLE] === 'ADMIN';
+  const canAccess = (await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)) || req.session[PORTAL_USER_ROLE] === 'ADMIN';
   if (!canAccess) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'vault'))) return res.status(403).send('Forbidden');
   const message = (req.body.message || '').trim();
   if (version && message) {
     await portalDb.addDesignComment(version.id, 'DESIGNER', req.session[PORTAL_USER_ID], message);
@@ -2106,7 +2504,8 @@ router.post('/designer/projects/:id/design-version/:versionId/comment', express.
 
 router.post('/designer/projects/:id/design-link', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'vault'))) return res.status(403).send('Forbidden');
   const designId2d = (req.body.design_id_2d || '').trim();
   const designId3d = (req.body.design_id_3d || '').trim();
   if (designId2d && designId3d) {
@@ -2122,23 +2521,32 @@ router.post('/designer/projects/:id/design-link', express.urlencoded({ extended:
 
 router.post('/designer/projects/:id/design-link/:linkId/remove', requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'vault'))) return res.status(403).send('Forbidden');
   await portalDb.removeDesignLink(req.params.linkId);
   res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
 });
 
 router.post('/designer/projects/:id/media/:mediaId/delete', requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
-  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) return res.status(403).send('Forbidden');
+  const row = await portalDb.get('SELECT category FROM portal_media WHERE id = ? AND project_id = ?', [
+    req.params.mediaId,
+    req.params.id,
+  ]);
+  const tabKey = row && row.category === 'MOOD_BOARD' ? 'mood-board' : 'vault';
+  if (!(await assertDesignerTab(req, req.params.id, tabKey))) return res.status(403).send('Forbidden');
   await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
-  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
+  const hash = row && row.category === 'MOOD_BOARD' ? '#tab-mood-board' : '#tab-vault';
+  res.redirect('/portal/designer/projects/' + req.params.id + hash);
 });
 
 router.post('/designer/projects/:id/design-version/:versionId/delete', requirePortalAuth, requireDesigner, async (req, res) => {
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
   if (!project || project.id !== req.params.id) return res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
-  const canAccess = project.designer_id === req.session[PORTAL_USER_ID] || req.session[PORTAL_USER_ROLE] === 'ADMIN';
+  const canAccess = (await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)) || req.session[PORTAL_USER_ROLE] === 'ADMIN';
   if (!canAccess) return res.status(403).send('Forbidden');
+  if (!(await assertDesignerTab(req, req.params.id, 'vault'))) return res.status(403).send('Forbidden');
   // Designers must not delete versions approved by admin or client; only admins can remove those.
   if (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && version && (version.admin_status === 'APPROVED' || version.client_status === 'APPROVED')) {
     return res.status(403).send('Forbidden');
@@ -2182,8 +2590,10 @@ router.post('/client/refer', express.urlencoded({ extended: false }), requirePor
 
 router.post('/client/projects/:id/design-version/:versionId/approve', requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'vault');
+  if (!access) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   const { version, design, project } = await getDesignVersionAndProject(req.params.versionId);
-  if (!project || project.id !== req.params.id || project.client_id !== req.session[PORTAL_USER_ID]) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
+  if (!project || project.id !== req.params.id) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   if (version && version.admin_status === 'APPROVED') await portalDb.updateDesignVersion(version.id, { client_status: 'APPROVED' });
   if (project && version && version.admin_status === 'APPROVED') {
     portalNotify.safeNotify(
@@ -2201,8 +2611,10 @@ router.post('/client/projects/:id/design-version/:versionId/approve', requirePor
 
 router.post('/client/projects/:id/design-version/:versionId/deny', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'vault');
+  if (!access) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
-  if (!project || project.id !== req.params.id || project.client_id !== req.session[PORTAL_USER_ID]) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
+  if (!project || project.id !== req.params.id) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   const message = (req.body.reason || req.body.message || 'Denied by client').trim();
   if (version && version.admin_status === 'APPROVED') {
     await portalDb.updateDesignVersion(version.id, { client_status: 'DENIED' });
@@ -2222,8 +2634,10 @@ router.post('/client/projects/:id/design-version/:versionId/deny', express.urlen
 
 router.post('/client/projects/:id/design-version/:versionId/comment', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'vault');
+  if (!access) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   const { version, project } = await getDesignVersionAndProject(req.params.versionId);
-  if (!project || project.id !== req.params.id || project.client_id !== req.session[PORTAL_USER_ID]) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
+  if (!project || project.id !== req.params.id) return res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
   const message = (req.body.message || '').trim();
   if (version && version.admin_status === 'APPROVED' && message) {
     await portalDb.addDesignComment(version.id, 'CLIENT', req.session[PORTAL_USER_ID], message);
@@ -2240,11 +2654,56 @@ router.post('/client/projects/:id/design-version/:versionId/comment', express.ur
   res.redirect('/portal/client/projects/' + req.params.id + '#tab-vault');
 });
 
+router.post('/client/projects/:id/material-selection/:matId/approve', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const access = await requireClientProjectAccess(req, projectId, 'material-selection');
+  const redir = '/portal/client/projects/' + projectId + '#tab-material-selection';
+  if (!access) return res.redirect(redir);
+  const mat = await portalDb.getMaterialSelectionById(req.params.matId);
+  if (!mat || mat.project_id !== projectId) return res.redirect(redir);
+  await portalDb.setMaterialSelectionClientStatus(projectId, req.params.matId, 'APPROVED', null);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DOCUMENTS,
+      message: `Client approved material «${mat.material_code || 'item'}» (${mat.area_tag || 'General'}) on «${access.project.title}».`,
+      projectId,
+      tabSuffix: '#tab-material-selection',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/client/projects/:id/material-selection/:matId/reject', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const access = await requireClientProjectAccess(req, projectId, 'material-selection');
+  const redir = '/portal/client/projects/' + projectId + '#tab-material-selection';
+  if (!access) return res.redirect(redir);
+  const mat = await portalDb.getMaterialSelectionById(req.params.matId);
+  if (!mat || mat.project_id !== projectId) return res.redirect(redir);
+  const note = (req.body && req.body.client_note) ? String(req.body.client_note).trim() : '';
+  await portalDb.setMaterialSelectionClientStatus(projectId, req.params.matId, 'REJECTED', note || null);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.DOCUMENTS,
+      message: `Client rejected material «${mat.material_code || 'item'}» (${mat.area_tag || 'General'}) on «${access.project.title}».`,
+      projectId,
+      tabSuffix: '#tab-material-selection',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
 router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
-  const project = await portalDb.getProjectById(req.params.id);
-  if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, null);
+  if (!access) return res.status(403).send('Forbidden');
+  const project = access.project;
   enrichProjectLifecycle(project);
+  const clientAllowedTabs = clientTabVisibilityMap(access.allowedTabs);
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   let extraCosts = [];
   if (quotation) extraCosts = await portalDb.getExtraCostsByQuotationId(quotation.id);
@@ -2279,6 +2738,7 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE' && m.approved === 1);
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU' && m.approved === 1);
   const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS' && m.approved === 1);
+  const moodBoardFiles = mediaList.filter((m) => m.category === 'MOOD_BOARD' && Number(m.approved) === 1);
   const timelineExtensionsRaw = await portalDb.getTimelineExtensions(project.id);
   const timelineExtensions = (timelineExtensionsRaw || []).filter(
     (e) =>
@@ -2294,6 +2754,7 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const quotationBaseForTerms =
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
+  const materialSelections = await portalDb.getMaterialSelectionsForProject(project.id);
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
@@ -2311,11 +2772,14 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     warrantyDocs,
     vastuDocs,
     otherDocs,
+    moodBoardFiles,
     timelineExtensions,
     readOnly: false,
     paymentTerms,
     quotationBaseForTerms,
     paymentScheduleProgress,
+    clientAllowedTabs,
+    materialSelections: materialSelections || [],
   });
 });
 
@@ -2325,7 +2789,7 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   if (!project) return res.status(404).send('Project not found');
   enrichProjectLifecycle(project);
   const isAdmin = req.session[PORTAL_USER_ROLE] === 'ADMIN';
-  const isAssignedDesigner = project.designer_id === req.session[PORTAL_USER_ID];
+  const isAssignedDesigner = await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id);
   if (!isAdmin && !isAssignedDesigner) return res.status(403).send('Forbidden');
   if (!isAdmin && isAssignedDesigner && project.designer_can_view_mirror === 0) return res.status(403).send('Forbidden');
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
@@ -2361,6 +2825,7 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE' && m.approved === 1);
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU' && m.approved === 1);
   const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS' && m.approved === 1);
+  const moodBoardFiles = mediaList.filter((m) => m.category === 'MOOD_BOARD' && Number(m.approved) === 1);
   const timelineExtensionsRaw = await portalDb.getTimelineExtensions(project.id);
   const timelineExtensions = (timelineExtensionsRaw || []).filter(
     (e) =>
@@ -2376,6 +2841,7 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const quotationBaseForTerms =
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
+  const materialSelections = await portalDb.getMaterialSelectionsForProject(project.id);
   res.locals.mirrorBanner = true;
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
@@ -2394,11 +2860,14 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
     warrantyDocs,
     vastuDocs,
     otherDocs,
+    moodBoardFiles,
     timelineExtensions,
     readOnly: true,
     paymentTerms,
     quotationBaseForTerms,
     paymentScheduleProgress,
+    clientAllowedTabs: allClientTabsVisibleMap(),
+    materialSelections: materialSelections || [],
   });
 });
 
@@ -2406,9 +2875,11 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
 router.get('/api/quotation/:projectId/total', requirePortalAuth, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.projectId);
   if (!project) return res.status(404).json({ error: 'Project not found' });
-  const canAccess =
-    req.session[PORTAL_USER_ROLE] === 'ADMIN' ||
-    project.client_id === req.session[PORTAL_USER_ID];
+  let canAccess = req.session[PORTAL_USER_ROLE] === 'ADMIN';
+  if (!canAccess && req.session[PORTAL_USER_ROLE] === 'CLIENT') {
+    const acc = await portalDb.getClientProjectPortalAccess(req.session[PORTAL_USER_ID], req.params.projectId);
+    canAccess = !!(acc && acc.allowedTabs.has('finance'));
+  }
   if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
   const quotation = await portalDb.getLatestQuotationByProjectId(project.id);
   const extraCosts = quotation ? await portalDb.getExtraCostsByQuotationId(quotation.id) : [];
@@ -2421,7 +2892,8 @@ router.post('/api/quotation/:id/approve', express.json(), express.urlencoded({ e
   const q = await portalDb.getQuotationById(req.params.id);
   if (!q) return res.status(404).json({ error: 'Not found' });
   const project = await portalDb.getProjectById(q.project_id);
-  if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
+  const acc = await requireClientProjectAccess(req, q.project_id, 'finance');
+  if (!project || !acc) return res.status(403).json({ error: 'Forbidden' });
   await portalDb.updateQuotation(req.params.id, { status: 'APPROVED' });
   const extraCostsAfter = await portalDb.getExtraCostsByQuotationId(q.id);
   const sched = buildPaymentScheduleViewForProject(project, q, extraCostsAfter, await portalDb.getClientPaymentsByProject(project.id));
@@ -2444,7 +2916,8 @@ router.post('/api/extra-cost/:id/approve', requirePortalAuth, async (req, res) =
   if (!ec) return res.status(404).json({ error: 'Not found' });
   const q = await portalDb.getQuotationById(ec.quotation_id);
   const project = await portalDb.getProjectById(q.project_id);
-  if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
+  const acc = await requireClientProjectAccess(req, q.project_id, 'finance');
+  if (!project || !acc) return res.status(403).json({ error: 'Forbidden' });
   await portalDb.updateExtraCost(req.params.id, { status: 'APPROVED' });
   const extraCostsAfter = await portalDb.getExtraCostsByQuotationId(q.id);
   const sched = buildPaymentScheduleViewForProject(project, q, extraCostsAfter, await portalDb.getClientPaymentsByProject(project.id));
@@ -2467,7 +2940,8 @@ router.post('/api/extra-cost/:id/reject', express.json(), express.urlencoded({ e
   if (!ec) return res.status(404).json({ error: 'Not found' });
   const q = await portalDb.getQuotationById(ec.quotation_id);
   const project = await portalDb.getProjectById(q.project_id);
-  if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
+  const acc = await requireClientProjectAccess(req, q.project_id, 'finance');
+  if (!project || !acc) return res.status(403).json({ error: 'Forbidden' });
   const reason = (req.body && (req.body.reason || req.body.rejection_reason)) ? String(req.body.reason || req.body.rejection_reason).trim() : '';
   if (!reason) return res.status(400).json({ error: 'Reason for rejection is required' });
   await portalDb.updateExtraCost(req.params.id, { status: 'REJECTED', client_note: reason });
@@ -2488,7 +2962,8 @@ router.post('/api/extra-cost/:id/comment', express.json(), express.urlencoded({ 
   if (!ec) return res.status(404).json({ error: 'Not found' });
   const q = await portalDb.getQuotationById(ec.quotation_id);
   const project = await portalDb.getProjectById(q.project_id);
-  if (!project || project.client_id !== req.session[PORTAL_USER_ID]) return res.status(403).json({ error: 'Forbidden' });
+  const acc = await requireClientProjectAccess(req, q.project_id, 'finance');
+  if (!project || !acc) return res.status(403).json({ error: 'Forbidden' });
   const comment = req.body && req.body.comment != null ? String(req.body.comment).trim() : '';
   if (comment) {
     await portalDb.addExtraCostComment(req.params.id, 'CLIENT', req.session[PORTAL_USER_ID], comment);

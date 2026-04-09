@@ -4,7 +4,7 @@
   const proj = typeof project !== 'undefined' ? project : null;
   const adminBase = proj ? '/portal/admin/projects/' + proj.id : '';
 %>
-<div class="tab-pane fade" id="tab-other-docs" role="tabpanel">
+<div class="tab-pane fade<%= typeof otherDocsTabPaneClass !== 'undefined' ? otherDocsTabPaneClass : '' %>" id="tab-other-docs" role="tabpanel">
   <div class="card card-portal mb-4">
     <div class="card-header serif text-warning">Other documents</div>
     <div class="card-body">
@@ -47,7 +47,7 @@
               <% } else if (isVid) { %><i class="bi bi-film text-warning fs-4"></i>
               <% } else { %><i class="bi bi-file-earmark-image text-warning fs-4"></i><% } %>
               <div>
-                <a href="<%= m.url %>" target="_blank" rel="noopener" class="text-warning text-decoration-none"><%= m.file_name || m.url %></a>
+                <a href="<%= m.url %>" class="text-warning text-decoration-none" <% if (isPdf) { %>data-portal-pdf="1" data-portal-pdf-name="<%= String(m.file_name || 'Document').replace(/"/g, '&quot;') %>"<% } else { %>target="_blank" rel="noopener"<% } %>><%= m.file_name || m.url %></a>
                 <div class="small text-muted mt-1">
                   <%= new Date(m.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
                   <% if (mode !== 'client') { %>

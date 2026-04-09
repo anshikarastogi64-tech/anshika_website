@@ -1,0 +1,30 @@
+<%# Global in-portal PDF viewer (Bootstrap modal). openPortalPdfViewer(url, title) + a[data-portal-pdf] delegation wired from layout.ejs %>
+<div class="modal fade" id="portalPdfViewerModal" tabindex="-1" aria-labelledby="portalPdfViewerTitle" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-scrollable portal-pdf-viewer-dialog">
+    <div class="modal-content bg-dark border border-secondary shadow-lg">
+      <div class="modal-header border-secondary border-opacity-50 py-2 px-3 flex-wrap gap-2 align-items-center">
+        <h5 class="modal-title text-warning text-truncate flex-grow-1 me-2 mb-0" id="portalPdfViewerTitle" style="max-width:100%">PDF</h5>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <a href="#" class="btn btn-sm btn-outline-gold" id="portalPdfViewerNewTab" target="_blank" rel="noopener">Open in new tab</a>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0 bg-black position-relative portal-pdf-viewer-body">
+        <iframe id="portalPdfViewerFrame" class="portal-pdf-viewer-iframe w-100 border-0 d-block" title="PDF document"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+.portal-pdf-viewer-dialog { margin: 0.5rem auto; max-width: min(1200px, calc(100vw - 1rem)); }
+@media (min-width: 992px) {
+  .portal-pdf-viewer-body { min-height: min(85vh, 900px); height: 85vh; }
+  .portal-pdf-viewer-iframe { min-height: min(85vh, 900px); height: 85vh; }
+}
+@media (max-width: 991.98px) {
+  .portal-pdf-viewer-body { min-height: calc(100vh - 56px); height: calc(100vh - 56px); }
+  .portal-pdf-viewer-iframe { min-height: calc(100vh - 56px); height: calc(100vh - 56px); }
+}
+.portal-pdf-embed-shell { border-radius: 6px; overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.25); }
+.portal-pdf-embed-iframe { background: #1a1a1a; display: block; }
+</style>

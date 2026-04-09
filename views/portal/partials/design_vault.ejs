@@ -155,11 +155,34 @@
   </div>
   <div class="card-body">
     <p class="small text-muted mb-3">2D plans, 3D visualizations, and design documents. Click any item to open the gallery; arrows move within Design Vault only.</p>
+    <% if (isClient && !isDailyOnlyView && useDesigns) { %>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="Filter designs by your response">
+      <span class="small text-muted me-1">Show:</span>
+      <div class="btn-group btn-group-sm flex-wrap" role="group">
+        <button type="button" class="btn btn-outline-gold active" data-design-vault-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="btn btn-outline-gold" data-design-vault-filter="approved" aria-pressed="false">Approved</button>
+        <button type="button" class="btn btn-outline-gold" data-design-vault-filter="denied" aria-pressed="false">Denied</button>
+      </div>
+    </div>
+    <% } else if (!isClient && !isDailyOnlyView && useDesigns) { %>
+    <div class="mb-3" role="group" aria-label="Filter designs by admin and client status">
+      <div class="small text-muted mb-2">Show:</div>
+      <div class="d-flex flex-wrap gap-1 design-vault-staff-filters">
+        <button type="button" class="btn btn-sm btn-outline-gold active" data-staff-vault-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-staff-vault-filter="admin-approved" aria-pressed="false">Approved by admin</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-staff-vault-filter="client-approved" aria-pressed="false">Approved by client</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-staff-vault-filter="admin-denied" aria-pressed="false">Denied by admin</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-staff-vault-filter="client-denied" aria-pressed="false">Denied by client</button>
+      </div>
+    </div>
+    <% } %>
 
     <% if (designVaultItems.length === 0) { %>
     <p class="text-muted mb-0">No design files yet.<% if (typeof showUpload !== 'undefined' && showUpload) { %> Use the upload form above.<% } %></p>
     <% } else { %>
+    <div class="design-vault-plane mb-2" data-vault-plane="2d">
     <h6 class="serif text-warning vault-category-title mb-2">2D Plans</h6>
+    <p class="small text-muted mb-3 design-vault-plane-empty d-none">No items match this filter.</p>
     <% if (twoD.length > 0) { %>
       <% if (useDesigns) {
         const byArea2d = {};
@@ -173,7 +196,7 @@
           const design = m.design || {};
           const linked3d = (design.linked3d || []).length;
         %>
-        <div class="vault-item-wrapper position-relative">
+        <div class="vault-item-wrapper position-relative" <% if (useDesigns) { %>data-vault-version="1" data-admin-status="<%= String(m.admin_status || '').toUpperCase() %>" data-client-status="<%= String(m.client_status || 'PENDING').toUpperCase() %>"<% } %>>
           <% thumb(m, 'design', idx); %>
           <div class="small mt-1">
             <span class="text-muted">v<%= m.version_number %></span>
@@ -234,8 +257,11 @@
     </div>
       <% } %>
     <% } else { %><p class="text-muted small mb-4">No 2D plans yet.</p><% } %>
+    </div>
 
+    <div class="design-vault-plane mb-2" data-vault-plane="3d">
     <h6 class="serif text-warning vault-category-title mt-3 mb-2">3D Visualizations</h6>
+    <p class="small text-muted mb-3 design-vault-plane-empty d-none">No items match this filter.</p>
     <% if (threeD.length > 0) { %>
       <% if (useDesigns) {
         const byArea3d = {};
@@ -249,7 +275,7 @@
           const design = m.design || {};
           const linked2d = (design.linked2d || []).length;
         %>
-        <div class="vault-item-wrapper position-relative">
+        <div class="vault-item-wrapper position-relative" <% if (useDesigns) { %>data-vault-version="1" data-admin-status="<%= String(m.admin_status || '').toUpperCase() %>" data-client-status="<%= String(m.client_status || 'PENDING').toUpperCase() %>"<% } %>>
           <% thumb(m, 'design', idx); %>
           <div class="small mt-1">
             <span class="text-muted">v<%= m.version_number %></span>
@@ -310,7 +336,9 @@
     </div>
       <% } %>
     <% } else { %><p class="text-muted small mb-4">No 3D visualizations yet.</p><% } %>
+    </div>
 
+    <div class="design-vault-official-wrap">
     <h6 class="serif text-warning vault-category-title mt-3 mb-2">Official Documents</h6>
     <% if (official.length > 0) { %>
     <div class="vault-grid mb-3">
@@ -334,6 +362,7 @@
       <% }); %>
     </div>
     <% } else { %><p class="text-muted small mb-0">No official documents yet.</p><% } %>
+    </div>
     <% } %>
   </div>
 </div>
@@ -457,6 +486,12 @@
     <span class="serif text-warning">Daily Updates</span>
     <% if (typeof showUpload !== 'undefined' && showUpload && projectId && dailyUpdatePostUrl) { %>
     <form method="post" action="<%= dailyUpdatePostUrl %>" enctype="multipart/form-data" class="d-flex flex-wrap align-items-end gap-2">
+      <% if (dailyAdminBase) { %>
+      <div class="d-flex flex-column gap-1">
+        <label class="form-label small mb-0 text-muted" for="dailyNewReportDate">Site date</label>
+        <input type="date" id="dailyNewReportDate" name="report_date" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:160px" />
+      </div>
+      <% } %>
       <div class="d-flex flex-column gap-1">
         <label class="form-label small mb-0 text-muted">Update (optional text)</label>
         <textarea name="text" class="form-control form-control-sm bg-dark text-light border-secondary" rows="2" placeholder="What's the progress today?" style="min-width:220px"></textarea>
@@ -471,7 +506,7 @@
   </div>
   <div class="card-body">
     <% if (typeof showUpload !== 'undefined' && showUpload && projectId && dailyUpdatePostUrl) { %>
-    <p class="small text-muted mb-3">Add text and/or photos and videos. Click any media to open the gallery.</p>
+    <p class="small text-muted mb-3">Add text and/or photos and videos. Click any media to open the gallery.<% if (dailyAdminBase) { %> <strong>Admin:</strong> use <em>Site date</em> for the day this update refers to (leave blank to use the time you post).<% } %></p>
     <% } %>
     <% if (dailyUpdatesList.length === 0) { %>
     <p class="text-muted mb-0">No daily updates yet.<% if (typeof showUpload !== 'undefined' && showUpload) { %> Use the form above to post an update (text, photos, or videos).<% } %></p>
@@ -481,7 +516,8 @@
       <div class="border border-secondary rounded p-3 mb-3">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
           <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="small text-muted"><%= new Date(up.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) %></span>
+            <% var _dailyShow = (up.report_date && String(up.report_date).trim()) ? String(up.report_date).trim().slice(0, 10) : null; %>
+            <span class="small text-muted" title="<%= _dailyShow ? 'Site date (set by admin)' : 'Posted at' %>"><%= _dailyShow ? new Date(_dailyShow + 'T12:00:00').toLocaleDateString(undefined, { dateStyle: 'medium' }) : new Date(up.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) %></span>
             <span class="badge bg-secondary"><%= up.author_type === 'ADMIN' ? 'Admin' : 'Designer' %></span>
             <% if (dailyAdminBase && Number(up.visible_to_client) !== 1) { %>
             <span class="badge bg-warning text-dark">Hidden from client</span>
@@ -504,6 +540,11 @@
         <% if (dailyAdminBase) { %>
         <div class="collapse mb-3" id="editDaily-<%= up.id %>">
           <form method="post" action="<%= dailyAdminBase %>/daily-updates/<%= up.id %>/edit" class="border border-secondary rounded p-3 bg-dark bg-opacity-25">
+            <div class="mb-3">
+              <label class="form-label small text-muted mb-1" for="editDailyDate-<%= up.id %>">Site date</label>
+              <input type="date" id="editDailyDate-<%= up.id %>" name="report_date" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:200px" value="<%= (up.report_date && String(up.report_date).trim()) ? String(up.report_date).trim().slice(0, 10) : (up.created_at ? String(up.created_at).slice(0, 10) : '') %>" />
+              <p class="small text-muted mb-0 mt-1">Shown on the timeline. Clear to fall back to the original post date.</p>
+            </div>
             <label class="form-label small text-muted mb-1">Update text</label>
             <textarea name="text" class="form-control form-control-sm bg-dark text-light border-secondary" rows="3" placeholder="What's the progress?"><%= up.text != null ? up.text : '' %></textarea>
             <p class="small text-muted mb-2 mt-2">To remove a file, use the × on its thumbnail. You cannot leave the update empty (add text or keep at least one file).</p>
@@ -544,7 +585,10 @@
 </div>
 <% } %>
 
+<% /* One modal per page: first design_vault include renders it. Daily-only tab must pass includeVaultGalleryModal when Design Vault tab is absent (e.g. client). */ %>
+<% var _showVaultGalleryModal = (typeof includeVaultGalleryModal !== 'undefined') ? !!includeVaultGalleryModal : !isDailyOnlyView; %>
 <!-- Gallery lightbox: shows only the selected category; arrows move within that category -->
+<% if (_showVaultGalleryModal) { %>
 <div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-fullscreen p-0 m-0">
     <div class="modal-content bg-black border-0">
@@ -573,6 +617,7 @@
     </div>
   </div>
 </div>
+<% } %>
 
 <style>
 .vault-category-title { font-size: 1rem; }
@@ -590,7 +635,7 @@
 
 <script>
 (function() {
-  var designVaultList = <%- JSON.stringify(designVaultItems.map(function(m) {
+  var fullDesignVaultList = <%- JSON.stringify(designVaultItems.map(function(m) {
     return {
       url: m.url,
       type: (m.media_type || m.type || 'PHOTO'),
@@ -605,6 +650,8 @@
       client_status: m.client_status || null
     };
   })) %>;
+  var vaultFilterMode = 'all';
+  var activeDesignVaultList = fullDesignVaultList.slice();
   var dailyUpdateList = <%- JSON.stringify(dailyUpdateFlatMedia.map(function(m) { return { url: m.url, type: (m.type || m.media_type) || 'PHOTO', file_name: m.file_name || m.url }; })) %>;
   var modalEl = document.getElementById('vaultGalleryModal');
   var modalInstance = null;
@@ -622,20 +669,103 @@
   var currentSourceLabel = '';
   var currentIdx = 0;
   var designIdToIndices = {};
-  var isClientView = <%= isClient ? 'true' : 'false' %> === 'true';
+  var isClientView = <%- JSON.stringify(!!isClient) %>;
+  var designVaultClientFilterUi = <%- JSON.stringify(!!(isClient && !isDailyOnlyView && useDesigns)) %>;
+  var designVaultStaffFilterUi = <%- JSON.stringify(!!(!isClient && !isDailyOnlyView && useDesigns)) %>;
 
-  designVaultList.forEach(function(m, idx) {
-    if (!m.design_id) return;
-    if (!designIdToIndices[m.design_id]) designIdToIndices[m.design_id] = [];
-    designIdToIndices[m.design_id].push(idx);
-  });
+  function computeFilteredDesignVaultList() {
+    if (vaultFilterMode === 'all') return fullDesignVaultList.slice();
+    return fullDesignVaultList.filter(function(m) {
+      var isPlanOrViz = m.design_category === 'ARCHITECTURAL_PLANS' || m.design_category === 'VISUALIZATIONS';
+      if (!m.version_id || !isPlanOrViz) return false;
+      var as = String(m.admin_status || '').toUpperCase();
+      var cs = String(m.client_status || 'PENDING').toUpperCase();
+      if (designVaultClientFilterUi) {
+        if (vaultFilterMode === 'approved') return cs === 'APPROVED';
+        if (vaultFilterMode === 'denied') return cs === 'DENIED';
+        return true;
+      }
+      if (designVaultStaffFilterUi) {
+        if (vaultFilterMode === 'admin-approved') return as === 'APPROVED';
+        if (vaultFilterMode === 'client-approved') return cs === 'APPROVED';
+        if (vaultFilterMode === 'admin-denied') return as === 'REJECTED';
+        if (vaultFilterMode === 'client-denied') return cs === 'DENIED';
+        return true;
+      }
+      return true;
+    });
+  }
+
+  function rebuildDesignIdToIndices() {
+    designIdToIndices = {};
+    activeDesignVaultList.forEach(function(m, idx) {
+      if (!m.design_id) return;
+      if (!designIdToIndices[m.design_id]) designIdToIndices[m.design_id] = [];
+      designIdToIndices[m.design_id].push(idx);
+    });
+  }
+
+  function applyDesignVaultFilter(mode) {
+    if (!designVaultClientFilterUi && !designVaultStaffFilterUi) return;
+    vaultFilterMode = mode;
+    activeDesignVaultList = computeFilteredDesignVaultList();
+    rebuildDesignIdToIndices();
+    var card = document.querySelector('.design-vault-card');
+    if (card) {
+      card.querySelectorAll('[data-vault-version]').forEach(function(wrap) {
+        var as = (wrap.getAttribute('data-admin-status') || '').toUpperCase();
+        var cs = (wrap.getAttribute('data-client-status') || 'PENDING').toUpperCase();
+        var show = true;
+        if (mode === 'all') show = true;
+        else if (designVaultClientFilterUi) {
+          if (mode === 'approved') show = cs === 'APPROVED';
+          else if (mode === 'denied') show = cs === 'DENIED';
+        } else if (designVaultStaffFilterUi) {
+          if (mode === 'admin-approved') show = as === 'APPROVED';
+          else if (mode === 'client-approved') show = cs === 'APPROVED';
+          else if (mode === 'admin-denied') show = as === 'REJECTED';
+          else if (mode === 'client-denied') show = cs === 'DENIED';
+        }
+        wrap.classList.toggle('d-none', !show);
+      });
+      card.querySelectorAll('[data-design-area]').forEach(function(row) {
+        var anyVis = row.querySelector('.vault-item-wrapper[data-vault-version]:not(.d-none)');
+        row.classList.toggle('d-none', !anyVis);
+      });
+      card.querySelectorAll('.design-vault-plane[data-vault-plane]').forEach(function(plane) {
+        var hasVersioned = plane.querySelectorAll('.vault-item-wrapper[data-vault-version]').length > 0;
+        var anyVis = plane.querySelector('.vault-item-wrapper[data-vault-version]:not(.d-none)');
+        var emptyMsg = plane.querySelector('.design-vault-plane-empty');
+        if (emptyMsg && hasVersioned) {
+          if (mode !== 'all' && !anyVis) emptyMsg.classList.remove('d-none');
+          else emptyMsg.classList.add('d-none');
+        }
+      });
+      var officialWrap = card.querySelector('.design-vault-official-wrap');
+      if (officialWrap) officialWrap.classList.toggle('d-none', mode !== 'all');
+    }
+    document.querySelectorAll('[data-design-vault-filter]').forEach(function(b) {
+      var m = b.getAttribute('data-design-vault-filter');
+      var on = m === mode;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-staff-vault-filter]').forEach(function(b) {
+      var m = b.getAttribute('data-staff-vault-filter');
+      var on = m === mode;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  rebuildDesignIdToIndices();
 
   function updateSwitchButtons(m) {
     var group = document.getElementById('vaultDesignSwitchGroup');
     var btn2d = document.getElementById('vaultSwitch2DBtn');
     var btn3d = document.getElementById('vaultSwitch3DBtn');
     if (!group || !btn2d || !btn3d) return;
-    if (currentList !== designVaultList) {
+    if (currentList !== activeDesignVaultList) {
       group.classList.add('d-none');
       return;
     }
@@ -663,9 +793,10 @@
     var html = '';
     if (m.type === 'VIDEO') {
       html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded"></video>';
-    } else if (m.url && (m.url.toLowerCase().indexOf('.pdf') !== -1)) {
+    } else if (m.url && (window.portalAssetLooksLikePdf ? window.portalAssetLooksLikePdf(m.url, m.file_name, m.type) : m.url.toLowerCase().indexOf('.pdf') !== -1)) {
+      var safe = (m.url || '').replace(/"/g, '&quot;');
       var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-      html = '<a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold">Open PDF</a><p class="text-muted small mt-2">' + fn + '</p>';
+      html = '<div class="portal-pdf-embed-shell w-100" style="height:82vh;min-height:280px;background:#111;"><iframe class="portal-pdf-embed-iframe w-100 h-100 border-0" src="' + safe + '" title="PDF"></iframe></div><p class="text-muted small mt-2 mb-0 text-center"><a href="' + safe + '" target="_blank" rel="noopener" class="text-warning text-decoration-none">Open in new tab</a></p><p class="text-muted small text-center mb-0">' + fn + '</p>';
     } else {
       html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded">';
     }
@@ -674,7 +805,7 @@
     if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
     if (areaTagEl) {
       var tag = (m.area_tag || '').trim();
-      if (tag && currentList === designVaultList) {
+      if (tag && currentSourceLabel === 'Design Vault') {
         areaTagEl.textContent = tag;
         areaTagEl.classList.remove('d-none');
       } else {
@@ -708,12 +839,29 @@
   }
 
   function openGallery(source, index) {
-    currentList = (source === 'daily') ? dailyUpdateList : designVaultList;
-    currentSourceLabel = (source === 'daily') ? 'Daily Update Photos' : 'Design Vault';
-    if (currentList.length === 0) return;
-    currentIdx = (index + currentList.length) % currentList.length;
+    if (source === 'daily') {
+      currentList = dailyUpdateList;
+      currentSourceLabel = 'Daily Update Photos';
+      if (currentList.length === 0) return;
+      currentIdx = (index + currentList.length) % currentList.length;
+    } else {
+      currentList = activeDesignVaultList;
+      currentSourceLabel = 'Design Vault';
+      if (currentList.length === 0) return;
+      var fullItem = fullDesignVaultList[index];
+      if (!fullItem) return;
+      currentIdx = currentList.findIndex(function(x) {
+        if (fullItem.version_id && x.version_id) return String(x.version_id) === String(fullItem.version_id);
+        return (x.url || '') === (fullItem.url || '') && (x.file_name || '') === (fullItem.file_name || '');
+      });
+      if (currentIdx < 0) return;
+    }
     renderCurrent();
     if (modalEl && window.bootstrap) {
+      /* Modal markup lives inside tab-panes; inactive tabs use display:none, which hides the modal even when .show is set. Keep a single #vaultGalleryModal and move it under body while open. */
+      if (modalEl.parentElement !== document.body) {
+        document.body.appendChild(modalEl);
+      }
       if (!modalInstance) {
         modalInstance = window.bootstrap.Modal.getOrCreateInstance(modalEl);
       }
@@ -722,7 +870,7 @@
   }
 
   function switchToLinked(targetType) {
-    if (currentList !== designVaultList || designVaultList.length === 0) return;
+    if (currentList !== activeDesignVaultList || activeDesignVaultList.length === 0) return;
     var m = currentList[currentIdx];
     if (!m) return;
     var linkedIds = targetType === '3d' ? (m.linked3d || []) : (m.linked2d || []);
@@ -799,6 +947,23 @@
     });
     el.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { el.click(); e.preventDefault(); } });
   });
+
+  if (designVaultClientFilterUi) {
+    document.querySelectorAll('[data-design-vault-filter]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var mode = btn.getAttribute('data-design-vault-filter');
+        if (mode) applyDesignVaultFilter(mode);
+      });
+    });
+  }
+  if (designVaultStaffFilterUi) {
+    document.querySelectorAll('[data-staff-vault-filter]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var mode = btn.getAttribute('data-staff-vault-filter');
+        if (mode) applyDesignVaultFilter(mode);
+      });
+    });
+  }
 
   window.showDesignCommentHistory = function(el) {
     var raw = el.getAttribute('data-design-comments');

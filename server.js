@@ -61,12 +61,16 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+/** Cookie secure: true only over HTTPS. Duplicate SESSION_SECURE lines in .env → last wins (can break local HTTP login). */
+const sessionCookieSecure =
+  process.env.SESSION_SECURE === 'true' ? true : process.env.SESSION_SECURE === 'false' ? false : 'auto';
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'designers-vision-secret',
     resave: false,
     saveUninitialized: false,
-    cookie: process.env.SESSION_SECURE === 'true' ? { secure: true } : {},
+    cookie: { secure: sessionCookieSecure },
   })
 );
 
@@ -1358,16 +1362,20 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // ----- Imou CCTV stream (from imou-integration.md) -----
-app.get('/portal/api/cctv/:projectId', (req, res) => {
+app.get('/portal/api/cctv/:projectId', async (req, res) => {
   const projectId = req.params.projectId;
   const uid = req.session.portalUserId;
   if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+  const portalDb = require('./lib/portal-db');
+  try {
+    const can = await portalDb.canAccessProjectCctv(uid, req.session.portalUserRole, projectId);
+    if (!can) return res.status(403).json({ error: 'Forbidden' });
+  } catch (e) {
+    return res.status(500).json({ error: 'Server error' });
+  }
   const db = require('./db').db;
-  db.get('SELECT rtsp_link, client_id, designer_id FROM portal_projects WHERE id = ?', [projectId], (err, row) => {
+  db.get('SELECT rtsp_link FROM portal_projects WHERE id = ?', [projectId], (err, row) => {
     if (err || !row) return res.status(404).json({ error: 'Project not found' });
-    const isAdmin = req.session.portalUserRole === 'ADMIN';
-    const canAccess = isAdmin || row.client_id === uid || row.designer_id === uid;
-    if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
     const rtspLink = row.rtsp_link;
     if (!rtspLink || rtspLink.trim() === '') {
       return res.json({ url: null, token: null, message: 'Live stream offline' });

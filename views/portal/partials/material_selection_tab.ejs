@@ -1,0 +1,207 @@
+<%
+  const AREA_TAGS_RESIDENTIAL = ['Living Room', 'Dining Room', 'Kitchen', 'Bedroom', 'Master Bedroom', 'Kids Room', 'Bathroom', 'Master Bath', 'Guest Room', 'Study / Home Office', 'Balcony', 'Terrace', 'Entrance / Foyer', 'Corridor', 'Pooja Room', 'Utility', 'Store Room', 'Wardrobe / Dressing'];
+  const AREA_TAGS_OFFICE = ['Reception', 'Conference Room', 'Cabin / Executive Office', 'Workstation Area', 'Open Office', 'Meeting Room', 'Pantry / Cafeteria', 'Corridor', 'Washroom', 'Server Room', 'Storage', 'Break Room', 'Lounge', 'Waiting Area'];
+  const mats = typeof materialSelections !== 'undefined' && Array.isArray(materialSelections) ? materialSelections : [];
+  const designs = typeof designsForMaterialLink !== 'undefined' && Array.isArray(designsForMaterialLink) ? designsForMaterialLink : [];
+  const byArea = {};
+  mats.forEach(function(m) {
+    var a = (m.area_tag || 'General').trim() || 'General';
+    if (!byArea[a]) byArea[a] = [];
+    byArea[a].push(m);
+  });
+  const areaKeys = Object.keys(byArea).sort(function(a, b) { return a.localeCompare(b, undefined, { sensitivity: 'base' }); });
+  const uploadUrl = typeof materialUploadUrl !== 'undefined' ? materialUploadUrl : '';
+  const showUploader = !!uploadUrl;
+  const canClientAct = typeof readOnly !== 'undefined' && !readOnly;
+  function statusBadge(st) {
+    if (st === 'APPROVED') return 'bg-success';
+    if (st === 'REJECTED') return 'bg-danger';
+    return 'bg-secondary';
+  }
+%>
+<div class="card card-portal mb-4 border-warning border-opacity-25 material-selection-card">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="serif text-warning mb-0">Material selection</span>
+    <% if (typeof readOnly !== 'undefined' && readOnly) { %><span class="badge bg-secondary">Preview (mirror)</span><% } %>
+  </div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Laminate and material photos with codes, grouped by area (same area names as Design Vault). Optionally link a row to an <strong>admin-approved</strong> 2D/3D version. The client approves or rejects each item.</p>
+    <% if (showUploader && typeof project !== 'undefined' && project) { %>
+    <form method="post" action="<%= uploadUrl %>" enctype="multipart/form-data" class="row g-2 align-items-end mb-4 pb-4 border-bottom border-secondary border-opacity-25" id="materialSelectionUploadForm">
+      <div class="col-auto">
+        <label class="form-label small mb-0 d-block" for="matFile">Photo</label>
+        <input type="file" name="file" id="matFile" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*" required />
+      </div>
+      <div class="col-auto">
+        <label class="form-label small mb-0 d-block" for="matCode">Material code</label>
+        <input type="text" name="material_code" id="matCode" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:140px" required maxlength="200" placeholder="e.g. K-2041" />
+      </div>
+      <div class="col-auto">
+        <label class="form-label small mb-0 d-block" for="matAreaSelect">Area</label>
+        <select name="area_tag" id="matAreaSelect" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:180px">
+          <option value="">— Other (type below) —</option>
+          <optgroup label="Residential">
+            <% AREA_TAGS_RESIDENTIAL.forEach(function(tag) { %><option value="<%= tag %>"><%= tag %></option><% }); %>
+          </optgroup>
+          <optgroup label="Office">
+            <% AREA_TAGS_OFFICE.forEach(function(tag) { %><option value="<%= tag %>"><%= tag %></option><% }); %>
+          </optgroup>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small mb-0 d-block" for="matAreaCustom">Custom area</label>
+        <input type="text" name="area_tag_custom" id="matAreaCustom" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:160px" placeholder="Optional override" maxlength="200" />
+      </div>
+      <% var designsWithVersions = designs.filter(function(d) { return (d.versions || []).length > 0; }); %>
+      <% if (designsWithVersions.length) { %>
+      <div class="col-12 col-md-auto">
+        <label class="form-label small mb-0 d-block" for="matLinkedDesign">Link to approved design version (optional)</label>
+        <select name="linked_design_version_id" id="matLinkedDesign" class="form-select form-select-sm bg-dark text-light border-secondary" style="min-width:280px">
+          <option value="">— Not linked —</option>
+          <% designsWithVersions.forEach(function(d) { %>
+            <% (d.versions || []).forEach(function(v) { %>
+          <option value="<%= v.id %>"><%= (d.area_tag || 'General') %> · <%= d.category === 'VISUALIZATIONS' ? '3D' : '2D' %> · v<%= v.version_number %></option>
+            <% }); %>
+          <% }); %>
+        </select>
+      </div>
+      <% } %>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-gold btn-sm">Upload</button>
+      </div>
+    </form>
+    <% } %>
+    <% if (!mats.length) { %>
+    <p class="text-muted small mb-0">No materials uploaded yet.</p>
+    <% } else { %>
+    <% if (!showUploader) { %>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="Filter materials by your response">
+      <span class="small text-muted me-1">Show:</span>
+      <div class="btn-group btn-group-sm flex-wrap" role="group">
+        <button type="button" class="btn btn-outline-gold active" data-material-client-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="btn btn-outline-gold" data-material-client-filter="approved" aria-pressed="false">Approved</button>
+        <button type="button" class="btn btn-outline-gold" data-material-client-filter="denied" aria-pressed="false">Denied</button>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="mb-3" role="group" aria-label="Filter materials by client status">
+      <div class="small text-muted mb-2">Show:</div>
+      <div class="d-flex flex-wrap gap-1 material-selection-staff-filters">
+        <button type="button" class="btn btn-sm btn-outline-gold active" data-material-staff-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-material-staff-filter="pending" aria-pressed="false">Pending client</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-material-staff-filter="client-approved" aria-pressed="false">Approved by client</button>
+        <button type="button" class="btn btn-sm btn-outline-gold" data-material-staff-filter="client-rejected" aria-pressed="false">Denied by client</button>
+      </div>
+    </div>
+    <% } %>
+    <p class="text-muted small mb-3 material-selection-filter-empty d-none">No items match this filter.</p>
+      <% areaKeys.forEach(function(area) { %>
+      <div class="mb-4 material-selection-area-group">
+        <h6 class="text-warning mb-2"><%= area %></h6>
+        <div class="row g-3">
+          <% byArea[area].forEach(function(m) { %>
+          <% var msSt = String(m.client_status || 'PENDING').toUpperCase(); %>
+          <div class="col-6 col-md-4 col-lg-3 material-selection-item" data-ms-status="<%= msSt %>">
+            <div class="border border-secondary border-opacity-25 rounded overflow-hidden h-100 bg-dark bg-opacity-25">
+              <a href="<%= m.image_url %>" target="_blank" rel="noopener" class="d-block ratio ratio-1x1 bg-black">
+                <img src="<%= m.image_url %>" alt="" style="object-fit:contain;width:100%;height:100%" loading="lazy" />
+              </a>
+              <div class="p-2 small">
+                <div class="fw-semibold text-light text-truncate" title="<%= m.material_code %>">Code: <%= m.material_code %></div>
+                <% if (m.linked_design_id || m.linked_design_version_id) { %>
+                  <% if (m.linked_design_area_tag || m.linked_design_category) { %>
+                <div class="text-muted text-truncate" title="Linked design version">↳ <%= m.linked_design_area_tag || 'Design' %> · <%= m.linked_design_category === 'VISUALIZATIONS' ? '3D' : '2D' %><% if (m.linked_version_number != null && m.linked_version_number !== '') { %> · v<%= m.linked_version_number %><% } %></div>
+                  <% } %>
+                <% } %>
+                <div class="mt-1"><span class="badge <%= statusBadge(m.client_status) %>"><%= m.client_status || 'PENDING' %></span></div>
+                <% if (m.client_note && String(m.client_note).trim()) { %>
+                <div class="text-danger small mt-1">Note: <%= m.client_note %></div>
+                <% } %>
+                <% if (showUploader) { %>
+                <form method="post" action="<%= uploadUrl %>/<%= m.id %>/delete" class="mt-2" onsubmit="return confirm('Delete this material row?');">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                </form>
+                <% } %>
+                <% if (canClientAct && (m.client_status === 'PENDING' || !m.client_status)) { %>
+                <div class="d-flex flex-column gap-1 mt-2">
+                  <form method="post" action="/portal/client/projects/<%= project.id %>/material-selection/<%= m.id %>/approve">
+                    <button type="submit" class="btn btn-gold btn-sm w-100">Approve</button>
+                  </form>
+                  <form method="post" action="/portal/client/projects/<%= project.id %>/material-selection/<%= m.id %>/reject" class="d-grid gap-1">
+                    <input type="text" name="client_note" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Reason (optional)" maxlength="500" />
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Reject</button>
+                  </form>
+                </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+      <% }); %>
+    <% } %>
+  </div>
+</div>
+<script>
+(function () {
+  var card = document.querySelector('.material-selection-card');
+  if (!card) return;
+  var staffUi = <%- JSON.stringify(!!showUploader) %>;
+  var clientUi = <%- JSON.stringify(!showUploader) %>;
+  if (!staffUi && !clientUi) return;
+
+  function applyMaterialFilter(m) {
+    card.querySelectorAll('.material-selection-item').forEach(function (el) {
+      var st = (el.getAttribute('data-ms-status') || 'PENDING').toUpperCase();
+      var show = true;
+      if (staffUi) {
+        if (m === 'all') show = true;
+        else if (m === 'pending') show = st === 'PENDING';
+        else if (m === 'client-approved') show = st === 'APPROVED';
+        else if (m === 'client-rejected') show = st === 'REJECTED';
+      } else if (clientUi) {
+        if (m === 'all') show = true;
+        else if (m === 'approved') show = st === 'APPROVED';
+        else if (m === 'denied') show = st === 'REJECTED';
+      }
+      el.classList.toggle('d-none', !show);
+    });
+    card.querySelectorAll('.material-selection-area-group').forEach(function (row) {
+      var any = row.querySelector('.material-selection-item:not(.d-none)');
+      row.classList.toggle('d-none', !any);
+    });
+    var anyAll = card.querySelector('.material-selection-item:not(.d-none)');
+    var emptyEl = card.querySelector('.material-selection-filter-empty');
+    if (emptyEl) emptyEl.classList.toggle('d-none', !!anyAll);
+
+    card.querySelectorAll('[data-material-client-filter]').forEach(function (b) {
+      var on = b.getAttribute('data-material-client-filter') === m;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    card.querySelectorAll('[data-material-staff-filter]').forEach(function (b) {
+      var on = b.getAttribute('data-material-staff-filter') === m;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  if (staffUi) {
+    card.querySelectorAll('[data-material-staff-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var fm = btn.getAttribute('data-material-staff-filter');
+        if (fm) applyMaterialFilter(fm);
+      });
+    });
+  }
+  if (clientUi) {
+    card.querySelectorAll('[data-material-client-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var fm = btn.getAttribute('data-material-client-filter');
+        if (fm) applyMaterialFilter(fm);
+      });
+    });
+  }
+})();
+</script>

@@ -1,4 +1,5 @@
 const path = require('path');
+const crypto = require('crypto');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const { NUM_LIFECYCLE_STAGES } = require('./lib/portal');
@@ -258,6 +259,86 @@ db.serialize(() => {
   db.run('ALTER TABLE portal_projects ADD COLUMN lifecycle_active_stages TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN payment_terms_json TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN payment_schedule_notify_fingerprint TEXT', () => {});
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_members (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      allowed_tabs TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(project_id, user_id),
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id),
+      FOREIGN KEY (user_id) REFERENCES portal_users(id)
+    )`
+  );
+  const DEFAULT_PORTAL_MEMBER_TABS =
+    '["updates","timelines","mood-board","vault","material-selection","daily","finance","warranty","vastu","other-docs"]';
+  db.all('SELECT id, client_id FROM portal_projects', [], (mErr, projRows) => {
+    if (mErr || !projRows || !projRows.length) return;
+    const stmt = db.prepare(
+      'INSERT OR IGNORE INTO portal_project_members (id, project_id, user_id, allowed_tabs) VALUES (?, ?, ?, ?)'
+    );
+    for (const r of projRows) {
+      if (!r.client_id) continue;
+      stmt.run(crypto.randomUUID(), r.id, r.client_id, DEFAULT_PORTAL_MEMBER_TABS);
+    }
+    stmt.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_members', [], (pmErr, pmRows) => {
+    if (pmErr || !pmRows || !pmRows.length) return;
+    const u = db.prepare('UPDATE portal_project_members SET allowed_tabs = ? WHERE id = ?');
+    for (const r of pmRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('mood-board')) continue;
+        a.push('mood-board');
+        u.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep existing */
+      }
+    }
+    u.finalize();
+  });
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_designers (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      allowed_tabs TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(project_id, user_id),
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id),
+      FOREIGN KEY (user_id) REFERENCES portal_users(id)
+    )`
+  );
+  const DEFAULT_DESIGNER_PORTAL_TABS =
+    '["updates","timelines","mood-board","vault","material-selection","daily","vastu","other-docs"]';
+  db.all('SELECT id, designer_id FROM portal_projects WHERE designer_id IS NOT NULL', [], (dErr, dRows) => {
+    if (dErr || !dRows || !dRows.length) return;
+    const dst = db.prepare(
+      'INSERT OR IGNORE INTO portal_project_designers (id, project_id, user_id, allowed_tabs) VALUES (?, ?, ?, ?)'
+    );
+    for (const r of dRows) {
+      if (!r.designer_id) continue;
+      dst.run(crypto.randomUUID(), r.id, r.designer_id, DEFAULT_DESIGNER_PORTAL_TABS);
+    }
+    dst.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_designers', [], (pdErr, pdRows) => {
+    if (pdErr || !pdRows || !pdRows.length) return;
+    const u = db.prepare('UPDATE portal_project_designers SET allowed_tabs = ? WHERE id = ?');
+    for (const r of pdRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('mood-board')) continue;
+        a.push('mood-board');
+        u.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep existing */
+      }
+    }
+    u.finalize();
+  });
   db.all(
     'SELECT id, current_stage FROM portal_projects WHERE lifecycle_completed_stages IS NULL',
     [],
@@ -411,6 +492,7 @@ db.serialize(() => {
     "UPDATE portal_daily_updates SET visible_to_client = 1 WHERE visible_to_client IS NULL",
     () => {}
   );
+  db.run('ALTER TABLE portal_daily_updates ADD COLUMN report_date TEXT', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_designs (
       id TEXT PRIMARY KEY,
@@ -448,6 +530,26 @@ db.serialize(() => {
       FOREIGN KEY (design_id_3d) REFERENCES portal_designs(id)
     )`
   );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_material_selections (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      area_tag TEXT NOT NULL DEFAULT '',
+      linked_design_id TEXT,
+      material_code TEXT NOT NULL,
+      image_url TEXT NOT NULL,
+      file_name TEXT,
+      client_status TEXT NOT NULL DEFAULT 'PENDING',
+      client_note TEXT,
+      uploaded_by_user_id TEXT,
+      uploaded_by_role TEXT NOT NULL DEFAULT 'ADMIN',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id),
+      FOREIGN KEY (linked_design_id) REFERENCES portal_designs(id),
+      FOREIGN KEY (uploaded_by_user_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run('ALTER TABLE portal_material_selections ADD COLUMN linked_design_version_id TEXT', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_design_comments (
       id TEXT PRIMARY KEY,

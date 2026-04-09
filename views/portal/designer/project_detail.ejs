@@ -3,29 +3,60 @@
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
-
+<% var tabOrderDesigner = ['updates','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
+   var dTabs = typeof designerAllowedTabs !== 'undefined' && designerAllowedTabs ? designerAllowedTabs : {};
+   tabOrderDesigner.forEach(function(k) { if (dTabs[k] === undefined) dTabs[k] = true; });
+   var anyDesignerTab = tabOrderDesigner.some(function(k) { return dTabs[k]; });
+   var firstVis = tabOrderDesigner.find(function(k) { return dTabs[k]; }) || 'updates';
+%>
+<% if (!anyDesignerTab) { %>
+<div class="alert alert-warning border border-warning text-dark">No sections are enabled for your account on this project. Please contact the studio.</div>
+<% } else { %>
 <ul class="nav nav-tabs portal-tabs mb-3" id="projectTabs" role="tablist">
+  <% if (dTabs.updates) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
+    <button class="nav-link<%= firstVis === 'updates' ? ' active' : '' %>" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
   </li>
+  <% } %>
+  <% if (dTabs.timelines) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
+    <button class="nav-link<%= firstVis === 'timelines' ? ' active' : '' %>" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
   </li>
+  <% } %>
+  <% if (dTabs['mood-board']) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
+    <button class="nav-link<%= firstVis === 'mood-board' ? ' active' : '' %>" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
   </li>
+  <% } %>
+  <% if (dTabs.vault) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
+    <button class="nav-link<%= firstVis === 'vault' ? ' active' : '' %>" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
   </li>
+  <% } %>
+  <% if (dTabs['material-selection']) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+    <button class="nav-link<%= firstVis === 'material-selection' ? ' active' : '' %>" id="tab-material-selection-btn" data-bs-toggle="tab" data-bs-target="#tab-material-selection" type="button" role="tab">Material Selection</button>
   </li>
+  <% } %>
+  <% if (dTabs.daily) { %>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-other-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-other-docs" type="button" role="tab">Other documents</button>
+    <button class="nav-link<%= firstVis === 'daily' ? ' active' : '' %>" id="tab-daily-btn" data-bs-toggle="tab" data-bs-target="#tab-daily" type="button" role="tab">Daily Updates</button>
   </li>
+  <% } %>
+  <% if (dTabs.vastu) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'vastu' ? ' active' : '' %>" id="tab-vastu-btn" data-bs-toggle="tab" data-bs-target="#tab-vastu" type="button" role="tab">Vastu Documents</button>
+  </li>
+  <% } %>
+  <% if (dTabs['other-docs']) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'other-docs' ? ' active' : '' %>" id="tab-other-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-other-docs" type="button" role="tab">Other documents</button>
+  </li>
+  <% } %>
 </ul>
 <div class="tab-content" id="projectTabsContent">
-  <div class="tab-pane fade show active" id="tab-updates" role="tabpanel">
+  <% if (dTabs.updates) { %>
+  <div class="tab-pane fade<%= firstVis === 'updates' ? ' show active' : '' %>" id="tab-updates" role="tabpanel">
     <%- include('../partials/lifecycle_progress_collapsible', { project, formAction: '/portal/designer/projects/' + project.id + '/update', lifecycleCollapseSuffix: 'designer' }) %>
     <div class="card card-portal mb-4">
       <div class="card-header">Update project</div>
@@ -49,17 +80,33 @@
       <% if (typeof project.designer_can_view_mirror === 'undefined' || project.designer_can_view_mirror !== 0) { %>
       <a href="/portal/mirror/<%= project.id %>" class="btn btn-gold">View as Client (Mirror)</a>
       <% } %>
-      <button type="button" class="btn btn-outline-gold" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button>
+      <% if (dTabs.daily) { %><button type="button" class="btn btn-outline-gold" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button><% } %>
     </p>
   </div>
-  <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'designer', timelineBasePath: '/portal/designer/projects/' + project.id + '/timeline' }) %>
-  <div class="tab-pane fade" id="tab-vault" role="tabpanel">
+  <% } %>
+  <% if (dTabs.timelines) { %>
+  <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'designer', timelineBasePath: '/portal/designer/projects/' + project.id + '/timeline', timelineTabPaneClass: firstVis === 'timelines' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (dTabs['mood-board']) { %>
+  <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'designer', moodBoardTabPaneClass: firstVis === 'mood-board' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (dTabs.vault) { %>
+  <div class="tab-pane fade<%= firstVis === 'vault' ? ' show active' : '' %>" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/designer/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], showDailyOnly: false }) %>
   </div>
-  <div class="tab-pane fade" id="tab-daily" role="tabpanel">
-    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/designer/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true }) %>
+  <% } %>
+  <% if (dTabs['material-selection']) { %>
+  <div class="tab-pane fade<%= firstVis === 'material-selection' ? ' show active' : '' %>" id="tab-material-selection" role="tabpanel">
+    <%- include('../partials/material_selection_tab', { project, materialSelections: typeof materialSelections !== 'undefined' ? materialSelections : [], designsForMaterialLink: typeof designsForMaterialLink !== 'undefined' ? designsForMaterialLink : [], materialUploadUrl: '/portal/designer/projects/' + project.id + '/material-selection' }) %>
   </div>
-  <div class="tab-pane fade" id="tab-vastu" role="tabpanel">
+  <% } %>
+  <% if (dTabs.daily) { %>
+  <div class="tab-pane fade<%= firstVis === 'daily' ? ' show active' : '' %>" id="tab-daily" role="tabpanel">
+    <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/designer/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], dailyUpdates: typeof dailyUpdates !== 'undefined' ? dailyUpdates : [], showDailyOnly: true, includeVaultGalleryModal: false }) %>
+  </div>
+  <% } %>
+  <% if (dTabs.vastu) { %>
+  <div class="tab-pane fade<%= firstVis === 'vastu' ? ' show active' : '' %>" id="tab-vastu" role="tabpanel">
     <div class="card card-portal mb-4">
       <div class="card-header serif text-warning">Vastu Documents</div>
       <div class="card-body">
@@ -133,8 +180,12 @@
       </div>
     </div>
   </div>
-  <%- include('../partials/other_documents_tab', { project, otherDocs: typeof otherDocs !== 'undefined' ? otherDocs : [], otherDocsMode: 'designer' }) %>
+  <% } %>
+  <% if (dTabs['other-docs']) { %>
+  <%- include('../partials/other_documents_tab', { project, otherDocs: typeof otherDocs !== 'undefined' ? otherDocs : [], otherDocsMode: 'designer', otherDocsTabPaneClass: firstVis === 'other-docs' ? ' show active' : '' }) %>
+  <% } %>
 </div>
+<% } %>
 
 <script>
 (function() {
@@ -180,9 +231,10 @@
       
       if (fileType === 'VIDEO' || urlLower.indexOf('.mp4') !== -1 || urlLower.indexOf('.mov') !== -1 || urlLower.indexOf('.webm') !== -1) {
         html = '<video src="' + (m.url || '').replace(/"/g, '&quot;') + '" controls autoplay class="rounded" style="max-width:100%;max-height:85vh;"></video>';
-      } else if (urlLower.indexOf('.pdf') !== -1) {
+      } else if ((window.portalAssetLooksLikePdf && window.portalAssetLooksLikePdf(m.url, m.file_name, m.type)) || urlLower.indexOf('.pdf') !== -1) {
+        var safe = (m.url || '').replace(/"/g, '&quot;');
         var fn = (m.file_name || m.url || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-        html = '<div class="text-center"><a href="' + m.url.replace(/"/g, '&quot;') + '" target="_blank" class="btn btn-gold btn-lg">Open PDF</a><p class="text-muted small mt-3">' + fn + '</p></div>';
+        html = '<div class="portal-pdf-embed-shell w-100" style="height:82vh;min-height:280px;background:#111;"><iframe class="portal-pdf-embed-iframe w-100 h-100 border-0" src="' + safe + '" title="PDF"></iframe></div><p class="text-muted small mt-2 mb-0 text-center"><a href="' + safe + '" target="_blank" rel="noopener" class="text-warning text-decoration-none">Open in new tab</a></p><p class="text-muted small text-center mb-0">' + fn + '</p>';
       } else {
         html = '<img src="' + (m.url || '').replace(/"/g, '&quot;') + '" alt="" class="rounded" style="max-width:100%;max-height:85vh;object-fit:contain;">';
       }

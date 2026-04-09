@@ -131,6 +131,7 @@
   <div class="container py-4">
     <%- body %>
   </div>
+  <%- include('partials/portal_pdf_modal') %>
   <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
   // Activate correct tab from URL hash or one-time session flag (e.g. #tab-vault, #tab-finance, #tab-daily)
@@ -157,6 +158,49 @@
       }      
     } catch (e) {}
   });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var modalEl = document.getElementById('portalPdfViewerModal');
+    var frame = document.getElementById('portalPdfViewerFrame');
+    var titleEl = document.getElementById('portalPdfViewerTitle');
+    var newTabEl = document.getElementById('portalPdfViewerNewTab');
+    if (!modalEl || !frame || !window.bootstrap) return;
+
+    window.portalAssetLooksLikePdf = function (url, fileName, mediaType) {
+      var u = (url || '').toString().split('#')[0].split('?')[0].toLowerCase();
+      var f = (fileName || '').toString().toLowerCase();
+      if (u.endsWith('.pdf') || f.endsWith('.pdf')) return true;
+      if (String(mediaType || '').toUpperCase() === 'DOCUMENT' && (f.indexOf('.pdf') !== -1 || u.indexOf('.pdf') !== -1)) return true;
+      return false;
+    };
+
+    window.openPortalPdfViewer = function (url, title) {
+      if (!url) return;
+      title = title || 'PDF document';
+      frame.src = 'about:blank';
+      requestAnimationFrame(function () {
+        frame.src = url;
+      });
+      if (titleEl) titleEl.textContent = title;
+      if (newTabEl) newTabEl.href = url;
+      var inst = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+      inst.show();
+    };
+
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      frame.src = 'about:blank';
+    });
+
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('a[data-portal-pdf]');
+      if (!a) return;
+      var href = a.getAttribute('href');
+      if (!href || href === '#' || href.indexOf('javascript:') === 0) return;
+      e.preventDefault();
+      window.openPortalPdfViewer(href, a.getAttribute('data-portal-pdf-name') || '');
+    });
+  });
+
   // Global helper to switch to Daily Updates tab and scroll to the Daily Update card.
   window.switchToDailyUpdates = function() {
     try {
