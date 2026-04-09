@@ -2,6 +2,8 @@ node_modules/
 .env
 .env.deploy
 data.sqlite
+data.sqlite-wal
+data.sqlite-shm
 *.log
 logs/
 Kelly/assets/uploads/*
