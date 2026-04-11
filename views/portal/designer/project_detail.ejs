@@ -12,6 +12,9 @@
     <button class="nav-link" id="tab-timelines-btn" data-bs-toggle="tab" data-bs-target="#tab-timelines" type="button" role="tab">Timelines</button>
   </li>
   <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
+  </li>
+  <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
   </li>
   <li class="nav-item" role="presentation">
@@ -53,6 +56,7 @@
     </p>
   </div>
   <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'designer', timelineBasePath: '/portal/designer/projects/' + project.id + '/timeline' }) %>
+  <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'designer' }) %>
   <div class="tab-pane fade" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/designer/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], showDailyOnly: false }) %>
   </div>

@@ -135,6 +135,14 @@ const portalUpload = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
 });
 
+const moodBoardUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, portalUploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + (file.originalname || 'file').replace(/\s/g, '-')),
+  }),
+  limits: { fileSize: 50 * 1024 * 1024 },
+});
+
 async function renderPortal(req, res, view, data = {}) {
   const merged = { ...res.locals, ...data, timelineUtil };
   try {
@@ -510,6 +518,7 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const warrantyDocs = mediaList.filter((m) => m.category === 'WARRANTY_GUARANTEE');
   const vastuDocs = mediaList.filter((m) => m.category === 'VASTU');
   const otherDocs = mediaList.filter((m) => m.category === 'OTHER_DOCS');
+  const moodBoardFiles = mediaList.filter((m) => m.category === 'MOOD_BOARD');
   const [projectDesigns, pendingDesignVersions, dailyUpdates, timelineExtensions, clientPayments] = await Promise.all([
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
     portalDb.getPendingDesignVersionsForProject(project.id),
@@ -547,6 +556,7 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     warrantyDocs,
     vastuDocs,
     otherDocs,
+    moodBoardFiles,
     timelineExtensions: timelineExtensions || [],
     isMirror: false,
     paymentTerms,
@@ -1532,8 +1542,10 @@ router.post('/admin/projects/:id/design-link/:linkId/remove', requirePortalAuth,
 router.post('/admin/projects/:id/media/:mediaId/delete', requirePortalAuth, requireAdmin, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
+  const row = await portalDb.get('SELECT category FROM portal_media WHERE id = ? AND project_id = ?', [req.params.mediaId, req.params.id]);
   await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
-  res.redirect('/portal/admin/projects/' + req.params.id + '#tab-vault');
+  const tabSuffix = row && row.category === 'MOOD_BOARD' ? '#tab-mood-board' : '#tab-vault';
+  res.redirect('/portal/admin/projects/' + req.params.id + tabSuffix);
 });
 
 router.post('/admin/projects/:id/media/:mediaId/publish-client', requirePortalAuth, requireAdmin, async (req, res) => {
@@ -1804,6 +1816,7 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
       m.category === 'OTHER_DOCS' &&
       (Number(m.visible_to_designer) === 1 || m.visible_to_designer == null)
   );
+  const moodBoardFiles = mediaList.filter((m) => m.category === 'MOOD_BOARD');
   const [dailyUpdates, projectDesigns, timelineExtensions] = await Promise.all([
     portalDb.getDailyUpdatesByProject(project.id),
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: false }),
@@ -1821,8 +1834,57 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     projectDesigns,
     vastuDocs,
     otherDocs,
+    moodBoardFiles,
     timelineExtensions: timelineExtensions || [],
   });
+});
+
+router.post('/admin/projects/:id/mood-board', requirePortalAuth, requireAdmin, moodBoardUpload.single('file'), async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (!req.file) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=Choose+a+file#tab-mood-board');
+  }
+  const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
+  const uploadType = inferPortalUploadMediaType(req.file);
+  await portalDb.addProjectMedia(projectId, url, uploadType, 'MOOD_BOARD', req.file.originalname, req.file.size, { uploadedByRole: 'ADMIN' });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEDIA,
+      message: `New mood board file was added to «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-mood-board',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-mood-board');
+});
+
+router.post('/designer/projects/:id/mood-board', requirePortalAuth, requireDesigner, moodBoardUpload.single('file'), async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!req.file) {
+    return res.redirect('/portal/designer/projects/' + projectId + '?msg=Choose+a+file#tab-mood-board');
+  }
+  const url = '/assets/uploads/portal/' + path.basename(req.file.filename);
+  const uploadType = inferPortalUploadMediaType(req.file);
+  await portalDb.addProjectMedia(projectId, url, uploadType, 'MOOD_BOARD', req.file.originalname, req.file.size, { uploadedByRole: 'DESIGNER' });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEDIA,
+      message: `New mood board file was added to «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-mood-board',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: false,
+    })
+  );
+  res.redirect('/portal/designer/projects/' + projectId + '#tab-mood-board');
 });
 
 router.post('/designer/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
@@ -2130,8 +2192,10 @@ router.post('/designer/projects/:id/design-link/:linkId/remove', requirePortalAu
 router.post('/designer/projects/:id/media/:mediaId/delete', requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project || (project.designer_id !== req.session[PORTAL_USER_ID] && req.session[PORTAL_USER_ROLE] !== 'ADMIN')) return res.status(403).send('Forbidden');
+  const row = await portalDb.get('SELECT category FROM portal_media WHERE id = ? AND project_id = ?', [req.params.mediaId, req.params.id]);
   await portalDb.deleteProjectMedia(req.params.id, req.params.mediaId);
-  res.redirect('/portal/designer/projects/' + req.params.id + '#tab-vault');
+  const tabSuffix = row && row.category === 'MOOD_BOARD' ? '#tab-mood-board' : '#tab-vault';
+  res.redirect('/portal/designer/projects/' + req.params.id + tabSuffix);
 });
 
 router.post('/designer/projects/:id/design-version/:versionId/delete', requirePortalAuth, requireDesigner, async (req, res) => {
