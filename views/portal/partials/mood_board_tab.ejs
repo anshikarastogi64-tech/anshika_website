@@ -23,10 +23,26 @@
     return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(n);
   }
   function moodIsPdf(m) {
-    var n = ((m.file_name || m.url || '') + '').toLowerCase();
-    return (m.type || '').toUpperCase() === 'DOCUMENT' && (n.endsWith('.pdf') || (m.url || '').toLowerCase().indexOf('.pdf') !== -1);
+    var u = ((m.url || '') + '').toLowerCase().split('#')[0].split('?')[0];
+    var n = ((m.file_name || '') + '').toLowerCase();
+    var t = (m.type || '').toUpperCase();
+    if (u.endsWith('.pdf') || n.endsWith('.pdf')) return true;
+    if (t === 'DOCUMENT' && (u.indexOf('.pdf') !== -1 || n.indexOf('.pdf') !== -1)) return true;
+    return false;
+  }
+  function moodLinkAttrs(m, isPdf) {
+    var name = String(m.file_name || 'File').replace(/"/g, '&quot;');
+    if (isPdf) {
+      return 'data-portal-pdf="1" data-portal-pdf-name="' + name + '"';
+    }
+    return 'target="_blank" rel="noopener noreferrer"';
   }
 %>
+<style>
+.mood-board-file-link { cursor: pointer; }
+.mood-board-file-link:hover .mood-board-thumb { box-shadow: inset 0 0 0 1px rgba(212,175,55,0.45); }
+.mood-board-thumb { min-height: 140px; }
+</style>
 <div class="tab-pane fade<%= typeof moodBoardTabPaneClass !== 'undefined' ? moodBoardTabPaneClass : '' %>" id="tab-mood-board" role="tabpanel">
   <div class="card card-portal mb-4">
     <div class="card-header serif text-warning">Mood board</div>
@@ -56,31 +72,33 @@
           var by = (m.uploaded_by_role || '').toUpperCase();
         %>
         <div class="vault-item-wrapper mb-3">
-          <div class="vault-item rounded overflow-hidden border border-secondary border-opacity-25">
+          <div class="rounded overflow-hidden border border-secondary border-opacity-25 bg-dark bg-opacity-10">
+            <a href="<%= m.url %>" class="mood-board-file-link d-block text-decoration-none text-reset" title="Open file" aria-label="Open <%= String(m.file_name || 'file').replace(/"/g, '&quot;') %>" <%= moodLinkAttrs(m, isPdf) %>>
             <% if (isVideo) { %>
-            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center" style="min-height:140px">
+            <div class="vault-thumb mood-board-thumb bg-dark d-flex align-items-center justify-content-center">
               <i class="bi bi-film text-warning" style="font-size:2rem"></i>
             </div>
             <% } else if (isPdf) { %>
-            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center" style="min-height:140px">
+            <div class="vault-thumb mood-board-thumb bg-dark d-flex align-items-center justify-content-center">
               <i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size:2rem"></i>
             </div>
             <% } else if (imgThumb) { %>
-            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center">
+            <div class="vault-thumb mood-board-thumb bg-dark d-flex align-items-center justify-content-center">
               <img src="<%= m.url %>" alt="" loading="lazy" style="max-height:180px;object-fit:contain;width:100%" />
             </div>
             <% } else { %>
-            <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center" style="min-height:140px">
+            <div class="vault-thumb mood-board-thumb bg-dark d-flex align-items-center justify-content-center">
               <i class="bi bi-file-earmark text-secondary" style="font-size:2rem"></i>
             </div>
             <% } %>
-            <div class="p-2 small">
-              <a href="<%= m.url %>" class="text-warning text-decoration-none d-block text-truncate" title="<%= m.file_name || m.url %>" <% if (isPdf) { %>data-portal-pdf="1" data-portal-pdf-name="<%= String(m.file_name || 'PDF').replace(/"/g, '&quot;') %>"<% } else { %>target="_blank" rel="noopener"<% } %>><%= m.file_name || 'Download' %></a>
-              <div class="text-muted mt-1">
-                <%= new Date(m.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
-                <% if (moodFmtSize(m.file_size)) { %> · <%= moodFmtSize(m.file_size) %><% } %>
-                · <%= by === 'ADMIN' ? 'Admin' : by === 'DESIGNER' ? 'Designer' : 'Team' %>
-              </div>
+            <div class="p-2 small border-top border-secondary border-opacity-25">
+              <span class="text-warning d-block text-truncate"><%= m.file_name || 'Open file' %></span>
+            </div>
+            </a>
+            <div class="px-2 pb-2 small text-muted">
+              <%= new Date(m.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
+              <% if (moodFmtSize(m.file_size)) { %> · <%= moodFmtSize(m.file_size) %><% } %>
+              · <%= by === 'ADMIN' ? 'Admin' : by === 'DESIGNER' ? 'Designer' : 'Team' %>
               <% if (mode !== 'client') { %>
               <form method="post" action="<%= deleteBase %><%= m.id %>/delete" class="mt-2 mb-0" onsubmit="return confirm('Delete this file?');">
                 <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
