@@ -33,6 +33,7 @@ const {
 const timelineUtil = require('../lib/portal-timeline');
 const portalNotify = require('../lib/portal-notify');
 const { CATEGORIES: NC } = portalNotify;
+const portalMeet = require('../lib/portal-meet');
 const multer = require('multer');
 const fs = require('fs');
 
@@ -222,6 +223,18 @@ function clientTabVisibilityMap(allowedTabsSet) {
     m[k] = allowedTabsSet.has(k);
   }
   return m;
+}
+
+function enrichProjectMeetingsList(rows) {
+  return (rows || []).map((m) => ({
+    ...m,
+    google_calendar_url: portalMeet.buildGoogleCalendarTemplateUrl({
+      title: m.title,
+      startIso: m.start_at,
+      endIso: m.end_at,
+      details: m.notes || '',
+    }),
+  }));
 }
 
 function groupPortalProjectMessages(rows) {
@@ -643,6 +656,7 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPayments || []);
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
+  const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
   renderPortal(req, res, 'portal/admin/project_detail', {
     project,
     quotation,
@@ -681,6 +695,7 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     designsForMaterialLink: designsForMaterialLink || [],
     projectMessageThreads,
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
+    projectMeetings,
   });
 });
 
@@ -1403,6 +1418,114 @@ router.post('/admin/projects/:id/messages/:msgId/reply', express.urlencoded({ ex
     })
   );
   res.redirect('/portal/admin/projects/' + projectId + '#tab-messages');
+});
+
+const MEETING_TAB = '#tab-meetings';
+
+router.post('/admin/projects/:id/meetings/propose', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const redir = '/portal/admin/projects/' + projectId + MEETING_TAB;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Not found');
+  const slot = portalMeet.parseStartAndDuration(req.body.start_at, req.body.duration_minutes);
+  if (!slot) return res.redirect(redir + '?meet_err=invalid_time');
+  const title = (String(req.body.title || '').trim().slice(0, 500) || 'Project meeting');
+  const notes = String(req.body.notes || '').trim().slice(0, 2000);
+  const meetLink = String(req.body.meet_link || '').trim();
+  if (meetLink && !portalMeet.looksLikeHttpUrl(meetLink)) return res.redirect(redir + '?meet_err=bad_link');
+  if ((await portalDb.countOverlappingMeetings(projectId, slot.startIso, slot.endIso)) > 0) {
+    return res.redirect(redir + '?meet_err=overlap');
+  }
+  const uid = req.session[PORTAL_USER_ID];
+  await portalDb.createProjectMeeting({
+    projectId,
+    title,
+    startIso: slot.startIso,
+    endIso: slot.endIso,
+    meetLink,
+    proposedByUserId: uid,
+    proposedByRole: req.session[PORTAL_USER_ROLE],
+    status: portalDb.MEETING_STATUS.PENDING_CLIENT,
+    awaitingParty: 'CLIENT',
+    notes,
+  });
+  const msg = `A meeting was proposed for «${project.title}»: ${title}. Open Meetings to accept or decline.${
+    meetLink ? ` Google Meet / call link: ${meetLink}` : ''
+  }`;
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: msg,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [uid],
+      includeClient: true,
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/admin/projects/:id/meetings/:mid/accept', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/admin/projects/' + projectId + MEETING_TAB;
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) return res.redirect(redir);
+  const meetLink = String(req.body.meet_link || '').trim();
+  if (!portalMeet.looksLikeHttpUrl(meetLink)) return res.redirect(redir + '?meet_err=need_meet_link');
+  await portalDb.updateMeetingStatus(projectId, mid, {
+    status: portalDb.MEETING_STATUS.CONFIRMED,
+    respondedByUserId: req.session[PORTAL_USER_ID],
+    meetLink,
+  });
+  const project = await portalDb.getProjectById(projectId);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `Meeting confirmed for «${project?.title || 'Project'}»: ${m.title}. Link: ${meetLink}`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/admin/projects/:id/meetings/:mid/decline', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/admin/projects/' + projectId + MEETING_TAB;
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) return res.redirect(redir);
+  await portalDb.updateMeetingStatus(projectId, mid, {
+    status: portalDb.MEETING_STATUS.DECLINED,
+    respondedByUserId: req.session[PORTAL_USER_ID],
+    declineReason: String(req.body.decline_reason || '').trim(),
+  });
+  const project = await portalDb.getProjectById(projectId);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `A meeting request was declined for «${project?.title || 'Project'}»: ${m.title}.`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/admin/projects/:id/meetings/:mid/cancel', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/admin/projects/' + projectId + MEETING_TAB;
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.proposed_by_user_id !== req.session[PORTAL_USER_ID]) return res.redirect(redir);
+  if (m.status !== portalDb.MEETING_STATUS.PENDING_CLIENT && m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) {
+    return res.redirect(redir);
+  }
+  await portalDb.updateMeetingStatus(projectId, mid, { status: portalDb.MEETING_STATUS.CANCELLED });
+  res.redirect(redir);
 });
 
 router.post(
@@ -2189,6 +2312,7 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
   enrichProjectLifecycle(project);
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
+  const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
   renderPortal(req, res, 'portal/designer/project_detail', {
     project,
     query: req.query,
@@ -2208,6 +2332,7 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     projectMessageThreads,
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
     designerMessagingEnabled: Number(project.designer_client_messaging_enabled) === 1,
+    projectMeetings,
   });
 });
 
@@ -2420,6 +2545,129 @@ router.post('/designer/projects/:id/messages/:msgId/reply', express.urlencoded({
     })
   );
   res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+});
+
+router.post('/designer/projects/:id/meetings/propose', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const redir = '/portal/designer/projects/' + projectId + MEETING_TAB;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'meetings'))) return res.status(403).send('Forbidden');
+  const slot = portalMeet.parseStartAndDuration(req.body.start_at, req.body.duration_minutes);
+  if (!slot) return res.redirect(redir + '?meet_err=invalid_time');
+  const title = (String(req.body.title || '').trim().slice(0, 500) || 'Project meeting');
+  const notes = String(req.body.notes || '').trim().slice(0, 2000);
+  const meetLink = String(req.body.meet_link || '').trim();
+  if (meetLink && !portalMeet.looksLikeHttpUrl(meetLink)) return res.redirect(redir + '?meet_err=bad_link');
+  if ((await portalDb.countOverlappingMeetings(projectId, slot.startIso, slot.endIso)) > 0) {
+    return res.redirect(redir + '?meet_err=overlap');
+  }
+  const uid = req.session[PORTAL_USER_ID];
+  const role = req.session[PORTAL_USER_ROLE] === 'ADMIN' ? 'ADMIN' : 'DESIGNER';
+  await portalDb.createProjectMeeting({
+    projectId,
+    title,
+    startIso: slot.startIso,
+    endIso: slot.endIso,
+    meetLink,
+    proposedByUserId: uid,
+    proposedByRole: role,
+    status: portalDb.MEETING_STATUS.PENDING_CLIENT,
+    awaitingParty: 'CLIENT',
+    notes,
+  });
+  const msg = `A meeting was proposed for «${project.title}»: ${title}. Open Meetings to accept or decline.${
+    meetLink ? ` Link: ${meetLink}` : ''
+  }`;
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: msg,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [uid],
+      includeClient: true,
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/designer/projects/:id/meetings/:mid/accept', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/designer/projects/' + projectId + MEETING_TAB;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'meetings'))) return res.status(403).send('Forbidden');
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) return res.redirect(redir);
+  const meetLink = String(req.body.meet_link || '').trim();
+  if (!portalMeet.looksLikeHttpUrl(meetLink)) return res.redirect(redir + '?meet_err=need_meet_link');
+  await portalDb.updateMeetingStatus(projectId, mid, {
+    status: portalDb.MEETING_STATUS.CONFIRMED,
+    respondedByUserId: req.session[PORTAL_USER_ID],
+    meetLink,
+  });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `Meeting confirmed for «${project.title}»: ${m.title}. Link: ${meetLink}`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/designer/projects/:id/meetings/:mid/decline', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/designer/projects/' + projectId + MEETING_TAB;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'meetings'))) return res.status(403).send('Forbidden');
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) return res.redirect(redir);
+  await portalDb.updateMeetingStatus(projectId, mid, {
+    status: portalDb.MEETING_STATUS.DECLINED,
+    respondedByUserId: req.session[PORTAL_USER_ID],
+    declineReason: String(req.body.decline_reason || '').trim(),
+  });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `A meeting request was declined for «${project.title}»: ${m.title}.`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/designer/projects/:id/meetings/:mid/cancel', express.urlencoded({ extended: false }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/designer/projects/' + projectId + MEETING_TAB;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'meetings'))) return res.status(403).send('Forbidden');
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.proposed_by_user_id !== req.session[PORTAL_USER_ID]) return res.redirect(redir);
+  if (m.status !== portalDb.MEETING_STATUS.PENDING_CLIENT && m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) {
+    return res.redirect(redir);
+  }
+  await portalDb.updateMeetingStatus(projectId, mid, { status: portalDb.MEETING_STATUS.CANCELLED });
+  res.redirect(redir);
 });
 
 router.post(
@@ -2913,6 +3161,7 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const clientMessageAlerts = await portalDb.getClientHighlightMessages(project.id);
+  const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
@@ -2941,10 +3190,11 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     projectMessageThreads,
     clientMessageAlerts: clientMessageAlerts || [],
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
+    projectMeetings,
+    query: req.query,
   });
 });
 
-// ----- Mirror Mode (Admin/Designer view as client) -----
 router.post('/client/projects/:id/messages', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
   const access = await requireClientProjectAccess(req, req.params.id, 'messages');
@@ -3008,6 +3258,115 @@ router.post('/client/projects/:id/messages/:msgId/ack', express.urlencoded({ ext
   res.redirect('/portal/client/projects/' + req.params.id + '#tab-messages');
 });
 
+router.post('/client/projects/:id/meetings/propose', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'meetings');
+  if (!access) return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const redir = '/portal/client/projects/' + projectId + MEETING_TAB;
+  const slot = portalMeet.parseStartAndDuration(req.body.start_at, req.body.duration_minutes);
+  if (!slot) return res.redirect(redir + '?meet_err=invalid_time');
+  const title = (String(req.body.title || '').trim().slice(0, 500) || 'Meeting request');
+  const notes = String(req.body.notes || '').trim().slice(0, 2000);
+  if ((await portalDb.countOverlappingMeetings(projectId, slot.startIso, slot.endIso)) > 0) {
+    return res.redirect(redir + '?meet_err=overlap');
+  }
+  const uid = req.session[PORTAL_USER_ID];
+  await portalDb.createProjectMeeting({
+    projectId,
+    title,
+    startIso: slot.startIso,
+    endIso: slot.endIso,
+    meetLink: '',
+    proposedByUserId: uid,
+    proposedByRole: 'CLIENT',
+    status: portalDb.MEETING_STATUS.PENDING_STAFF,
+    awaitingParty: 'STAFF',
+    notes,
+  });
+  const proj = access.project;
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `The client requested a meeting on «${proj.title}»: ${title}. Open Meetings to confirm with a Google Meet link or decline.`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      includeClient: false,
+      excludeUserIds: [uid],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/client/projects/:id/meetings/:mid/accept', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'meetings');
+  if (!access) return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/client/projects/' + projectId + MEETING_TAB;
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.status !== portalDb.MEETING_STATUS.PENDING_CLIENT) return res.redirect(redir);
+  await portalDb.updateMeetingStatus(projectId, mid, {
+    status: portalDb.MEETING_STATUS.CONFIRMED,
+    respondedByUserId: req.session[PORTAL_USER_ID],
+  });
+  const link = (m.meet_link || '').trim();
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `The client accepted the meeting on «${access.project.title}»: ${m.title}.${link ? ` Link: ${link}` : ''}`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/client/projects/:id/meetings/:mid/decline', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'meetings');
+  if (!access) return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/client/projects/' + projectId + MEETING_TAB;
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.status !== portalDb.MEETING_STATUS.PENDING_CLIENT) return res.redirect(redir);
+  await portalDb.updateMeetingStatus(projectId, mid, {
+    status: portalDb.MEETING_STATUS.DECLINED,
+    respondedByUserId: req.session[PORTAL_USER_ID],
+    declineReason: String(req.body.decline_reason || '').trim(),
+  });
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MEETING,
+      message: `The client declined a proposed meeting on «${access.project.title}»: ${m.title}.`,
+      projectId,
+      tabSuffix: MEETING_TAB,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(redir);
+});
+
+router.post('/client/projects/:id/meetings/:mid/cancel', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'meetings');
+  if (!access) return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const mid = req.params.mid;
+  const redir = '/portal/client/projects/' + projectId + MEETING_TAB;
+  const m = await portalDb.getProjectMeetingById(mid, projectId);
+  if (!m || m.proposed_by_user_id !== req.session[PORTAL_USER_ID]) return res.redirect(redir);
+  if (m.status !== portalDb.MEETING_STATUS.PENDING_CLIENT && m.status !== portalDb.MEETING_STATUS.PENDING_STAFF) {
+    return res.redirect(redir);
+  }
+  await portalDb.updateMeetingStatus(projectId, mid, { status: portalDb.MEETING_STATUS.CANCELLED });
+  res.redirect(redir);
+});
+
+// ----- Mirror Mode (Admin/Designer view as client) -----
 router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.projectId);
   if (!project) return res.status(404).send('Project not found');
@@ -3069,6 +3428,7 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const clientMessageAlerts = await portalDb.getClientHighlightMessages(project.id);
+  const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
   res.locals.mirrorBanner = true;
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
@@ -3098,6 +3458,8 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
     projectMessageThreads,
     clientMessageAlerts: clientMessageAlerts || [],
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
+    projectMeetings,
+    query: req.query,
   });
 });
 

@@ -38,6 +38,8 @@
               <% if (cat === 'DOCUMENTS') { %><div class="small text-muted">Warranty, Vastu, documents</div><% } %>
               <% if (cat === 'LEAD') { %><div class="small text-muted">Lead notes &amp; CRM</div><% } %>
               <% if (cat === 'COMMENT') { %><div class="small text-muted">Comments on costs / designs</div><% } %>
+              <% if (cat === 'MESSAGE') { %><div class="small text-muted">Studio ↔ client messages tab</div><% } %>
+              <% if (cat === 'MEETING') { %><div class="small text-muted">Meeting proposals, accept / decline</div><% } %>
             </td>
             <td class="text-center">
               <input type="checkbox" class="form-check-input" name="client_<%= cat %>" value="1" <%= Number(row.notify_client) === 1 ? 'checked' : '' %> />

@@ -1,0 +1,161 @@
+<%
+  var mm = typeof meetingsMode !== 'undefined' ? meetingsMode : 'client';
+  var pid = typeof project !== 'undefined' && project && project.id ? project.id : '';
+  var rows = typeof projectMeetings !== 'undefined' && Array.isArray(projectMeetings) ? projectMeetings : [];
+  var ro = typeof readOnly !== 'undefined' && readOnly;
+  var q = typeof query !== 'undefined' && query ? query : {};
+  var meetErr = q.meet_err || '';
+  var errMsg = '';
+  if (meetErr === 'overlap') errMsg = 'That time overlaps another pending or confirmed meeting for this project.';
+  else if (meetErr === 'invalid_time') errMsg = 'Please choose a valid date and time.';
+  else if (meetErr === 'bad_link') errMsg = 'Meeting link must be a valid http(s) URL.';
+  else if (meetErr === 'need_meet_link') errMsg = 'Paste the Google Meet (or video) link when you accept.';
+  function statusLabel(s) {
+    if (s === 'PENDING_CLIENT') return 'Awaiting client';
+    if (s === 'PENDING_STAFF') return 'Awaiting studio';
+    if (s === 'CONFIRMED') return 'Confirmed';
+    if (s === 'DECLINED') return 'Declined';
+    if (s === 'CANCELLED') return 'Cancelled';
+    return s || '';
+  }
+  function fmtWhen(iso) {
+    try {
+      var d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    } catch (e) { return iso; }
+  }
+  var basePath = mm === 'admin' ? '/portal/admin/projects/' + pid : (mm === 'designer' ? '/portal/designer/projects/' + pid : '/portal/client/projects/' + pid);
+%>
+<div class="tab-pane fade<%= typeof meetingsTabPaneClass !== 'undefined' ? meetingsTabPaneClass : '' %>" id="tab-meetings" role="tabpanel">
+  <div class="card card-portal mb-4">
+    <div class="card-header serif text-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span>Meetings</span>
+      <span class="small text-muted fw-normal">Times already booked below block double-booking. Google Meet: paste a link or use “Add to Google Calendar”.</span>
+    </div>
+    <div class="card-body">
+      <% if (errMsg) { %>
+      <div class="alert alert-warning border border-warning text-dark py-2 small mb-3"><%= errMsg %></div>
+      <% } %>
+      <% if (!ro && (mm === 'admin' || mm === 'designer' || mm === 'client')) { %>
+      <div class="border border-secondary border-opacity-25 rounded p-3 mb-4 bg-dark bg-opacity-25">
+        <h6 class="text-warning serif h6 mb-3"><%= mm === 'client' ? 'Request a meeting' : 'Propose a meeting to the client' %></h6>
+        <form method="post" action="<%= basePath %>/meetings/propose" class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label small text-muted mb-1">Title</label>
+            <input type="text" name="title" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="500" placeholder="e.g. Design review" <%= mm === 'client' ? '' : 'value="Project meeting"' %> />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small text-muted mb-1">Start</label>
+            <input type="datetime-local" name="start_at" class="form-control form-control-sm bg-dark text-light border-secondary" required />
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label small text-muted mb-1">Duration</label>
+            <select name="duration_minutes" class="form-select form-select-sm bg-dark text-light border-secondary">
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60" selected>60 min</option>
+              <option value="90">90 min</option>
+              <option value="120">2 h</option>
+            </select>
+          </div>
+          <% if (mm === 'admin' || mm === 'designer') { %>
+          <div class="col-12">
+            <label class="form-label small text-muted mb-1">Google Meet / video link (optional)</label>
+            <input type="url" name="meet_link" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="https://meet.google.com/..." />
+            <p class="small text-muted mb-0 mt-1">Create a video meeting in Google Calendar, then paste the link here—or leave blank and add it after the client accepts.</p>
+          </div>
+          <% } %>
+          <div class="col-12">
+            <label class="form-label small text-muted mb-1">Notes (optional)</label>
+            <textarea name="notes" class="form-control form-control-sm bg-dark text-light border-secondary" rows="2" maxlength="2000" placeholder="Agenda or context"></textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-gold btn-sm"><%= mm === 'client' ? 'Send request' : 'Send proposal' %></button>
+          </div>
+        </form>
+      </div>
+      <% } %>
+
+      <h6 class="text-warning serif h6 mb-3">Calendar (this project)</h6>
+      <p class="small text-muted mb-3">Pending and confirmed meetings reserve this window so nothing else can be booked at the same time.</p>
+      <% if (rows.length === 0) { %>
+      <p class="text-muted mb-0">No meetings yet.</p>
+      <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-sm table-dark table-borderless border border-secondary border-opacity-25 rounded overflow-hidden align-middle">
+          <thead class="table-secondary text-dark">
+            <tr>
+              <th>When</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>By</th>
+              <th class="d-none d-md-table-cell">Link</th>
+              <% if (!ro) { %><th></th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows.forEach(function(m) {
+                 var busy = m.status === 'CONFIRMED' || m.status === 'PENDING_CLIENT' || m.status === 'PENDING_STAFF';
+            %>
+            <tr class="<%= busy ? 'border-start border-3 border-warning' : '' %>">
+              <td class="small text-nowrap"><%= fmtWhen(m.start_at) %> – <%= fmtWhen(m.end_at) %></td>
+              <td><%= m.title %><% if (m.notes) { %><div class="small text-muted mt-1" style="white-space:pre-wrap"><%= m.notes %></div><% } %></td>
+              <td><span class="badge bg-secondary"><%= statusLabel(m.status) %></span></td>
+              <td class="small"><%= m.proposer_name || m.proposed_by_role %> <% if (m.proposed_by_role === 'CLIENT') { %><span class="text-muted">(client)</span><% } %></td>
+              <td class="small d-none d-md-table-cell">
+                <% if (m.meet_link) { %><a href="<%= m.meet_link %>" target="_blank" rel="noopener" class="text-warning text-break">Join</a><% } else { %>—<% } %>
+                <% if (m.google_calendar_url && (m.status === 'PENDING_CLIENT' || m.status === 'PENDING_STAFF' || !m.meet_link)) { %>
+                <div class="mt-1"><a href="<%= m.google_calendar_url %>" target="_blank" rel="noopener" class="small">Add to Google Calendar</a></div>
+                <% } %>
+              </td>
+              <% if (!ro) { %>
+              <td class="text-end">
+                <% if (mm === 'client' && m.status === 'PENDING_CLIENT') { %>
+                <form method="post" action="<%= basePath %>/meetings/<%= m.id %>/accept" class="d-inline">
+                  <button type="submit" class="btn btn-gold btn-sm">Accept</button>
+                </form>
+                <form method="post" action="<%= basePath %>/meetings/<%= m.id %>/decline" class="d-inline-block ms-1 mt-1 mt-md-0 align-top">
+                  <input type="text" name="decline_reason" class="form-control form-control-sm bg-dark text-light border-secondary d-inline-block mb-1" style="max-width:160px" placeholder="Reason (optional)" />
+                  <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                </form>
+                <% } %>
+                <% if ((mm === 'admin' || mm === 'designer') && m.status === 'PENDING_STAFF') { %>
+                <div class="d-flex flex-column gap-2 align-items-stretch align-items-md-end">
+                  <form method="post" action="<%= basePath %>/meetings/<%= m.id %>/accept" class="d-flex flex-wrap gap-1 align-items-center justify-content-end">
+                    <input type="url" name="meet_link" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:180px;max-width:260px" placeholder="Google Meet URL" required />
+                    <button type="submit" class="btn btn-gold btn-sm">Accept + link</button>
+                  </form>
+                  <form method="post" action="<%= basePath %>/meetings/<%= m.id %>/decline" class="d-flex flex-wrap gap-1 align-items-center justify-content-end">
+                    <input type="text" name="decline_reason" class="form-control form-control-sm bg-dark text-light border-secondary" style="max-width:180px" placeholder="Reason (optional)" />
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                  </form>
+                </div>
+                <% } %>
+                <% var canCancel = (m.status === 'PENDING_CLIENT' || m.status === 'PENDING_STAFF'); %>
+                <% var isProposer = typeof portalUser !== 'undefined' && portalUser && m.proposed_by_user_id === portalUser.id; %>
+                <% if (canCancel && !ro && isProposer) { %>
+                <form method="post" action="<%= basePath %>/meetings/<%= m.id %>/cancel" class="mt-1 d-inline" onsubmit="return confirm('Cancel this meeting request?');">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm">Cancel request</button>
+                </form>
+                <% } %>
+              </td>
+              <% } %>
+            </tr>
+            <% if (m.status === 'DECLINED' && m.decline_reason) { %>
+            <tr><td colspan="6" class="small text-muted pb-3">Reason: <%= m.decline_reason %></td></tr>
+            <% } %>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+
+      <div class="alert alert-secondary border border-secondary small text-light mt-4 mb-0">
+        <strong class="text-warning">Integrations:</strong> This portal stores meetings and blocks overlapping slots here. To <em>automatically</em> create Google Meet links and write events to Google Calendar, you would connect the
+        <a href="https://developers.google.com/calendar/api/guides/create-events" class="alert-link" target="_blank" rel="noopener">Google Calendar API</a>
+        (Workspace or OAuth). Until then, use “Add to Google Calendar” and paste the Meet link from the event.
+      </div>
+    </div>
+  </div>
+</div>

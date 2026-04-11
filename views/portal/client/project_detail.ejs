@@ -1,6 +1,6 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Progress: <strong><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></strong></p>
-<% var tabOrderClient = ['updates','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages'];
+<% var tabOrderClient = ['updates','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages','meetings'];
    var cTabs = typeof clientAllowedTabs !== 'undefined' && clientAllowedTabs ? clientAllowedTabs : {};
    tabOrderClient.forEach(function(k) { if (cTabs[k] === undefined) cTabs[k] = true; });
    var anyClientTab = tabOrderClient.some(function(k) { return cTabs[k]; });
@@ -90,6 +90,11 @@
   <% if (cTabs.messages) { %>
   <li class="nav-item" role="presentation">
     <button class="nav-link<%= firstVis === 'messages' ? ' active' : '' %>" id="tab-messages-btn" data-bs-toggle="tab" data-bs-target="#tab-messages" type="button" role="tab">Messages</button>
+  </li>
+  <% } %>
+  <% if (cTabs.meetings) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'meetings' ? ' active' : '' %>" id="tab-meetings-btn" data-bs-toggle="tab" data-bs-target="#tab-meetings" type="button" role="tab">Meetings</button>
   </li>
   <% } %>
 </ul>
@@ -362,6 +367,9 @@
   <% } %>
   <% if (cTabs.messages) { %>
   <%- include('../partials/project_messages_tab', { messagesMode: 'client', project, projectMessageThreads: typeof projectMessageThreads !== 'undefined' ? projectMessageThreads : [], messagePriorities: typeof messagePriorities !== 'undefined' ? messagePriorities : [], readOnly: typeof readOnly !== 'undefined' ? readOnly : false, designerMessagingEnabled: true, messagesTabPaneClass: firstVis === 'messages' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (cTabs.meetings) { %>
+  <%- include('../partials/project_meetings_tab', { meetingsMode: 'client', project, projectMeetings: typeof projectMeetings !== 'undefined' ? projectMeetings : [], readOnly: typeof readOnly !== 'undefined' ? readOnly : false, meetingsTabPaneClass: firstVis === 'meetings' ? ' show active' : '', query: typeof query !== 'undefined' ? query : {} }) %>
   <% } %>
 </div>
 <% } %>

@@ -276,6 +276,30 @@ db.serialize(() => {
     )`
   );
   db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_meetings (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      start_at TEXT NOT NULL,
+      end_at TEXT NOT NULL,
+      meet_link TEXT NOT NULL DEFAULT '',
+      proposed_by_user_id TEXT NOT NULL,
+      proposed_by_role TEXT NOT NULL,
+      status TEXT NOT NULL,
+      awaiting_party TEXT NOT NULL,
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      responded_at TEXT,
+      responded_by_user_id TEXT,
+      decline_reason TEXT NOT NULL DEFAULT '',
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    'CREATE INDEX IF NOT EXISTS idx_portal_meetings_project_time ON portal_project_meetings (project_id, start_at, end_at)',
+    () => {}
+  );
+  db.run(
     `CREATE TABLE IF NOT EXISTS portal_project_members (
       id TEXT PRIMARY KEY,
       project_id TEXT NOT NULL,
@@ -288,7 +312,7 @@ db.serialize(() => {
     )`
   );
   const DEFAULT_PORTAL_MEMBER_TABS =
-    '["updates","timelines","mood-board","vault","material-selection","daily","finance","warranty","vastu","other-docs","messages"]';
+    '["updates","timelines","mood-board","vault","material-selection","daily","finance","warranty","vastu","other-docs","messages","meetings"]';
   db.all('SELECT id, client_id FROM portal_projects', [], (mErr, projRows) => {
     if (mErr || !projRows || !projRows.length) return;
     const stmt = db.prepare(
@@ -328,7 +352,7 @@ db.serialize(() => {
     )`
   );
   const DEFAULT_DESIGNER_PORTAL_TABS =
-    '["updates","timelines","mood-board","vault","material-selection","daily","vastu","other-docs","messages"]';
+    '["updates","timelines","mood-board","vault","material-selection","daily","vastu","other-docs","messages","meetings"]';
   db.all('SELECT id, designer_id FROM portal_projects WHERE designer_id IS NOT NULL', [], (dErr, dRows) => {
     if (dErr || !dRows || !dRows.length) return;
     const dst = db.prepare(
@@ -378,6 +402,36 @@ db.serialize(() => {
         const a = JSON.parse(r.allowed_tabs || '[]');
         if (!Array.isArray(a) || a.includes('messages')) continue;
         a.push('messages');
+        ud.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep */
+      }
+    }
+    ud.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_members', [], (mtgMErr, mtgMRows) => {
+    if (mtgMErr || !mtgMRows || !mtgMRows.length) return;
+    const um = db.prepare('UPDATE portal_project_members SET allowed_tabs = ? WHERE id = ?');
+    for (const r of mtgMRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('meetings')) continue;
+        a.push('meetings');
+        um.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep */
+      }
+    }
+    um.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_designers', [], (mtgDErr, mtgDRows) => {
+    if (mtgDErr || !mtgDRows || !mtgDRows.length) return;
+    const ud = db.prepare('UPDATE portal_project_designers SET allowed_tabs = ? WHERE id = ?');
+    for (const r of mtgDRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('meetings')) continue;
+        a.push('meetings');
         ud.run(JSON.stringify(a), r.id);
       } catch (_e) {
         /* keep */
@@ -652,6 +706,7 @@ db.serialize(() => {
     ['LEAD', 0, 1, 1],
     ['COMMENT', 1, 1, 1],
     ['MESSAGE', 1, 1, 1],
+    ['MEETING', 1, 1, 1],
   ];
   notifyCats.forEach(([cat, c, a, d]) => {
     db.run(

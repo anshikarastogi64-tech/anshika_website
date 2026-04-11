@@ -39,6 +39,9 @@
     <button class="nav-link" id="tab-messages-btn" data-bs-toggle="tab" data-bs-target="#tab-messages" type="button" role="tab">Messages</button>
   </li>
   <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-meetings-btn" data-bs-toggle="tab" data-bs-target="#tab-meetings" type="button" role="tab">Meetings</button>
+  </li>
+  <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-other-docs-btn" data-bs-toggle="tab" data-bs-target="#tab-other-docs" type="button" role="tab">Other documents</button>
   </li>
 </ul>
@@ -97,8 +100,8 @@
         <p class="small text-muted mb-3">Every designer is already on this project (or there are no other designer accounts).</p>
         <% } %>
         <% if (typeof projectDesigners !== 'undefined' && projectDesigners.length) {
-          var dtabLabels = { updates: 'Updates', messages: 'Messages', timelines: 'Timelines', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', vastu: 'Vastu', 'mood-board': 'Mood board', 'other-docs': 'Other docs' };
-          var dtabKeys = typeof designerPortalTabKeys !== 'undefined' && designerPortalTabKeys.length ? designerPortalTabKeys : ['updates','messages','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
+          var dtabLabels = { updates: 'Updates', messages: 'Messages', meetings: 'Meetings', timelines: 'Timelines', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', vastu: 'Vastu', 'mood-board': 'Mood board', 'other-docs': 'Other docs' };
+          var dtabKeys = typeof designerPortalTabKeys !== 'undefined' && designerPortalTabKeys.length ? designerPortalTabKeys : ['updates','messages','meetings','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
         %>
         <% projectDesigners.forEach(function(dm) {
           var dtabSet = {};
@@ -163,8 +166,8 @@
         <p class="small text-muted mb-3">Every client user is already linked to this project (or there are no other client accounts).</p>
         <% } %>
         <% if (typeof projectMembers !== 'undefined' && projectMembers.length) {
-          var tabLabels = { updates: 'Updates', messages: 'Messages', timelines: 'Timelines', 'mood-board': 'Mood board', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', finance: 'Finance', warranty: 'Warranty', vastu: 'Vastu', 'other-docs': 'Other docs' };
-          var tabKeys = typeof clientPortalTabKeys !== 'undefined' && clientPortalTabKeys.length ? clientPortalTabKeys : ['updates','messages','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs'];
+          var tabLabels = { updates: 'Updates', messages: 'Messages', meetings: 'Meetings', timelines: 'Timelines', 'mood-board': 'Mood board', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', finance: 'Finance', warranty: 'Warranty', vastu: 'Vastu', 'other-docs': 'Other docs' };
+          var tabKeys = typeof clientPortalTabKeys !== 'undefined' && clientPortalTabKeys.length ? clientPortalTabKeys : ['updates','messages','meetings','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs'];
         %>
         <% projectMembers.forEach(function(m) {
           var tabSet = {};
@@ -558,6 +561,7 @@
     </div>
   </div>
   <%- include('../partials/project_messages_tab', { messagesMode: 'admin', project, projectMessageThreads: typeof projectMessageThreads !== 'undefined' ? projectMessageThreads : [], messagePriorities: typeof messagePriorities !== 'undefined' ? messagePriorities : [], readOnly: false, designerMessagingEnabled: true, messagesTabPaneClass: '' }) %>
+  <%- include('../partials/project_meetings_tab', { meetingsMode: 'admin', project, projectMeetings: typeof projectMeetings !== 'undefined' ? projectMeetings : [], readOnly: false, meetingsTabPaneClass: '', query: typeof query !== 'undefined' ? query : {} }) %>
   <%- include('../partials/other_documents_tab', { project, otherDocs: typeof otherDocs !== 'undefined' ? otherDocs : [], otherDocsMode: 'admin' }) %>
 </div>
 
