@@ -143,7 +143,54 @@
   <%- include('partials/portal_pdf_modal') %>
   <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script>
-  // Activate correct tab from URL hash or one-time session flag (e.g. #tab-vault, #tab-finance, #tab-daily)
+  // Activate correct tab from URL hash, hash changes, or one-time session flag (e.g. #tab-vault, #tab-messages)
+  function portalActivateTabFromHash(hash) {
+    try {
+      if (!window.bootstrap) return;
+      var h = hash != null ? hash : (window.location.hash || '');
+      if (!h || h.indexOf('#tab-') !== 0) return;
+      var tabTrigger = document.querySelector('[data-bs-target="' + h + '"]');
+      if (tabTrigger) {
+        var tab = window.bootstrap.Tab.getOrCreateInstance(tabTrigger);
+        tab.show();
+      }
+    } catch (e) {}
+  }
+
+  /** Switch Bootstrap tab by pane id (e.g. '#tab-messages' or 'messages'). Updates the URL hash. */
+  window.portalSwitchToTabPane = function (tabTarget) {
+    try {
+      if (!window.bootstrap) return;
+      var h = String(tabTarget || '').trim();
+      if (!h) return;
+      if (h.indexOf('#') !== 0) {
+        h = h.indexOf('tab-') === 0 ? '#' + h : '#tab-' + h;
+      }
+      if (h.indexOf('#tab-') !== 0) return;
+      portalActivateTabFromHash(h);
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + h);
+      } else {
+        window.location.hash = h;
+      }
+    } catch (e) {}
+  };
+
+  // In-page links like <a href="#tab-messages"> must switch tabs on click; hashchange alone is unreliable
+  // and the default jump-to-id can target a hidden tab pane.
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+    if (!el || typeof el.closest !== 'function') return;
+    var a = el.closest('a[href^="#tab-"]');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href || href.indexOf('#tab-') !== 0) return;
+    if (!document.querySelector('[data-bs-target="' + href + '"]')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (window.portalSwitchToTabPane) window.portalSwitchToTabPane(href);
+  });
+
   document.addEventListener('DOMContentLoaded', function() {
     try {
       if (!window.bootstrap) return;
@@ -159,13 +206,13 @@
         }
       }
       if (targetHash) {
-        var tabTrigger = document.querySelector('[data-bs-target=\"' + targetHash + '\"]');
-        if (tabTrigger) {
-          var tab = window.bootstrap.Tab.getOrCreateInstance(tabTrigger);
-          tab.show();
-        }
-      }      
+        portalActivateTabFromHash(targetHash);
+      }
     } catch (e) {}
+  });
+
+  window.addEventListener('hashchange', function() {
+    portalActivateTabFromHash(window.location.hash || '');
   });
 
   document.addEventListener('DOMContentLoaded', function() {

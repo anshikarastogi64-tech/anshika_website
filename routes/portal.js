@@ -224,6 +224,22 @@ function clientTabVisibilityMap(allowedTabsSet) {
   return m;
 }
 
+function groupPortalProjectMessages(rows) {
+  const byThread = {};
+  (rows || []).forEach((r) => {
+    if (!byThread[r.thread_id]) byThread[r.thread_id] = [];
+    byThread[r.thread_id].push(r);
+  });
+  return Object.keys(byThread)
+    .map((tid) => {
+      const msgs = byThread[tid].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      const root = msgs.find((m) => !m.parent_id) || msgs[0];
+      const last = msgs[msgs.length - 1];
+      return { threadId: tid, messages: msgs, root, lastAt: last.created_at };
+    })
+    .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
+}
+
 function allClientTabsVisibleMap() {
   const m = {};
   for (const k of portalDb.CLIENT_PORTAL_TAB_KEYS) {
@@ -625,6 +641,8 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const quotationBaseForTerms =
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPayments || []);
+  const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
+  const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   renderPortal(req, res, 'portal/admin/project_detail', {
     project,
     quotation,
@@ -661,6 +679,8 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     designerPortalTabKeys: portalDb.DESIGNER_PORTAL_TAB_KEYS,
     materialSelections: materialSelections || [],
     designsForMaterialLink: designsForMaterialLink || [],
+    projectMessageThreads,
+    messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
   });
 });
 
@@ -1319,6 +1339,70 @@ router.post('/admin/projects/:id/mood-board', requirePortalAuth, requireAdmin, m
     })
   );
   res.redirect('/portal/admin/projects/' + projectId + '#tab-mood-board');
+});
+
+router.post('/admin/projects/:id/designer-messaging', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Not found');
+  const enabled = req.body.enable_designer_messaging === '1';
+  await portalDb.updateProject(projectId, { designer_client_messaging_enabled: enabled ? 1 : 0 });
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-messages');
+});
+
+router.post('/admin/projects/:id/messages', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Not found');
+  const body = String(req.body.body || '').trim();
+  if (!body) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent('Message is required.') + '#tab-messages');
+  }
+  try {
+    await portalDb.createProjectMessage(projectId, req.session[PORTAL_USER_ID], 'ADMIN', body, { priority: req.body.priority });
+  } catch (_e) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent('Could not save message.') + '#tab-messages');
+  }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MESSAGE,
+      message: `New studio message on «${project.title}». Open Messages to read and reply.`,
+      projectId,
+      tabSuffix: '#tab-messages',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: true,
+    })
+  );
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-messages');
+});
+
+router.post('/admin/projects/:id/messages/:msgId/reply', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const projectId = req.params.id;
+  const parentId = req.params.msgId;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Not found');
+  const parent = await portalDb.getProjectMessageById(parentId, projectId);
+  if (!parent) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent('Message not found.') + '#tab-messages');
+  }
+  const body = String(req.body.body || '').trim();
+  if (!body) return res.redirect('/portal/admin/projects/' + projectId + '#tab-messages');
+  try {
+    await portalDb.createProjectMessage(projectId, req.session[PORTAL_USER_ID], 'ADMIN', body, { parentId });
+  } catch (_e) {
+    return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent('Could not save reply.') + '#tab-messages');
+  }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MESSAGE,
+      message: `Your studio replied on messages for «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-messages',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: true,
+    })
+  );
+  res.redirect('/portal/admin/projects/' + projectId + '#tab-messages');
 });
 
 router.post(
@@ -2103,6 +2187,8 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     portalDb.getDesignsForProjectWithDetails(project.id, { forClient: true }),
   ]);
   enrichProjectLifecycle(project);
+  const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
+  const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   renderPortal(req, res, 'portal/designer/project_detail', {
     project,
     query: req.query,
@@ -2119,6 +2205,9 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     materialSelections: materialSelections || [],
     designsForMaterialLink: designsForMaterialLink || [],
     designerAllowedTabs,
+    projectMessageThreads,
+    messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
+    designerMessagingEnabled: Number(project.designer_client_messaging_enabled) === 1,
   });
 });
 
@@ -2262,6 +2351,75 @@ router.post('/designer/projects/:id/mood-board', requirePortalAuth, requireDesig
     })
   );
   res.redirect('/portal/designer/projects/' + projectId + '#tab-mood-board');
+});
+
+router.post('/designer/projects/:id/messages', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'messages'))) return res.status(403).send('Forbidden');
+  if (Number(project.designer_client_messaging_enabled) !== 1) {
+    return res.redirect(
+      '/portal/designer/projects/' +
+        projectId +
+        '?msg=' +
+        encodeURIComponent('Admin has disabled designer messaging for this project.') +
+        '#tab-messages'
+    );
+  }
+  const body = String(req.body.body || '').trim();
+  if (!body) return res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+  try {
+    await portalDb.createProjectMessage(projectId, req.session[PORTAL_USER_ID], 'DESIGNER', body, { priority: req.body.priority });
+  } catch (_e) {
+    return res.redirect('/portal/designer/projects/' + projectId + '?msg=' + encodeURIComponent('Could not save message.') + '#tab-messages');
+  }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MESSAGE,
+      message: `New studio message on «${project.title}». Open Messages to read and reply.`,
+      projectId,
+      tabSuffix: '#tab-messages',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: true,
+    })
+  );
+  res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+});
+
+router.post('/designer/projects/:id/messages/:msgId/reply', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const parentId = req.params.msgId;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+    return res.status(403).send('Forbidden');
+  }
+  if (!(await assertDesignerTab(req, projectId, 'messages'))) return res.status(403).send('Forbidden');
+  if (Number(project.designer_client_messaging_enabled) !== 1) {
+    return res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+  }
+  const parent = await portalDb.getProjectMessageById(parentId, projectId);
+  if (!parent) return res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+  const body = String(req.body.body || '').trim();
+  if (!body) return res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+  try {
+    await portalDb.createProjectMessage(projectId, req.session[PORTAL_USER_ID], 'DESIGNER', body, { parentId });
+  } catch (_e) {
+    return res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
+  }
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MESSAGE,
+      message: `Your studio replied on messages for «${project.title}».`,
+      projectId,
+      tabSuffix: '#tab-messages',
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+      includeClient: true,
+    })
+  );
+  res.redirect('/portal/designer/projects/' + projectId + '#tab-messages');
 });
 
 router.post(
@@ -2752,6 +2910,9 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
   const materialSelections = await portalDb.getMaterialSelectionsForProject(project.id);
+  const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
+  const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
+  const clientMessageAlerts = await portalDb.getClientHighlightMessages(project.id);
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
@@ -2777,10 +2938,76 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     paymentScheduleProgress,
     clientAllowedTabs,
     materialSelections: materialSelections || [],
+    projectMessageThreads,
+    clientMessageAlerts: clientMessageAlerts || [],
+    messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
   });
 });
 
 // ----- Mirror Mode (Admin/Designer view as client) -----
+router.post('/client/projects/:id/messages', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'messages');
+  if (!access) return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const body = String(req.body.body || '').trim();
+  if (!body) return res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+  try {
+    await portalDb.createProjectMessage(projectId, req.session[PORTAL_USER_ID], 'CLIENT', body, {});
+  } catch (_e) {
+    return res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+  }
+  const proj = access.project;
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MESSAGE,
+      message: `Client sent a message on «${proj.title}».`,
+      projectId,
+      tabSuffix: '#tab-messages',
+      includeClient: false,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+});
+
+router.post('/client/projects/:id/messages/:msgId/reply', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'messages');
+  if (!access) return res.status(403).send('Forbidden');
+  const projectId = req.params.id;
+  const parentId = req.params.msgId;
+  const parent = await portalDb.getProjectMessageById(parentId, projectId);
+  if (!parent) return res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+  const body = String(req.body.body || '').trim();
+  if (!body) return res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+  try {
+    await portalDb.createProjectMessage(projectId, req.session[PORTAL_USER_ID], 'CLIENT', body, { parentId });
+  } catch (_e) {
+    return res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+  }
+  const proj = access.project;
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.MESSAGE,
+      message: `Client replied on messages for «${proj.title}».`,
+      projectId,
+      tabSuffix: '#tab-messages',
+      includeClient: false,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect('/portal/client/projects/' + projectId + '#tab-messages');
+});
+
+router.post('/client/projects/:id/messages/:msgId/ack', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const access = await requireClientProjectAccess(req, req.params.id, 'messages');
+  if (!access) return res.status(403).send('Forbidden');
+  await portalDb.acknowledgeStaffMessageForClient(req.params.msgId, req.params.id);
+  res.redirect('/portal/client/projects/' + req.params.id + '#tab-messages');
+});
+
 router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.projectId);
   if (!project) return res.status(404).send('Project not found');
@@ -2839,6 +3066,9 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPaymentsAll);
   const materialSelections = await portalDb.getMaterialSelectionsForProject(project.id);
+  const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
+  const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
+  const clientMessageAlerts = await portalDb.getClientHighlightMessages(project.id);
   res.locals.mirrorBanner = true;
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
@@ -2865,6 +3095,9 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
     paymentScheduleProgress,
     clientAllowedTabs: allClientTabsVisibleMap(),
     materialSelections: materialSelections || [],
+    projectMessageThreads,
+    clientMessageAlerts: clientMessageAlerts || [],
+    messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
   });
 });
 

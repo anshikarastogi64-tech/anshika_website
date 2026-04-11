@@ -259,6 +259,22 @@ db.serialize(() => {
   db.run('ALTER TABLE portal_projects ADD COLUMN lifecycle_active_stages TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN payment_terms_json TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN payment_schedule_notify_fingerprint TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN designer_client_messaging_enabled INTEGER NOT NULL DEFAULT 0', () => {});
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_messages (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      thread_id TEXT NOT NULL,
+      parent_id TEXT,
+      author_user_id TEXT NOT NULL,
+      author_role TEXT NOT NULL,
+      body TEXT NOT NULL,
+      priority TEXT,
+      client_ack_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_project_members (
       id TEXT PRIMARY KEY,
@@ -272,7 +288,7 @@ db.serialize(() => {
     )`
   );
   const DEFAULT_PORTAL_MEMBER_TABS =
-    '["updates","timelines","mood-board","vault","material-selection","daily","finance","warranty","vastu","other-docs"]';
+    '["updates","timelines","mood-board","vault","material-selection","daily","finance","warranty","vastu","other-docs","messages"]';
   db.all('SELECT id, client_id FROM portal_projects', [], (mErr, projRows) => {
     if (mErr || !projRows || !projRows.length) return;
     const stmt = db.prepare(
@@ -312,7 +328,7 @@ db.serialize(() => {
     )`
   );
   const DEFAULT_DESIGNER_PORTAL_TABS =
-    '["updates","timelines","mood-board","vault","material-selection","daily","vastu","other-docs"]';
+    '["updates","timelines","mood-board","vault","material-selection","daily","vastu","other-docs","messages"]';
   db.all('SELECT id, designer_id FROM portal_projects WHERE designer_id IS NOT NULL', [], (dErr, dRows) => {
     if (dErr || !dRows || !dRows.length) return;
     const dst = db.prepare(
@@ -338,6 +354,36 @@ db.serialize(() => {
       }
     }
     u.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_members', [], (msgMErr, msgMRows) => {
+    if (msgMErr || !msgMRows || !msgMRows.length) return;
+    const um = db.prepare('UPDATE portal_project_members SET allowed_tabs = ? WHERE id = ?');
+    for (const r of msgMRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('messages')) continue;
+        a.push('messages');
+        um.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep */
+      }
+    }
+    um.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_designers', [], (msgDErr, msgDRows) => {
+    if (msgDErr || !msgDRows || !msgDRows.length) return;
+    const ud = db.prepare('UPDATE portal_project_designers SET allowed_tabs = ? WHERE id = ?');
+    for (const r of msgDRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('messages')) continue;
+        a.push('messages');
+        ud.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep */
+      }
+    }
+    ud.finalize();
   });
   db.all(
     'SELECT id, current_stage FROM portal_projects WHERE lifecycle_completed_stages IS NULL',
@@ -605,6 +651,7 @@ db.serialize(() => {
     ['DOCUMENTS', 1, 1, 1],
     ['LEAD', 0, 1, 1],
     ['COMMENT', 1, 1, 1],
+    ['MESSAGE', 1, 1, 1],
   ];
   notifyCats.forEach(([cat, c, a, d]) => {
     db.run(

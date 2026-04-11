@@ -3,7 +3,7 @@
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
-<% var tabOrderDesigner = ['updates','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
+<% var tabOrderDesigner = ['updates','messages','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
    var dTabs = typeof designerAllowedTabs !== 'undefined' && designerAllowedTabs ? designerAllowedTabs : {};
    tabOrderDesigner.forEach(function(k) { if (dTabs[k] === undefined) dTabs[k] = true; });
    var anyDesignerTab = tabOrderDesigner.some(function(k) { return dTabs[k]; });
@@ -16,6 +16,11 @@
   <% if (dTabs.updates) { %>
   <li class="nav-item" role="presentation">
     <button class="nav-link<%= firstVis === 'updates' ? ' active' : '' %>" id="tab-updates-btn" data-bs-toggle="tab" data-bs-target="#tab-updates" type="button" role="tab">Updates & Progress</button>
+  </li>
+  <% } %>
+  <% if (dTabs.messages) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'messages' ? ' active' : '' %>" id="tab-messages-btn" data-bs-toggle="tab" data-bs-target="#tab-messages" type="button" role="tab">Messages</button>
   </li>
   <% } %>
   <% if (dTabs.timelines) { %>
@@ -83,6 +88,9 @@
       <% if (dTabs.daily) { %><button type="button" class="btn btn-outline-gold" onclick="window.switchToDailyUpdates && window.switchToDailyUpdates()">View Project Progress</button><% } %>
     </p>
   </div>
+  <% } %>
+  <% if (dTabs.messages) { %>
+  <%- include('../partials/project_messages_tab', { messagesMode: 'designer', project, projectMessageThreads: typeof projectMessageThreads !== 'undefined' ? projectMessageThreads : [], messagePriorities: typeof messagePriorities !== 'undefined' ? messagePriorities : [], readOnly: false, designerMessagingEnabled: typeof designerMessagingEnabled !== 'undefined' ? designerMessagingEnabled : false, messagesTabPaneClass: firstVis === 'messages' ? ' show active' : '' }) %>
   <% } %>
   <% if (dTabs.timelines) { %>
   <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'designer', timelineBasePath: '/portal/designer/projects/' + project.id + '/timeline', timelineTabPaneClass: firstVis === 'timelines' ? ' show active' : '' }) %>

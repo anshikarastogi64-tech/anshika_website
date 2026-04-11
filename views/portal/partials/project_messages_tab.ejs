@@ -1,0 +1,120 @@
+<%
+  var mm = typeof messagesMode !== 'undefined' ? messagesMode : 'client';
+  var threads = typeof projectMessageThreads !== 'undefined' && Array.isArray(projectMessageThreads) ? projectMessageThreads : [];
+  var prios = typeof messagePriorities !== 'undefined' && Array.isArray(messagePriorities) ? messagePriorities : ['CRITICAL','URGENT','IMPORTANT','INFO','GENERAL'];
+  var pid = typeof project !== 'undefined' && project && project.id ? project.id : '';
+  var ro = typeof readOnly !== 'undefined' && readOnly;
+  var dme = typeof designerMessagingEnabled !== 'undefined' && designerMessagingEnabled;
+  function roleLabel(r) {
+    r = (r || '').toUpperCase();
+    if (r === 'ADMIN') return 'Admin';
+    if (r === 'DESIGNER') return 'Designer';
+    if (r === 'CLIENT') return 'You';
+    return r || 'Team';
+  }
+  function priorityBadgeClass(p) {
+    p = (p || '').toUpperCase();
+    if (p === 'CRITICAL') return 'bg-danger text-white';
+    if (p === 'URGENT') return 'bg-warning text-dark';
+    if (p === 'IMPORTANT') return 'bg-info text-dark';
+    if (p === 'INFO') return 'bg-secondary';
+    return 'bg-dark border border-secondary text-light';
+  }
+%>
+<div class="tab-pane fade<%= typeof messagesTabPaneClass !== 'undefined' ? messagesTabPaneClass : '' %>" id="tab-messages" role="tabpanel">
+  <div class="card card-portal mb-4">
+    <div class="card-header serif text-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <span>Studio messages</span>
+      <% if (mm === 'admin') { %>
+      <span class="small text-muted fw-normal">Clients are notified by email when SMTP is configured.</span>
+      <% } %>
+    </div>
+    <div class="card-body">
+      <% if (mm === 'admin') { %>
+      <form method="post" action="/portal/admin/projects/<%= pid %>/designer-messaging" class="border border-secondary rounded p-3 mb-4 bg-dark bg-opacity-25">
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox" name="enable_designer_messaging" value="1" id="designerClientMessaging" <%= Number(project.designer_client_messaging_enabled) === 1 ? 'checked' : '' %> />
+          <label class="form-check-label" for="designerClientMessaging">Allow <strong>designers</strong> on this project to send messages to the client (same tab)</label>
+        </div>
+        <button type="submit" class="btn btn-outline-gold btn-sm mt-2">Save messaging permission</button>
+      </form>
+      <% } %>
+      <% if (mm === 'designer') { %>
+      <% if (!dme) { %>
+      <div class="alert alert-secondary border border-secondary text-light mb-4">An admin can enable designer messaging for this project in the admin project view (Messages tab). Until then, only admins can send client messages.</div>
+      <% } %>
+      <% } %>
+      <% if ((mm === 'admin' || (mm === 'designer' && dme)) && !ro) { %>
+      <h6 class="text-warning serif h6 mb-3">New message to client</h6>
+      <form method="post" action="<%= mm === 'admin' ? '/portal/admin/projects/' + pid + '/messages' : '/portal/designer/projects/' + pid + '/messages' %>" class="mb-4 border border-secondary border-opacity-25 rounded p-3">
+        <div class="mb-3">
+          <label class="form-label small text-muted mb-1">Priority</label>
+          <select name="priority" class="form-select form-select-sm bg-dark text-light border-secondary" style="max-width:280px">
+            <% prios.forEach(function(p) { %>
+            <option value="<%= p %>"><%= p.charAt(0) + p.slice(1).toLowerCase() %></option>
+            <% }); %>
+          </select>
+          <p class="small text-muted mb-0 mt-1">Critical, Urgent, and Important appear highlighted at the top of the client’s project until they dismiss them.</p>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small text-muted mb-1">Message</label>
+          <textarea name="body" class="form-control form-control-sm bg-dark text-light border-secondary" rows="4" required placeholder="Write your message to the client…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-gold btn-sm">Send to client</button>
+      </form>
+      <% } %>
+      <% if (mm === 'client' && !ro) { %>
+      <h6 class="text-warning serif h6 mb-3">Message the studio</h6>
+      <form method="post" action="/portal/client/projects/<%= pid %>/messages" class="mb-4 border border-secondary border-opacity-25 rounded p-3">
+        <textarea name="body" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" rows="3" required placeholder="Start a new topic or question…"></textarea>
+        <button type="submit" class="btn btn-gold btn-sm">Send</button>
+      </form>
+      <% } %>
+      <% if (threads.length === 0) { %>
+      <p class="text-muted mb-0">No messages yet.</p>
+      <% } else { %>
+      <h6 class="text-warning serif h6 mb-3">Conversation history</h6>
+      <% threads.forEach(function(t) { %>
+      <div class="border border-secondary border-opacity-25 rounded mb-4 overflow-hidden">
+        <div class="px-3 py-2 bg-dark bg-opacity-50 border-bottom border-secondary border-opacity-25 small text-muted">
+          Thread · last activity <%= new Date(t.lastAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
+          <% if (t.root && t.root.priority && !t.root.parent_id) { %>
+          <span class="badge <%= priorityBadgeClass(t.root.priority) %> ms-2"><%= t.root.priority %></span>
+          <% } %>
+        </div>
+        <div class="p-3">
+          <% t.messages.forEach(function(m) {
+               var indent = m.parent_id ? ' ps-3 ms-2 border-start border-secondary border-opacity-50' : '';
+          %>
+          <div class="mb-3<%= indent %>">
+            <div class="d-flex flex-wrap justify-content-between gap-2 align-items-baseline">
+              <strong class="text-light small"><%= roleLabel(m.author_role) %></strong>
+              <span class="text-muted small"><%= new Date(m.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %></span>
+            </div>
+            <% if (m.author_name && m.author_role !== 'CLIENT') { %><div class="small text-muted"><%= m.author_name %></div><% } %>
+            <div class="mt-1 text-light" style="white-space:pre-wrap;word-break:break-word"><%= m.body %></div>
+          </div>
+          <% }); %>
+          <% if (!ro) {
+               var lastId = t.messages[t.messages.length - 1].id;
+               var replyAction = mm === 'admin' ? '/portal/admin/projects/' + pid + '/messages/' + lastId + '/reply'
+                 : mm === 'designer' ? '/portal/designer/projects/' + pid + '/messages/' + lastId + '/reply'
+                 : '/portal/client/projects/' + pid + '/messages/' + lastId + '/reply';
+               var canStaffReply = (mm === 'admin' || (mm === 'designer' && dme));
+               var canClientReply = mm === 'client';
+          %>
+          <% if (canStaffReply || canClientReply) { %>
+          <form method="post" action="<%= replyAction %>" class="mt-2 pt-3 border-top border-secondary border-opacity-25">
+            <label class="form-label small text-muted mb-1">Reply</label>
+            <textarea name="body" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" rows="2" required placeholder="Reply in this thread…"></textarea>
+            <button type="submit" class="btn btn-outline-gold btn-sm">Send reply</button>
+          </form>
+          <% } %>
+          <% } %>
+        </div>
+      </div>
+      <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>
