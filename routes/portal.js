@@ -735,6 +735,8 @@ const TAB_BODY_KEYS = {
   warranty: 'tab_warranty',
   vastu: 'tab_vastu',
   'other-docs': 'tab_other_docs',
+  messages: 'tab_messages',
+  meetings: 'tab_meetings',
 };
 
 const DESIGNER_TAB_BODY_KEYS = {
@@ -746,6 +748,8 @@ const DESIGNER_TAB_BODY_KEYS = {
   vastu: 'dtab_vastu',
   'mood-board': 'dtab_mood_board',
   'other-docs': 'dtab_other_docs',
+  messages: 'dtab_messages',
+  meetings: 'dtab_meetings',
 };
 
 router.post('/admin/projects/:id/members/add', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
