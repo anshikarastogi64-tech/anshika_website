@@ -1633,24 +1633,21 @@ router.post('/admin/projects/:id/payments/:paymentId/approve-client', requirePor
       })
     );
     const pay = await portalDb.getClientPaymentById(req.params.paymentId);
-    const clientUser = await portalDb.getUserById(project.client_id);
-    if (
-      clientUser &&
-      clientUser.email &&
-      pay &&
-      pay.project_id === project.id &&
-      Number(pay.amount) > 0
-    ) {
-      await sendClientPaymentThankYouEmail({
-        toEmail: clientUser.email,
-        recipientName: clientUser.full_name,
-        projectTitle: project.title,
-        projectId: project.id,
-        amount: Number(pay.amount) || 0,
-        receivedDate: pay.received_date,
-        note: pay.note,
-        scheduleHint: tail,
-      });
+    if (pay && pay.project_id === project.id && Number(pay.amount) > 0) {
+      const clientRecipients = await portalDb.getProjectClientRecipientUsers(project.id);
+      for (const cr of clientRecipients) {
+        if (!cr.email) continue;
+        await sendClientPaymentThankYouEmail({
+          toEmail: cr.email,
+          recipientName: cr.full_name,
+          projectTitle: project.title,
+          projectId: project.id,
+          amount: Number(pay.amount) || 0,
+          receivedDate: pay.received_date,
+          note: pay.note,
+          scheduleHint: tail,
+        });
+      }
     }
   }
   res.redirect('/portal/admin/projects/' + req.params.id + '#tab-finance');
