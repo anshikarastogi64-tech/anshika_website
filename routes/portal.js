@@ -2977,6 +2977,71 @@ router.get('/client', requirePortalAuth, async (req, res) => {
   });
 });
 
+function parseClientPhonesFromBody(body) {
+  const out = [];
+  if (!body || typeof body !== 'object') return out;
+  const raw = body.phones;
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const keys = Object.keys(raw)
+      .map((k) => parseInt(k, 10))
+      .filter((n) => !Number.isNaN(n))
+      .sort((a, b) => a - b);
+    for (const k of keys) {
+      const item = raw[k];
+      if (!item || typeof item !== 'object') continue;
+      const num = String(item.number != null ? item.number : '').trim();
+      if (!num) continue;
+      out.push({ phone: num, label: String(item.label || 'Mobile').trim() || 'Mobile' });
+    }
+    return out.slice(0, 15);
+  }
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (!item || typeof item !== 'object') continue;
+      const num = String(item.number != null ? item.number : '').trim();
+      if (!num) continue;
+      out.push({ phone: num, label: String(item.label || 'Mobile').trim() || 'Mobile' });
+    }
+    return out.slice(0, 15);
+  }
+  return out;
+}
+
+router.get('/client/profile', requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') {
+    return res.redirect('/portal/' + (req.session[PORTAL_USER_ROLE] === 'ADMIN' ? 'admin' : 'designer'));
+  }
+  const userId = req.session[PORTAL_USER_ID];
+  const [user, profile, phones] = await Promise.all([
+    portalDb.getUserById(userId),
+    portalDb.getClientProfileForClient(userId),
+    portalDb.getClientPhones(userId),
+  ]);
+  renderPortal(req, res, 'portal/client/profile', {
+    title: 'My profile',
+    user,
+    profile,
+    phones: phones || [],
+    query: req.query,
+  });
+});
+
+router.post('/client/profile', express.urlencoded({ extended: true }), requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const userId = req.session[PORTAL_USER_ID];
+  const fullName = String(req.body.full_name || '').trim();
+  if (fullName) {
+    await portalDb.updateClientUserFullName(userId, fullName);
+    req.session[PORTAL_USER_NAME] = fullName.slice(0, 500);
+  }
+  await portalDb.upsertClientProfile(userId, req.body);
+  await portalDb.replaceClientPhones(userId, parseClientPhonesFromBody(req.body));
+  req.session.save((err) => {
+    if (err) console.error('portal profile session save:', err);
+    res.redirect('/portal/client/profile?saved=1');
+  });
+});
+
 router.post('/client/refer', express.urlencoded({ extended: false }), requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
   const { name, phone_number, email } = req.body || {};

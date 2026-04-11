@@ -1,5 +1,10 @@
-<h1 class="serif text-warning mb-2">My Dashboard</h1>
-<p class="mb-4">Welcome <strong><%= portalUser && (portalUser.name || portalUser.email) %></strong></p>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="serif text-warning mb-2">My Dashboard</h1>
+    <p class="mb-0">Welcome <strong><%= portalUser && (portalUser.name || portalUser.email) %></strong></p>
+  </div>
+  <a href="/portal/client/profile" class="btn btn-outline-gold btn-sm align-self-center"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>Edit profile</a>
+</div>
 <% if (typeof query !== 'undefined' && query && query.msg) { %><div class="alert alert-success"><%= query.msg %></div><% } %>
 <div class="card card-portal mb-4">
   <div class="card-header">DV Points</div>

@@ -198,6 +198,38 @@ db.serialize(() => {
     )`
   );
   db.run(
+    `CREATE TABLE IF NOT EXISTS portal_client_profiles (
+      user_id TEXT PRIMARY KEY,
+      current_address TEXT NOT NULL DEFAULT '',
+      site_location_address TEXT NOT NULL DEFAULT '',
+      date_of_birth TEXT,
+      anniversary_date TEXT,
+      anniversary_note TEXT NOT NULL DEFAULT '',
+      site_map_lat REAL,
+      site_map_lng REAL,
+      site_maps_link TEXT NOT NULL DEFAULT '',
+      preferred_contact_method TEXT NOT NULL DEFAULT 'email',
+      emergency_contact_name TEXT NOT NULL DEFAULT '',
+      emergency_contact_phone TEXT NOT NULL DEFAULT '',
+      occupation TEXT NOT NULL DEFAULT '',
+      design_style_notes TEXT NOT NULL DEFAULT '',
+      timezone_or_city TEXT NOT NULL DEFAULT '',
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_client_phones (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      label TEXT NOT NULL DEFAULT 'Mobile',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (user_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run('CREATE INDEX IF NOT EXISTS idx_portal_client_phones_user ON portal_client_phones (user_id)', () => {});
+  db.run(
     `CREATE TABLE IF NOT EXISTS portal_leads (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
