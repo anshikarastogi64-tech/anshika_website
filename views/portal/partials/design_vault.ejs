@@ -59,15 +59,26 @@
 <div class="card card-portal mb-4 border-warning">
   <div class="card-header serif text-warning">Pending design review (2D/3D)</div>
   <div class="card-body">
-    <p class="small text-muted mb-3">Approve designs to show them to the client. Rejected designs stay hidden.</p>
+    <p class="small text-muted mb-3">Approve designs to show them to the client. Rejected designs stay hidden. <strong>Click a thumbnail</strong> to open the image, video, or PDF in the viewer.</p>
     <div class="vault-grid mb-0">
-      <% pendingDesignVersions.forEach(function(v) { %>
-      <div class="vault-item rounded overflow-hidden border border-secondary p-2">
-        <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center mb-1">
-          <% if ((v.media_type || v.type) === 'VIDEO') { %><i class="bi bi-play-circle-fill text-warning"></i>
-          <% } else { %><img src="<%= v.url %>" alt="" style="max-height:100px;object-fit:contain" /><% } %>
+      <% pendingDesignVersions.forEach(function(v, pendingIdx) {
+        var pvIsVideo = (v.media_type || v.type) === 'VIDEO';
+        var pvUrlLower = String(v.url || '').toLowerCase();
+        var pvNameLower = String(v.file_name || '').toLowerCase();
+        var pvTypeUp = String(v.media_type || v.type || '').toUpperCase();
+        var pvIsPdf = pvUrlLower.endsWith('.pdf') || pvNameLower.endsWith('.pdf')
+          || (pvTypeUp === 'DOCUMENT' && (pvNameLower.indexOf('.pdf') !== -1 || pvUrlLower.indexOf('.pdf') !== -1));
+      %>
+      <div class="rounded overflow-hidden border border-secondary p-2">
+        <div class="vault-item rounded overflow-hidden border border-secondary border-opacity-25" data-gallery-source="pending-review" data-gallery-index="<%= pendingIdx %>" role="button" tabindex="0" title="Open full size">
+          <div class="vault-thumb bg-dark d-flex align-items-center justify-content-center mb-0">
+            <% if (pvIsVideo) { %><i class="bi bi-play-circle-fill text-warning" style="font-size:2rem"></i>
+            <% } else if (pvIsPdf) { %><i class="bi bi-file-earmark-pdf-fill text-warning" style="font-size:2rem"></i>
+            <% } else { %><img src="<%= v.url %>" alt="" loading="lazy" style="max-height:100px;object-fit:contain;width:100%" /><% } %>
+          </div>
+          <div class="vault-caption small text-muted text-truncate px-1"><%= v.file_name || 'Open preview' %></div>
         </div>
-        <div class="small text-muted"><%= v.area_tag || 'General' %> · <%= v.design_category === 'VISUALIZATIONS' ? '3D' : '2D' %> · v<%= v.version_number %></div>
+        <div class="small text-muted mt-1"><%= v.area_tag || 'General' %> · <%= v.design_category === 'VISUALIZATIONS' ? '3D' : '2D' %> · v<%= v.version_number %></div>
         <div class="d-flex gap-1 mt-1">
           <form method="post" action="/portal/admin/projects/<%= projectId %>/design-version/<%= v.id %>/approve" class="d-inline"><button type="submit" class="btn btn-gold btn-sm">Approve</button></form>
           <form method="post" action="/portal/admin/projects/<%= projectId %>/design-version/<%= v.id %>/reject" class="d-inline"><button type="submit" class="btn btn-outline-secondary btn-sm">Reject</button></form>
@@ -592,11 +603,19 @@
 <div class="modal fade" id="vaultGalleryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-fullscreen p-0 m-0">
     <div class="modal-content bg-black border-0">
-      <div class="modal-header border-0 position-absolute top-0 start-0 end-0 z-2 bg-dark bg-opacity-75 py-2">
+      <div class="modal-header border-0 position-absolute top-0 start-0 end-0 z-2 bg-dark bg-opacity-75 py-2 px-2 align-items-center flex-wrap gap-2">
         <span class="text-muted small me-2" id="vaultGallerySourceLabel"></span>
         <span class="badge bg-warning text-dark me-2 d-none" id="vaultGalleryAreaTag"></span>
-        <h6 class="modal-title text-warning text-truncate me-2" id="vaultGalleryCaption"></h6>
+        <h6 class="modal-title text-warning text-truncate me-2 mb-0 flex-grow-1" style="min-width:120px" id="vaultGalleryCaption"></h6>
         <span class="badge bg-secondary me-2 d-none" id="vaultGalleryStatus"></span>
+        <div class="d-flex flex-wrap gap-1 align-items-center me-2 d-none" id="vaultPendingAdminActions" aria-label="Approve or reject this design version">
+          <form method="post" id="vaultPendingApproveForm" class="d-inline m-0">
+            <button type="submit" class="btn btn-gold btn-sm">Approve</button>
+          </form>
+          <form method="post" id="vaultPendingRejectForm" class="d-inline m-0">
+            <button type="submit" class="btn btn-outline-secondary btn-sm text-light border-secondary">Reject</button>
+          </form>
+        </div>
         <div class="btn-group btn-group-sm me-2 d-none" id="vaultDesignSwitchGroup" title="Switch to linked 2D or 3D">
           <button type="button" class="btn btn-outline-warning" id="vaultSwitch2DBtn">2D</button>
           <button type="button" class="btn btn-outline-warning" id="vaultSwitch3DBtn">3D</button>
@@ -653,6 +672,20 @@
   var vaultFilterMode = 'all';
   var activeDesignVaultList = fullDesignVaultList.slice();
   var dailyUpdateList = <%- JSON.stringify(dailyUpdateFlatMedia.map(function(m) { return { url: m.url, type: (m.type || m.media_type) || 'PHOTO', file_name: m.file_name || m.url }; })) %>;
+  var pendingReviewList = <%- JSON.stringify(
+    (typeof pendingDesignVersions !== 'undefined' && Array.isArray(pendingDesignVersions))
+      ? pendingDesignVersions.map(function(v) {
+          return {
+            url: v.url,
+            type: (v.media_type || v.type || 'PHOTO'),
+            file_name: v.file_name || v.url,
+            area_tag: v.area_tag || '',
+            design_category: v.design_category || null,
+            version_id: v.id || null
+          };
+        })
+      : []
+  ) %>;
   var modalEl = document.getElementById('vaultGalleryModal');
   var modalInstance = null;
   var contentEl = modalEl ? modalEl.querySelector('.vault-gallery-content') : null;
@@ -672,6 +705,7 @@
   var isClientView = <%- JSON.stringify(!!isClient) %>;
   var designVaultClientFilterUi = <%- JSON.stringify(!!(isClient && !isDailyOnlyView && useDesigns)) %>;
   var designVaultStaffFilterUi = <%- JSON.stringify(!!(!isClient && !isDailyOnlyView && useDesigns)) %>;
+  var designVaultProjectId = '<%= typeof projectId !== "undefined" ? projectId : "" %>';
 
   function computeFilteredDesignVaultList() {
     if (vaultFilterMode === 'all') return fullDesignVaultList.slice();
@@ -805,7 +839,7 @@
     if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
     if (areaTagEl) {
       var tag = (m.area_tag || '').trim();
-      if (tag && currentSourceLabel === 'Design Vault') {
+      if (tag && (currentSourceLabel === 'Design Vault' || currentSourceLabel === 'Pending design review')) {
         areaTagEl.textContent = tag;
         areaTagEl.classList.remove('d-none');
       } else {
@@ -835,6 +869,18 @@
         }
       }
     }
+    var pendingAdminEl = document.getElementById('vaultPendingAdminActions');
+    var pendingApproveForm = document.getElementById('vaultPendingApproveForm');
+    var pendingRejectForm = document.getElementById('vaultPendingRejectForm');
+    if (pendingAdminEl && pendingApproveForm && pendingRejectForm) {
+      if (currentList === pendingReviewList && m.version_id && designVaultProjectId) {
+        pendingApproveForm.action = '/portal/admin/projects/' + designVaultProjectId + '/design-version/' + m.version_id + '/approve';
+        pendingRejectForm.action = '/portal/admin/projects/' + designVaultProjectId + '/design-version/' + m.version_id + '/reject';
+        pendingAdminEl.classList.remove('d-none');
+      } else {
+        pendingAdminEl.classList.add('d-none');
+      }
+    }
     updateSwitchButtons(m);
   }
 
@@ -842,6 +888,11 @@
     if (source === 'daily') {
       currentList = dailyUpdateList;
       currentSourceLabel = 'Daily Update Photos';
+      if (currentList.length === 0) return;
+      currentIdx = (index + currentList.length) % currentList.length;
+    } else if (source === 'pending-review') {
+      currentList = pendingReviewList;
+      currentSourceLabel = 'Pending design review';
       if (currentList.length === 0) return;
       currentIdx = (index + currentList.length) % currentList.length;
     } else {
@@ -979,7 +1030,6 @@
     } catch (e) {}
   };
 
-  var designVaultProjectId = '<%= typeof projectId !== "undefined" ? projectId : "" %>';
   if (designVaultProjectId) {
     window.openDesignDenyModal = function(btn) {
       var vid = btn.getAttribute('data-version-id');

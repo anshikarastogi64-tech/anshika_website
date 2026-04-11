@@ -644,6 +644,8 @@
       if (captionEl) captionEl.textContent = m.file_name || m.url || ('Item ' + (currentIdx + 1));
       if (sourceLabelEl) sourceLabelEl.textContent = currentSourceLabel;
       if (counterEl) counterEl.textContent = (currentIdx + 1) + ' / ' + currentList.length;
+      var pendingAd = document.getElementById('vaultPendingAdminActions');
+      if (pendingAd) pendingAd.classList.add('d-none');
     }
     
     // Setup navigation
