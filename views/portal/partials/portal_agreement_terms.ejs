@@ -1,0 +1,42 @@
+<%
+  var tc = typeof termsContext !== 'undefined' ? termsContext : 'finance';
+  var showTl = tc === 'timelines' || tc === 'both';
+  var showFn = tc === 'finance' || tc === 'both';
+  var cardExtraClass = typeof termsCardExtraClass !== 'undefined' ? termsCardExtraClass : '';
+%>
+<% if (showTl) { %>
+<div class="card card-portal mb-4 border-secondary border-opacity-50 <%= cardExtraClass %>">
+  <div class="card-header border-secondary py-3">
+    <h3 class="serif text-warning h6 mb-0">Schedules, working time &amp; dependencies</h3>
+    <p class="small text-muted mb-0 mt-2">How we interpret timelines in this portal. Approved extensions appear separately above.</p>
+  </div>
+  <div class="card-body small" style="line-height:1.65">
+    <ul class="mb-0 ps-3 text-light">
+      <li class="mb-2"><strong>Days counted:</strong> Unless a schedule is explicitly labelled otherwise, <strong>Sundays</strong> and <strong>public holidays</strong> (national or state gazetted holidays) are not treated as standard working days for programme purposes.</li>
+      <li class="mb-2"><strong>Weather:</strong> Delays caused by <strong>adverse weather</strong> that make on-site work unsafe or impractical are outside the studio’s control and may affect the sequence of dates.</li>
+      <li class="mb-2"><strong>Builder &amp; third-party works:</strong> Delays due to <strong>pending work by the builder or other vendors</strong>—for example gates, windows, flooring, plumbing, electrical readiness, or similar—can hold up our work. Those dependencies may shift the overall programme.</li>
+      <li class="mb-0"><strong>Your timely cooperation:</strong> You agree to provide <strong>decisions, approvals, and design finalisation</strong> promptly. <strong>Slow decision-making can directly extend</strong> the agreed timeline; the studio will reflect that in planning and, where needed, through formal extension requests.</li>
+    </ul>
+  </div>
+</div>
+<% } %>
+<% if (showFn) { %>
+<div class="card card-portal border-secondary border-opacity-50 <%= cardExtraClass %> <%= showTl ? 'mt-3 mb-0' : 'mb-0' %>">
+  <div class="card-header border-secondary py-3">
+    <h3 class="serif text-warning h6 mb-0">Payments, scope &amp; legal terms</h3>
+    <p class="small text-muted mb-0 mt-2">Standard terms that apply alongside your quotation, variations, and this portal. Your signed contract prevails if anything differs.</p>
+  </div>
+  <div class="card-body small" style="line-height:1.65">
+    <ul class="mb-3 ps-3 text-light">
+      <li class="mb-2"><strong>Payment timing:</strong> Amounts due on the dates shown (or agreed in writing) should be paid on time. <strong>If payment is not received within two (2) calendar days of the due date,</strong> project scheduling and progress may be adjusted accordingly. The studio is <strong>not responsible</strong> for resulting timeline impact from late payment.</li>
+      <li class="mb-2"><strong>Changing scope &amp; price:</strong> The <strong>contract total may increase or decrease</strong> as requirements are added or removed, subject to written approval of variations and updated quotations where applicable.</li>
+      <li class="mb-2"><strong>After work has started:</strong> <strong>Project cancellation is not permitted after formal commencement</strong> of services, except under the termination clause below.</li>
+      <li class="mb-2"><strong>Ownership of work:</strong> All <strong>materials, drawings, designs, specifications, and related deliverables</strong> prepared by the studio remain the <strong>studio’s property</strong> until <strong>full payment</strong> has been received for the agreed scope.</li>
+      <li class="mb-2"><strong>Furniture delivery &amp; installation:</strong> Furniture and related items will be <strong>delivered and installed</strong> at the agreed location <strong>once all applicable payments</strong> for those supplies and milestones have been <strong>received</strong>.</li>
+      <li class="mb-2"><strong>Termination:</strong> Either party may end this arrangement if the other party <strong>fails materially</strong> to comply with these terms or the agreed contract, subject to <strong>written notice</strong>. <strong>All services rendered up to the date of termination remain payable.</strong></li>
+      <li class="mb-0"><strong>Disputes &amp; entire agreement:</strong> Disputes should first be resolved through <strong>good-faith consultation</strong>. If needed, parties may use <strong>mediation or arbitration</strong> as mutually agreed. Together with your signed documents and approved portal records, these terms reflect the <strong>understanding between the parties</strong> and supersede prior informal discussions unless a separate written agreement explicitly replaces them.</li>
+    </ul>
+    <p class="text-muted small mb-0 border-top border-secondary border-opacity-25 pt-3">This summary is for clarity in the portal. It does not replace your formal agreement, quotation, or any deed or contract you sign with the studio.</p>
+  </div>
+</div>
+<% } %>
