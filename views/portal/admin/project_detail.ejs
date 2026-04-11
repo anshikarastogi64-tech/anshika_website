@@ -222,6 +222,7 @@
     </p>
   </div>
   <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'admin', timelineBasePath: '/portal/admin/projects/' + project.id + '/timeline' }) %>
+  <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'admin', moodBoardTabPaneClass: '' }) %>
   <div class="tab-pane fade" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/admin/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], pendingDesignVersions: typeof pendingDesignVersions !== 'undefined' ? pendingDesignVersions : [], showDailyOnly: false }) %>
   </div>

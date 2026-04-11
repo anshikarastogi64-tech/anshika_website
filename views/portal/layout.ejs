@@ -39,6 +39,15 @@
     .card-portal .card-body { color: #e8e8e8; }
     .card-portal .card-body p, .card-portal .card-body h4, .card-portal .card-body h5, .card-portal .card-body h6,
     .card-portal .card-body li, .card-portal .card-body span { color: #e8e8e8; }
+    /* Dark theme file inputs: keep the browser "Choose file" control readable */
+    .card-portal input[type="file"].form-control::file-selector-button {
+      color: var(--bone);
+      background-color: #3a3a3a;
+    }
+    .card-portal input[type="file"].form-control::-webkit-file-upload-button {
+      color: var(--bone);
+      background-color: #3a3a3a;
+    }
     /* Muted/secondary text: use light grey so it's readable on dark background */
     .text-muted, .text-secondary, .card-portal .text-muted, .card-portal .text-secondary,
     .card-portal small.text-muted { color: #d4d4d4 !important; }
