@@ -1,0 +1,122 @@
+<% var p = typeof profile !== 'undefined' && profile ? profile : {};
+   var u = typeof clientUser !== 'undefined' && clientUser ? clientUser : {};
+   var phoneList = (typeof phones !== 'undefined' && phones && phones.length) ? phones : [];
+   var proj = typeof project !== 'undefined' && project ? project : {};
+   function ro(val) { var s = val != null ? String(val).trim() : ''; return s ? s : '—'; }
+%>
+<style>
+  .designer-client-profile-title {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  }
+</style>
+
+<p class="mb-3">
+  <a href="/portal/designer/projects/<%= proj.id %>" class="btn btn-outline-gold btn-sm">← Back to project</a>
+</p>
+
+<div class="alert alert-secondary border text-dark small mb-4" role="note">
+  <strong>Read-only.</strong> This is what the client entered in their portal profile. Only they (or the studio) can change it.
+</div>
+
+<h1 class="serif text-warning mb-4 h3">Client profile</h1>
+<p class="text-muted small mb-4">Project: <strong class="text-light"><%= proj.title || '—' %></strong></p>
+
+<div class="row g-4 pb-4">
+  <div class="col-lg-6">
+    <div class="card card-portal h-100">
+      <div class="card-body">
+        <h2 class="designer-client-profile-title">Identity &amp; account</h2>
+        <dl class="row small mb-0">
+          <dt class="col-sm-4 text-muted">Full name</dt>
+          <dd class="col-sm-8 text-light mb-2"><%= ro(u.full_name) %></dd>
+          <dt class="col-sm-4 text-muted">Email</dt>
+          <dd class="col-sm-8 text-light mb-0"><%= ro(u.email) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card card-portal h-100">
+      <div class="card-body">
+        <h2 class="designer-client-profile-title">Personal</h2>
+        <dl class="row small mb-0">
+          <dt class="col-sm-4 text-muted">Date of birth</dt>
+          <dd class="col-sm-8 text-light mb-2"><%= ro(p.date_of_birth) %></dd>
+          <dt class="col-sm-4 text-muted">Anniversary</dt>
+          <dd class="col-sm-8 text-light mb-0"><%= ro(p.anniversary_date) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card card-portal">
+      <div class="card-body">
+        <h2 class="designer-client-profile-title">Work</h2>
+        <dl class="row small mb-0">
+          <dt class="col-sm-3 col-md-2 text-muted">Company</dt>
+          <dd class="col-sm-9 col-md-4 text-light mb-2"><%= ro(p.work_company_name) %></dd>
+          <dt class="col-sm-3 col-md-2 text-muted">Occupation</dt>
+          <dd class="col-sm-9 col-md-4 text-light mb-2"><%= ro(p.occupation) %></dd>
+          <dt class="col-sm-3 col-md-2 text-muted">Designation</dt>
+          <dd class="col-sm-9 col-md-10 text-light mb-0"><%= ro(p.job_designation) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card card-portal">
+      <div class="card-body">
+        <h2 class="designer-client-profile-title">Address</h2>
+        <p class="small text-light mb-0" style="white-space:pre-wrap;word-break:break-word"><%= ro(p.current_address) %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card card-portal h-100">
+      <div class="card-body">
+        <h2 class="designer-client-profile-title">Phone numbers</h2>
+        <% if (!phoneList.length) { %>
+        <p class="small text-muted mb-0">—</p>
+        <% } else { %>
+        <ul class="list-unstyled small mb-0">
+          <% phoneList.forEach(function(ph) { %>
+          <li class="mb-2 text-light"><span class="text-muted"><%= ph.label || 'Phone' %>:</span> <%= ro(ph.phone) %></li>
+          <% }); %>
+        </ul>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card card-portal h-100">
+      <div class="card-body">
+        <h2 class="designer-client-profile-title">Preferences &amp; safety</h2>
+        <dl class="row small mb-0">
+          <dt class="col-sm-4 text-muted">Preferred contact</dt>
+          <dd class="col-sm-8 text-light mb-2"><%= ro(p.preferred_contact_method) %></dd>
+          <dt class="col-sm-4 text-muted">City / timezone</dt>
+          <dd class="col-sm-8 text-light mb-2"><%= ro(p.timezone_or_city) %></dd>
+          <dt class="col-sm-4 text-muted">Emergency name</dt>
+          <dd class="col-sm-8 text-light mb-2"><%= ro(p.emergency_contact_name) %></dd>
+          <dt class="col-sm-4 text-muted">Emergency phone</dt>
+          <dd class="col-sm-8 text-light mb-2"><%= ro(p.emergency_contact_phone) %></dd>
+          <dt class="col-sm-4 text-muted">Design notes</dt>
+          <dd class="col-sm-8 text-light mb-0" style="white-space:pre-wrap;word-break:break-word"><%= ro(p.design_style_notes) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if (p.updated_at) { %>
+<p class="small text-muted">Profile last updated (client): <%= p.updated_at %></p>
+<% } %>

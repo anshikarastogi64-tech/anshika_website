@@ -279,6 +279,8 @@ db.serialize(() => {
   );
   db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_see_finance INTEGER NOT NULL DEFAULT 1', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_view_mirror INTEGER NOT NULL DEFAULT 1', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_view_client_profile INTEGER NOT NULL DEFAULT 1', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN designer_can_view_site_contact INTEGER NOT NULL DEFAULT 1', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_start TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_end TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN design_timeline_duration_days INTEGER', () => {});

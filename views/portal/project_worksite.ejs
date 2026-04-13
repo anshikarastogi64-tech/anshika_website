@@ -5,6 +5,7 @@
    var lat0 = p.site_map_lat != null && p.site_map_lat !== '' ? Number(p.site_map_lat) : null;
    var lng0 = p.site_map_lng != null && p.site_map_lng !== '' ? Number(p.site_map_lng) : null;
    var hasPin = lat0 != null && lng0 != null && !Number.isNaN(lat0) && !Number.isNaN(lng0);
+   var _worksiteMaskContact = typeof worksiteMaskSiteContact !== 'undefined' && worksiteMaskSiteContact;
 %>
 <h1 class="serif text-warning mb-2">Site location &amp; contact</h1>
 <p class="mb-4"><span class="text-muted">Project:</span> <strong class="text-light"><%= p.title %></strong>
@@ -15,7 +16,11 @@
 <div class="alert alert-success border border-success text-dark mb-4" role="alert"><%= query.msg %></div>
 <% } %>
 
+<% if (_worksiteMaskContact) { %>
+<p class="small text-muted mb-4">You can update the <strong class="text-light">work-site address and map pin</strong>. On-site contact name and phone are hidden from designers on this project (studio setting); the client or studio can still edit them.</p>
+<% } else { %>
 <p class="small text-muted mb-4">Anyone on this project (studio, designer, or client) can update the work-site address, map pin, and on-site contact. Changes notify other people linked to the project.</p>
+<% } %>
 
 <form method="post" action="<%= save %>" id="worksiteForm" class="card card-portal mb-4">
   <div class="card-header serif text-warning">Work site details</div>
@@ -62,6 +67,13 @@
 
     <div class="col-12"><hr class="border-secondary opacity-25" /></div>
 
+    <% if (_worksiteMaskContact) { %>
+    <div class="col-12">
+      <div class="alert alert-secondary border text-dark small mb-0">
+        <strong>On-site contact</strong> (name &amp; phone) is not visible to designers on this project. Ask the studio or client if you need it.
+      </div>
+    </div>
+    <% } else { %>
     <div class="col-md-6">
       <label class="form-label small text-muted mb-0" for="site_contact_name">Contact person on site</label>
       <input type="text" name="site_contact_name" id="site_contact_name" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="Name" value="<%= p.site_contact_name || '' %>" />
@@ -70,6 +82,7 @@
       <label class="form-label small text-muted mb-0" for="site_contact_phone">Contact number</label>
       <input type="tel" name="site_contact_phone" id="site_contact_phone" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="80" placeholder="Phone / WhatsApp" value="<%= p.site_contact_phone || '' %>" />
     </div>
+    <% } %>
 
     <div class="col-12">
       <button type="submit" class="btn btn-gold">Save</button>
@@ -80,11 +93,13 @@
 <div class="card card-portal mb-4 border-secondary border-opacity-25" id="worksite-share">
   <div class="card-header serif text-warning">Share location</div>
   <div class="card-body">
-    <p class="small text-muted mb-2">Share this work-site summary on WhatsApp, Telegram, SMS, email, or your phone’s system share sheet. By default only the <strong class="text-light">location</strong> (address, place name, map link) is included — not the on-site contact.</p>
+    <p class="small text-muted mb-2">Share this work-site summary on WhatsApp, Telegram, SMS, email, or your phone’s system share sheet. By default only the <strong class="text-light">location</strong> (address, place name, map link) is included<% if (!_worksiteMaskContact) { %> — not the on-site contact<% } %>.</p>
+    <% if (!_worksiteMaskContact) { %>
     <div class="form-check mb-3">
       <input class="form-check-input" type="checkbox" value="1" id="worksite-share-include-contact" autocomplete="off" />
       <label class="form-check-label small text-light" for="worksite-share-include-contact">Also share on-site contact (name &amp; phone)</label>
     </div>
+    <% } %>
     <div class="d-flex flex-wrap gap-2 mb-3">
       <button type="button" class="btn btn-outline-gold btn-sm" id="worksite-share-native"><i class="bi bi-share" aria-hidden="true"></i> Share / More apps</button>
       <a class="btn btn-outline-success btn-sm" id="worksite-share-whatsapp" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
@@ -103,7 +118,11 @@
 <script>
 (function () {
   var projectTitle = <%- JSON.stringify(p.title || 'Project') %>;
-  var inputs = ['site_address', 'site_map_lat', 'site_map_lng', 'site_map_place_label', 'site_contact_name', 'site_contact_phone'];
+  var worksiteMaskSiteContact = <%= _worksiteMaskContact ? 'true' : 'false' %>;
+  var inputs = ['site_address', 'site_map_lat', 'site_map_lng', 'site_map_place_label'];
+  if (!worksiteMaskSiteContact) {
+    inputs.push('site_contact_name', 'site_contact_phone');
+  }
 
   function val(id) {
     var el = document.getElementById(id);
@@ -118,6 +137,7 @@
   }
 
   function shareIncludesContact() {
+    if (worksiteMaskSiteContact) return false;
     var c = document.getElementById('worksite-share-include-contact');
     return !!(c && c.checked);
   }

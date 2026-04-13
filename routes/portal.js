@@ -349,6 +349,9 @@ async function renderWorksitePage(req, res, ctx) {
   const project = await portalDb.getProjectWithRelations(req.params.id);
   if (!project) return res.status(404).send('Project not found');
   enrichProjectLifecycle(project);
+  const role = req.session[PORTAL_USER_ROLE];
+  const worksiteMaskSiteContact =
+    role === 'DESIGNER' && Number(project.designer_can_view_site_contact) === 0;
   renderPortal(req, res, 'portal/project_worksite', {
     title: 'Site location & contact',
     project,
@@ -356,12 +359,21 @@ async function renderWorksitePage(req, res, ctx) {
     worksiteSavePath: ctx.savePath,
     query: req.query,
     googleMapsJsApiKey: (process.env.GOOGLE_MAPS_JS_API_KEY || '').trim(),
+    worksiteMaskSiteContact,
   });
 }
 
 async function handleWorksitePost(req, res, ctx) {
   const projectId = req.params.id;
   const patch = normalizeWorksiteBody(req.body);
+  const role = req.session[PORTAL_USER_ROLE];
+  if (role === 'DESIGNER') {
+    const proj = await portalDb.getProjectById(projectId);
+    if (proj && Number(proj.designer_can_view_site_contact) === 0) {
+      delete patch.site_contact_name;
+      delete patch.site_contact_phone;
+    }
+  }
   await portalDb.updateProject(projectId, patch);
   const p = await portalDb.getProjectById(projectId);
   portalNotify.safeNotify(
@@ -857,8 +869,14 @@ router.post('/admin/projects/:id/assign', express.urlencoded({ extended: false }
 router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.id);
   if (!project) return res.status(404).send('Project not found');
-  const designer_can_view_mirror = req.body.designer_can_view_mirror === '1' ? 1 : 0;
-  await portalDb.updateProject(req.params.id, { designer_can_view_mirror });
+  const designer_can_view_mirror = bodyCheckboxChecked(req.body, 'designer_can_view_mirror') ? 1 : 0;
+  const designer_can_view_client_profile = bodyCheckboxChecked(req.body, 'designer_can_view_client_profile') ? 1 : 0;
+  const designer_can_view_site_contact = bodyCheckboxChecked(req.body, 'designer_can_view_site_contact') ? 1 : 0;
+  await portalDb.updateProject(req.params.id, {
+    designer_can_view_mirror,
+    designer_can_view_client_profile,
+    designer_can_view_site_contact,
+  });
   res.redirect('/portal/admin/projects/' + req.params.id);
 });
 
@@ -2438,6 +2456,33 @@ router.get('/designer/projects/:id/worksite', requirePortalAuth, requireDesigner
   const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
   if (!ctx) return res.status(403).send('Forbidden');
   return renderWorksitePage(req, res, ctx);
+});
+
+router.get('/designer/projects/:id/client-profile', requirePortalAuth, requireDesigner, async (req, res) => {
+  const projectId = req.params.id;
+  const project = await portalDb.getProjectById(projectId);
+  if (!project) return res.status(404).send('Project not found');
+  if (Number(project.designer_can_view_client_profile) === 0) {
+    return res.status(403).send('Client profile is not shared with designers on this project.');
+  }
+  if (req.session[PORTAL_USER_ROLE] === 'DESIGNER') {
+    const ok = await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], projectId);
+    if (!ok) return res.status(403).send('Forbidden');
+  }
+  const clientId = project.client_id;
+  if (!clientId) return res.status(404).send('No client on project');
+  const [clientUser, profile, phones] = await Promise.all([
+    portalDb.getUserById(clientId),
+    portalDb.getClientProfileForClient(clientId),
+    portalDb.getClientPhones(clientId),
+  ]);
+  renderPortal(req, res, 'portal/designer/client_profile_view', {
+    title: 'Client profile',
+    project,
+    clientUser,
+    profile,
+    phones: phones || [],
+  });
 });
 
 router.post(

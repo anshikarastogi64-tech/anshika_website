@@ -1,6 +1,14 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Client: <%= project.client_name %> | Progress: <%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></p>
-<%- include('../partials/project_location_actions', { worksiteHref: '/portal/designer/projects/' + project.id + '/worksite' }) %>
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  <%- include('../partials/project_location_actions', { worksiteHref: '/portal/designer/projects/' + project.id + '/worksite', wrapClass: 'mb-0' }) %>
+  <% if (typeof project.designer_can_view_client_profile === 'undefined' || project.designer_can_view_client_profile !== 0) { %>
+  <a href="/portal/designer/projects/<%= project.id %>/client-profile" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person-badge me-1" aria-hidden="true"></i>Client profile</a>
+  <% } %>
+</div>
+<% if (typeof project.designer_can_view_client_profile !== 'undefined' && project.designer_can_view_client_profile === 0) { %>
+<p class="small text-muted mb-3">Client profile is not shared with designers on this project (studio setting).</p>
+<% } %>
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
