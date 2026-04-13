@@ -80,7 +80,11 @@
 <div class="card card-portal mb-4 border-secondary border-opacity-25" id="worksite-share">
   <div class="card-header serif text-warning">Share location</div>
   <div class="card-body">
-    <p class="small text-muted mb-3">Share this work-site summary on WhatsApp, Telegram, SMS, email, or your phone’s system share sheet. The text uses what you have entered above (save the form to keep it on the project).</p>
+    <p class="small text-muted mb-2">Share this work-site summary on WhatsApp, Telegram, SMS, email, or your phone’s system share sheet. By default only the <strong class="text-light">location</strong> (address, place name, map link) is included — not the on-site contact.</p>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" value="1" id="worksite-share-include-contact" autocomplete="off" />
+      <label class="form-check-label small text-light" for="worksite-share-include-contact">Also share on-site contact (name &amp; phone)</label>
+    </div>
     <div class="d-flex flex-wrap gap-2 mb-3">
       <button type="button" class="btn btn-outline-gold btn-sm" id="worksite-share-native"><i class="bi bi-share" aria-hidden="true"></i> Share / More apps</button>
       <a class="btn btn-outline-success btn-sm" id="worksite-share-whatsapp" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
@@ -113,6 +117,11 @@
     return 'https://www.google.com/maps?q=' + encodeURIComponent(la + ',' + ln);
   }
 
+  function shareIncludesContact() {
+    var c = document.getElementById('worksite-share-include-contact');
+    return !!(c && c.checked);
+  }
+
   function buildShareText() {
     var lines = [];
     lines.push('Work site — ' + projectTitle);
@@ -122,11 +131,13 @@
     if (addr) lines.push('Address: ' + addr);
     if (place) lines.push('Place: ' + place);
     if (mapsUrl) lines.push('Map: ' + mapsUrl);
-    var cn = val('site_contact_name');
-    var cp = val('site_contact_phone');
-    if (cn) lines.push('Contact: ' + cn);
-    if (cp) lines.push('Phone: ' + cp);
-    if (lines.length === 1) lines.push('(Add address, map pin, or contact above, then share.)');
+    if (shareIncludesContact()) {
+      var cn = val('site_contact_name');
+      var cp = val('site_contact_phone');
+      if (cn) lines.push('Contact: ' + cn);
+      if (cp) lines.push('Phone: ' + cp);
+    }
+    if (lines.length === 1) lines.push('(Add address or map pin above, then share.)');
     return lines.join('\n');
   }
 
@@ -162,6 +173,9 @@
     if (el) el.addEventListener('input', updateShareUi);
     if (el) el.addEventListener('change', updateShareUi);
   });
+
+  var chkContact = document.getElementById('worksite-share-include-contact');
+  if (chkContact) chkContact.addEventListener('change', updateShareUi);
 
   var btnNative = document.getElementById('worksite-share-native');
   if (btnNative) btnNative.addEventListener('click', function () {
