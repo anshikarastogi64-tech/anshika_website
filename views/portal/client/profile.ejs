@@ -46,14 +46,6 @@
     padding-bottom: 0.35rem;
     border-bottom: 1px solid rgba(212, 175, 55, 0.25);
   }
-  .portal-profile-map-wrap {
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    min-height: 220px;
-    background: #1a1a1a;
-  }
-  .portal-profile-map-wrap iframe { display: block; width: 100%; height: 220px; border: 0; }
 </style>
 
 <% if (typeof query !== 'undefined' && query && query.saved) { %>
@@ -102,13 +94,28 @@
               <label class="form-label small text-muted mb-1" for="pf_ann">Anniversary date</label>
               <input type="date" id="pf_ann" name="anniversary_date" class="form-control form-control-sm bg-dark text-light border-secondary" value="<%= p.anniversary_date || '' %>" />
             </div>
-            <div class="col-12">
-              <label class="form-label small text-muted mb-1" for="pf_ann_note">Anniversary note <span class="fw-normal">(optional)</span></label>
-              <input type="text" id="pf_ann_note" name="anniversary_note" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="500" placeholder="e.g. Wedding, company founded…" value="<%= p.anniversary_note || '' %>" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card card-portal">
+        <div class="card-body">
+          <h2 class="portal-profile-section-title mb-3">Work</h2>
+          <p class="small text-muted mb-3">Tell us about your professional background <span class="fw-normal">(all optional)</span>.</p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1" for="pf_company">Company name</label>
+              <input type="text" id="pf_company" name="work_company_name" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="Organization you work for" value="<%= p.work_company_name || '' %>" autocomplete="organization" />
             </div>
-            <div class="col-12">
-              <label class="form-label small text-muted mb-1" for="pf_occ">Occupation <span class="fw-normal">(optional)</span></label>
-              <input type="text" id="pf_occ" name="occupation" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="Helps us understand your lifestyle &amp; schedule" value="<%= p.occupation || '' %>" />
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1" for="pf_occ">Occupation</label>
+              <input type="text" id="pf_occ" name="occupation" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="e.g. Architect, physician, homemaker" value="<%= p.occupation || '' %>" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small text-muted mb-1" for="pf_designation">Designation</label>
+              <input type="text" id="pf_designation" name="job_designation" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="e.g. Senior manager, Director" value="<%= p.job_designation || '' %>" />
             </div>
           </div>
         </div>
@@ -118,46 +125,14 @@
     <div class="col-12">
       <div class="card card-portal">
         <div class="card-body">
-          <h2 class="portal-profile-section-title mb-3">Addresses</h2>
+          <h2 class="portal-profile-section-title mb-3">Address</h2>
           <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-12">
               <label class="form-label small text-muted mb-1" for="pf_curr">Current residence</label>
               <textarea id="pf_curr" name="current_address" class="form-control form-control-sm bg-dark text-light border-secondary" rows="4" maxlength="2000" placeholder="Street, city, PIN — where you live now"><%= p.current_address || '' %></textarea>
             </div>
-            <div class="col-md-6">
-              <label class="form-label small text-muted mb-1" for="pf_site">Project / site location</label>
-              <textarea id="pf_site" name="site_location_address" class="form-control form-control-sm bg-dark text-light border-secondary" rows="4" maxlength="2000" placeholder="Site address under design or construction"><%= p.site_location_address || '' %></textarea>
-            </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12">
-      <div class="card card-portal">
-        <div class="card-body">
-          <h2 class="portal-profile-section-title mb-2">Site map pin</h2>
-          <p class="small text-muted mb-3">Paste a Google Maps link, or enter latitude &amp; longitude from Google Maps (right-click → coordinates).</p>
-          <div class="row g-3 align-items-end">
-            <div class="col-md-6">
-              <label class="form-label small text-muted mb-1" for="pf_maps_link">Google Maps link</label>
-              <input type="url" id="pf_maps_link" name="site_maps_link" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="2000" placeholder="https://maps.google.com/?q=…" value="<%= p.site_maps_link || '' %>" />
-            </div>
-            <div class="col-md-3">
-              <label class="form-label small text-muted mb-1" for="pf_lat">Latitude</label>
-              <input type="text" id="pf_lat" name="site_map_lat" class="form-control form-control-sm bg-dark text-light border-secondary" inputmode="decimal" placeholder="28.6139" value="<%= p.site_map_lat != null && p.site_map_lat !== '' ? p.site_map_lat : '' %>" />
-            </div>
-            <div class="col-md-3">
-              <label class="form-label small text-muted mb-1" for="pf_lng">Longitude</label>
-              <input type="text" id="pf_lng" name="site_map_lng" class="form-control form-control-sm bg-dark text-light border-secondary" inputmode="decimal" placeholder="77.2090" value="<%= p.site_map_lng != null && p.site_map_lng !== '' ? p.site_map_lng : '' %>" />
-            </div>
-          </div>
-          <% var latN = p.site_map_lat != null ? Number(p.site_map_lat) : NaN; var lngN = p.site_map_lng != null ? Number(p.site_map_lng) : NaN; %>
-          <% if (!Number.isNaN(latN) && !Number.isNaN(lngN) && latN >= -90 && latN <= 90 && lngN >= -180 && lngN <= 180) { %>
-          <div class="portal-profile-map-wrap mt-3">
-            <iframe title="Site location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=<%= latN %>,<%= lngN %>&z=16&output=embed"></iframe>
-          </div>
-          <% } %>
+          <p class="small text-muted mt-3 mb-0">Work site address and map are managed per project under <strong>Site location &amp; contact</strong> on each project.</p>
         </div>
       </div>
     </div>

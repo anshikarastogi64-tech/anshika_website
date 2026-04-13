@@ -218,6 +218,8 @@ db.serialize(() => {
       FOREIGN KEY (user_id) REFERENCES portal_users(id)
     )`
   );
+  db.run('ALTER TABLE portal_client_profiles ADD COLUMN work_company_name TEXT NOT NULL DEFAULT \'\'', () => {});
+  db.run('ALTER TABLE portal_client_profiles ADD COLUMN job_designation TEXT NOT NULL DEFAULT \'\'', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_client_phones (
       id TEXT PRIMARY KEY,
