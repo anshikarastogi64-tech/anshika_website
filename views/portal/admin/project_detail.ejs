@@ -18,6 +18,9 @@
     <button class="nav-link" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
   </li>
   <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-design-ideas-btn" data-bs-toggle="tab" data-bs-target="#tab-design-ideas" type="button" role="tab">Your vision</button>
+  </li>
+  <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-vault-btn" data-bs-toggle="tab" data-bs-target="#tab-vault" type="button" role="tab">Design Vault</button>
   </li>
   <li class="nav-item" role="presentation">
@@ -100,8 +103,8 @@
         <p class="small text-muted mb-3">Every designer is already on this project (or there are no other designer accounts).</p>
         <% } %>
         <% if (typeof projectDesigners !== 'undefined' && projectDesigners.length) {
-          var dtabLabels = { updates: 'Updates', messages: 'Messages', meetings: 'Meetings', timelines: 'Timelines', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', vastu: 'Vastu', 'mood-board': 'Mood board', 'other-docs': 'Other docs' };
-          var dtabKeys = typeof designerPortalTabKeys !== 'undefined' && designerPortalTabKeys.length ? designerPortalTabKeys : ['updates','messages','meetings','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
+          var dtabLabels = { updates: 'Updates', messages: 'Messages', meetings: 'Meetings', timelines: 'Timelines', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', vastu: 'Vastu', 'mood-board': 'Mood board', 'design-ideas': 'Your vision', 'other-docs': 'Other docs' };
+          var dtabKeys = typeof designerPortalTabKeys !== 'undefined' && designerPortalTabKeys.length ? designerPortalTabKeys : ['updates','messages','meetings','timelines','mood-board','design-ideas','vault','material-selection','daily','vastu','other-docs'];
         %>
         <% projectDesigners.forEach(function(dm) {
           var dtabSet = {};
@@ -166,8 +169,8 @@
         <p class="small text-muted mb-3">Every client user is already linked to this project (or there are no other client accounts).</p>
         <% } %>
         <% if (typeof projectMembers !== 'undefined' && projectMembers.length) {
-          var tabLabels = { updates: 'Updates', messages: 'Messages', meetings: 'Meetings', timelines: 'Timelines', 'mood-board': 'Mood board', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', finance: 'Finance', warranty: 'Warranty', vastu: 'Vastu', 'other-docs': 'Other docs' };
-          var tabKeys = typeof clientPortalTabKeys !== 'undefined' && clientPortalTabKeys.length ? clientPortalTabKeys : ['updates','messages','meetings','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs'];
+          var tabLabels = { updates: 'Updates', messages: 'Messages', meetings: 'Meetings', timelines: 'Timelines', 'mood-board': 'Mood board', 'design-ideas': 'Your vision', vault: 'Design vault', 'material-selection': 'Material selection', daily: 'Daily updates', finance: 'Finance', warranty: 'Warranty', vastu: 'Vastu', 'other-docs': 'Other docs' };
+          var tabKeys = typeof clientPortalTabKeys !== 'undefined' && clientPortalTabKeys.length ? clientPortalTabKeys : ['updates','messages','meetings','timelines','mood-board','design-ideas','vault','material-selection','daily','finance','warranty','vastu','other-docs'];
         %>
         <% projectMembers.forEach(function(m) {
           var tabSet = {};
@@ -229,6 +232,7 @@
   </div>
   <%- include('../partials/project_timelines', { project, timelineExtensions: typeof timelineExtensions !== 'undefined' ? timelineExtensions : [], timelinesRole: 'admin', timelineBasePath: '/portal/admin/projects/' + project.id + '/timeline' }) %>
   <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'admin', moodBoardTabPaneClass: '' }) %>
+  <%- include('../partials/project_design_ideas_tab', { project, designIdeaAreas: typeof designIdeaAreas !== 'undefined' ? designIdeaAreas : [], designIdeasWithComments: typeof designIdeasWithComments !== 'undefined' ? designIdeasWithComments : [], ideasMode: 'admin', readOnly: false, ideasTabPaneClass: '', query: typeof query !== 'undefined' ? query : {} }) %>
   <div class="tab-pane fade" id="tab-vault" role="tabpanel">
     <%- include('../partials/design_vault', { mediaByCategory: typeof mediaByCategory !== 'undefined' ? mediaByCategory : {}, byYearMonth: typeof byYearMonth !== 'undefined' ? byYearMonth : {}, vaultMediaList: typeof vaultMediaList !== 'undefined' ? vaultMediaList : [], showUpload: true, project, uploadUrl: '/portal/admin/projects/' + project.id + '/media', projectDesigns: typeof projectDesigns !== 'undefined' ? projectDesigns : [], pendingDesignVersions: typeof pendingDesignVersions !== 'undefined' ? pendingDesignVersions : [], showDailyOnly: false }) %>
   </div>

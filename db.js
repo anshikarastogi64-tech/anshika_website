@@ -344,7 +344,7 @@ db.serialize(() => {
     )`
   );
   const DEFAULT_PORTAL_MEMBER_TABS =
-    '["updates","timelines","mood-board","vault","material-selection","daily","finance","warranty","vastu","other-docs","messages","meetings"]';
+    '["updates","timelines","mood-board","design-ideas","vault","material-selection","daily","finance","warranty","vastu","other-docs","messages","meetings"]';
   db.all('SELECT id, client_id FROM portal_projects', [], (mErr, projRows) => {
     if (mErr || !projRows || !projRows.length) return;
     const stmt = db.prepare(
@@ -384,7 +384,7 @@ db.serialize(() => {
     )`
   );
   const DEFAULT_DESIGNER_PORTAL_TABS =
-    '["updates","timelines","mood-board","vault","material-selection","daily","vastu","other-docs","messages","meetings"]';
+    '["updates","timelines","mood-board","design-ideas","vault","material-selection","daily","vastu","other-docs","messages","meetings"]';
   db.all('SELECT id, designer_id FROM portal_projects WHERE designer_id IS NOT NULL', [], (dErr, dRows) => {
     if (dErr || !dRows || !dRows.length) return;
     const dst = db.prepare(
@@ -464,6 +464,83 @@ db.serialize(() => {
         const a = JSON.parse(r.allowed_tabs || '[]');
         if (!Array.isArray(a) || a.includes('meetings')) continue;
         a.push('meetings');
+        ud.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep */
+      }
+    }
+    ud.finalize();
+  });
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_idea_areas (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(project_id, name),
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_client_ideas (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      author_user_id TEXT NOT NULL,
+      area_id TEXT,
+      title TEXT NOT NULL DEFAULT '',
+      note_text TEXT NOT NULL DEFAULT '',
+      link_url TEXT NOT NULL DEFAULT '',
+      file_path TEXT,
+      file_name TEXT,
+      file_type TEXT NOT NULL DEFAULT 'NONE',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id),
+      FOREIGN KEY (author_user_id) REFERENCES portal_users(id),
+      FOREIGN KEY (area_id) REFERENCES portal_project_idea_areas(id)
+    )`
+  );
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_project_client_idea_comments (
+      id TEXT PRIMARY KEY,
+      idea_id TEXT NOT NULL,
+      author_user_id TEXT NOT NULL,
+      body TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (idea_id) REFERENCES portal_project_client_ideas(id),
+      FOREIGN KEY (author_user_id) REFERENCES portal_users(id)
+    )`
+  );
+  db.run(
+    'CREATE INDEX IF NOT EXISTS idx_portal_client_ideas_project ON portal_project_client_ideas (project_id, created_at)',
+    () => {}
+  );
+  db.run(
+    'CREATE INDEX IF NOT EXISTS idx_portal_idea_comments_idea ON portal_project_client_idea_comments (idea_id, created_at)',
+    () => {}
+  );
+  db.all('SELECT id, allowed_tabs FROM portal_project_members', [], (diMErr, diMRows) => {
+    if (diMErr || !diMRows || !diMRows.length) return;
+    const um = db.prepare('UPDATE portal_project_members SET allowed_tabs = ? WHERE id = ?');
+    for (const r of diMRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('design-ideas')) continue;
+        a.push('design-ideas');
+        um.run(JSON.stringify(a), r.id);
+      } catch (_e) {
+        /* keep */
+      }
+    }
+    um.finalize();
+  });
+  db.all('SELECT id, allowed_tabs FROM portal_project_designers', [], (diDErr, diDRows) => {
+    if (diDErr || !diDRows || !diDRows.length) return;
+    const ud = db.prepare('UPDATE portal_project_designers SET allowed_tabs = ? WHERE id = ?');
+    for (const r of diDRows) {
+      try {
+        const a = JSON.parse(r.allowed_tabs || '[]');
+        if (!Array.isArray(a) || a.includes('design-ideas')) continue;
+        a.push('design-ideas');
         ud.run(JSON.stringify(a), r.id);
       } catch (_e) {
         /* keep */

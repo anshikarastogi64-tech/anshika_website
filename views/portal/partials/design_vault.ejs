@@ -1,8 +1,8 @@
 <%
   const isDailyOnlyView = (typeof showDailyOnly !== 'undefined' && showDailyOnly) === true;
-  // Predefined area tags for residential & office interior (dropdown + custom)
-  const AREA_TAGS_RESIDENTIAL = ['Living Room', 'Dining Room', 'Kitchen', 'Bedroom', 'Master Bedroom', 'Kids Room', 'Bathroom', 'Master Bath', 'Guest Room', 'Study / Home Office', 'Balcony', 'Terrace', 'Entrance / Foyer', 'Corridor', 'Pooja Room', 'Utility', 'Store Room', 'Wardrobe / Dressing'];
-  const AREA_TAGS_OFFICE = ['Reception', 'Conference Room', 'Cabin / Executive Office', 'Workstation Area', 'Open Office', 'Meeting Room', 'Pantry / Cafeteria', 'Corridor', 'Washroom', 'Server Room', 'Storage', 'Break Room', 'Lounge', 'Waiting Area'];
+%>
+<%- include('./portal_area_tag_presets') %>
+<%
   const mediaByCat = (typeof mediaByCategory !== 'undefined' && mediaByCategory) ? mediaByCategory : {};
   const useDesigns = typeof projectDesigns !== 'undefined' && Array.isArray(projectDesigns) && projectDesigns.length > 0;
   let twoD = [], threeD = [], official = [], designVaultItems = [];

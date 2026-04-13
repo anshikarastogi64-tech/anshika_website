@@ -137,6 +137,35 @@ async function maybeNotifyPaymentScheduleIfChanged(projectId, excludeUserIds) {
   );
 }
 
+function normalizeClientIdeaLink(raw) {
+  const s = String(raw || '').trim().slice(0, 2000);
+  if (!s) return '';
+  const lower = s.toLowerCase();
+  if (lower.startsWith('javascript:') || lower.startsWith('data:')) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  return 'https://' + s;
+}
+
+function clientIdeaUploadAllowed(file) {
+  if (!file) return false;
+  const mt = String(file.mimetype || '').toLowerCase().split(';')[0].trim();
+  const name = String(file.originalname || '').toLowerCase();
+  if (mt.startsWith('image/')) return true;
+  if (mt === 'application/pdf' || name.endsWith('.pdf')) return true;
+  if (/\.(ppt|pptx|doc|docx|txt|rtf|key|pages|ai|eps)$/i.test(name)) return true;
+  if (
+    mt.includes('presentation') ||
+    mt.includes('word') ||
+    mt === 'text/plain' ||
+    mt === 'application/rtf' ||
+    mt === 'application/vnd.ms-powerpoint' ||
+    mt === 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function inferPortalUploadMediaType(file) {
   if (!file || !file.mimetype) return 'PHOTO';
   const rawMt = String(file.mimetype).toLowerCase();
@@ -175,6 +204,14 @@ const moodBoardUpload = multer({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + (file.originalname || 'file').replace(/\s/g, '-')),
   }),
   limits: { fileSize: 50 * 1024 * 1024 },
+});
+
+const ideaUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, portalUploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + (file.originalname || 'file').replace(/\s/g, '-')),
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 },
 });
 
 const materialsUpload = multer({
@@ -657,6 +694,10 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
+  const [designIdeaAreas, designIdeasWithComments] = await Promise.all([
+    portalDb.listDesignIdeaAreasForProject(project.id),
+    portalDb.listDesignIdeasWithCommentsForProject(project.id),
+  ]);
   renderPortal(req, res, 'portal/admin/project_detail', {
     project,
     quotation,
@@ -696,6 +737,8 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     projectMessageThreads,
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
     projectMeetings,
+    designIdeaAreas: designIdeaAreas || [],
+    designIdeasWithComments: designIdeasWithComments || [],
   });
 });
 
@@ -724,33 +767,27 @@ router.post('/admin/projects/:id/designer-mirror-visibility', express.urlencoded
   res.redirect('/portal/admin/projects/' + req.params.id);
 });
 
-const TAB_BODY_KEYS = {
-  updates: 'tab_updates',
-  timelines: 'tab_timelines',
-  'mood-board': 'tab_mood_board',
-  vault: 'tab_vault',
-  'material-selection': 'tab_material_selection',
-  daily: 'tab_daily',
-  finance: 'tab_finance',
-  warranty: 'tab_warranty',
-  vastu: 'tab_vastu',
-  'other-docs': 'tab_other_docs',
-  messages: 'tab_messages',
-  meetings: 'tab_meetings',
-};
-
-const DESIGNER_TAB_BODY_KEYS = {
-  updates: 'dtab_updates',
-  timelines: 'dtab_timelines',
-  vault: 'dtab_vault',
-  'material-selection': 'dtab_material_selection',
-  daily: 'dtab_daily',
-  vastu: 'dtab_vastu',
-  'mood-board': 'dtab_mood_board',
-  'other-docs': 'dtab_other_docs',
-  messages: 'dtab_messages',
-  meetings: 'dtab_meetings',
-};
+/** Must match `views/portal/admin/project_detail.ejs` checkbox `name` (tab_ / dtab_ + key with hyphens → underscores). */
+function portalMemberTabBodyField(tabKey) {
+  return 'tab_' + String(tabKey).replace(/-/g, '_');
+}
+function portalDesignerTabBodyField(tabKey) {
+  return 'dtab_' + String(tabKey).replace(/-/g, '_');
+}
+/** Global `express.urlencoded({ extended: false })` can yield string values; duplicate keys become arrays — treat all as checked/on. */
+function bodyCheckboxChecked(body, fieldName) {
+  const v = body[fieldName];
+  if (v === undefined || v === null) return false;
+  if (v === true || v === 1 || v === '1') return true;
+  if (typeof v === 'string') {
+    const t = v.trim().toLowerCase();
+    if (t === 'on' || t === 'true') return true;
+  }
+  if (Array.isArray(v)) {
+    return v.some((x) => x === true || x === 1 || x === '1' || (typeof x === 'string' && ['on', 'true', '1'].includes(String(x).trim().toLowerCase())));
+  }
+  return false;
+}
 
 router.post('/admin/projects/:id/members/add', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   const projectId = req.params.id;
@@ -774,11 +811,11 @@ router.post('/admin/projects/:id/members/remove', express.urlencoded({ extended:
   res.redirect('/portal/admin/projects/' + projectId + q + '#tab-updates');
 });
 
-router.post('/admin/projects/:id/members/tabs', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+router.post('/admin/projects/:id/members/tabs', requirePortalAuth, requireAdmin, async (req, res) => {
   const projectId = req.params.id;
   const userId = (req.body.user_id || '').trim();
   if (!userId) return res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
-  const selected = portalDb.CLIENT_PORTAL_TAB_KEYS.filter((k) => req.body[TAB_BODY_KEYS[k]] === '1');
+  const selected = portalDb.CLIENT_PORTAL_TAB_KEYS.filter((k) => bodyCheckboxChecked(req.body, portalMemberTabBodyField(k)));
   await portalDb.updateProjectMemberTabs(projectId, userId, selected);
   res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
 });
@@ -805,11 +842,11 @@ router.post('/admin/projects/:id/designers/remove', express.urlencoded({ extende
   res.redirect('/portal/admin/projects/' + projectId + q + '#tab-updates');
 });
 
-router.post('/admin/projects/:id/designers/tabs', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
+router.post('/admin/projects/:id/designers/tabs', requirePortalAuth, requireAdmin, async (req, res) => {
   const projectId = req.params.id;
   const userId = (req.body.user_id || '').trim();
   if (!userId) return res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
-  const selected = portalDb.DESIGNER_PORTAL_TAB_KEYS.filter((k) => req.body[DESIGNER_TAB_BODY_KEYS[k]] === '1');
+  const selected = portalDb.DESIGNER_PORTAL_TAB_KEYS.filter((k) => bodyCheckboxChecked(req.body, portalDesignerTabBodyField(k)));
   await portalDb.updateProjectDesignerTabs(projectId, userId, selected);
   res.redirect('/portal/admin/projects/' + projectId + '#tab-updates');
 });
@@ -1359,6 +1396,34 @@ router.post('/admin/projects/:id/mood-board', requirePortalAuth, requireAdmin, m
   );
   res.redirect('/portal/admin/projects/' + projectId + '#tab-mood-board');
 });
+
+router.post(
+  '/admin/projects/:id/design-ideas/:ideaId/comment',
+  express.urlencoded({ extended: true }),
+  requirePortalAuth,
+  requireAdmin,
+  async (req, res) => {
+    const projectId = req.params.id;
+    const ideaId = req.params.ideaId;
+    const body = String(req.body.body || '').trim();
+    if (!body) return res.redirect('/portal/admin/projects/' + projectId + '#idea-' + ideaId);
+    const idea = await portalDb.getDesignIdeaByIdInProject(ideaId, projectId);
+    if (!idea) return res.status(404).send('Not found');
+    await portalDb.addDesignIdeaComment(ideaId, req.session[PORTAL_USER_ID], body);
+    const proj = await portalDb.getProjectById(projectId);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `Your studio replied on a design inspiration for «${proj?.title || 'Project'}».`,
+        projectId,
+        tabSuffix: '#tab-design-ideas',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: true,
+      })
+    );
+    res.redirect('/portal/admin/projects/' + projectId + '#idea-' + ideaId);
+  }
+);
 
 router.post('/admin/projects/:id/designer-messaging', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   const projectId = req.params.id;
@@ -2317,6 +2382,10 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
+  const [designIdeaAreas, designIdeasWithComments] = await Promise.all([
+    portalDb.listDesignIdeaAreasForProject(project.id),
+    portalDb.listDesignIdeasWithCommentsForProject(project.id),
+  ]);
   renderPortal(req, res, 'portal/designer/project_detail', {
     project,
     query: req.query,
@@ -2337,6 +2406,8 @@ router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
     designerMessagingEnabled: Number(project.designer_client_messaging_enabled) === 1,
     projectMeetings,
+    designIdeaAreas: designIdeaAreas || [],
+    designIdeasWithComments: designIdeasWithComments || [],
   });
 });
 
@@ -2481,6 +2552,38 @@ router.post('/designer/projects/:id/mood-board', requirePortalAuth, requireDesig
   );
   res.redirect('/portal/designer/projects/' + projectId + '#tab-mood-board');
 });
+
+router.post(
+  '/designer/projects/:id/design-ideas/:ideaId/comment',
+  express.urlencoded({ extended: true }),
+  requirePortalAuth,
+  requireDesigner,
+  async (req, res) => {
+    const projectId = req.params.id;
+    const ideaId = req.params.ideaId;
+    const project = await portalDb.getProjectById(projectId);
+    if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+      return res.status(403).send('Forbidden');
+    }
+    if (!(await assertDesignerTab(req, projectId, 'design-ideas'))) return res.status(403).send('Forbidden');
+    const body = String(req.body.body || '').trim();
+    if (!body) return res.redirect('/portal/designer/projects/' + projectId + '#idea-' + ideaId);
+    const idea = await portalDb.getDesignIdeaByIdInProject(ideaId, projectId);
+    if (!idea) return res.status(404).send('Not found');
+    await portalDb.addDesignIdeaComment(ideaId, req.session[PORTAL_USER_ID], body);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `Your studio replied on a design inspiration for «${project.title}».`,
+        projectId,
+        tabSuffix: '#tab-design-ideas',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: true,
+      })
+    );
+    res.redirect('/portal/designer/projects/' + projectId + '#idea-' + ideaId);
+  }
+);
 
 router.post('/designer/projects/:id/messages', express.urlencoded({ extended: true }), requirePortalAuth, requireDesigner, async (req, res) => {
   const projectId = req.params.id;
@@ -3231,6 +3334,10 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const clientMessageAlerts = await portalDb.getClientHighlightMessages(project.id);
   const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
+  const [designIdeaAreas, designIdeasWithComments] = await Promise.all([
+    portalDb.listDesignIdeaAreasForProject(project.id),
+    portalDb.listDesignIdeasWithCommentsForProject(project.id),
+  ]);
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
     quotation,
@@ -3261,6 +3368,8 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
     projectMeetings,
     query: req.query,
+    designIdeaAreas: designIdeaAreas || [],
+    designIdeasWithComments: designIdeasWithComments || [],
   });
 });
 
@@ -3435,6 +3544,132 @@ router.post('/client/projects/:id/meetings/:mid/cancel', express.urlencoded({ ex
   res.redirect(redir);
 });
 
+router.post(
+  '/client/projects/:id/design-ideas',
+  requirePortalAuth,
+  (req, res, next) => {
+    ideaUpload.single('file')(req, res, (err) => {
+      if (err) {
+        return res.redirect(
+          '/portal/client/projects/' +
+            req.params.id +
+            '?msg=' +
+            encodeURIComponent(
+              err.code === 'LIMIT_FILE_SIZE' ? 'File too large (max 25 MB).' : 'Upload failed.'
+            ) +
+            '#tab-design-ideas'
+        );
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+    const projectId = req.params.id;
+    const access = await requireClientProjectAccess(req, projectId, 'design-ideas');
+    if (!access) return res.status(403).send('Forbidden');
+    const title = String(req.body.title || '').trim();
+    const noteText = String(req.body.note_text || '').trim();
+    const linkUrl = normalizeClientIdeaLink(req.body.link_url);
+    let filePath = null;
+    let fileName = null;
+    let fileType = 'NONE';
+    if (req.file) {
+      if (!clientIdeaUploadAllowed(req.file)) {
+        const fp = req.file.path;
+        if (fp) fs.unlink(fp, () => {});
+        return res.redirect(
+          '/portal/client/projects/' + projectId + '?msg=' + encodeURIComponent('That file type is not supported.') + '#tab-design-ideas'
+        );
+      }
+      filePath = '/assets/uploads/portal/' + path.basename(req.file.filename);
+      fileName = req.file.originalname;
+      fileType = inferPortalUploadMediaType(req.file);
+    }
+    let areaId = null;
+    const newAreaCustom = String(req.body.new_area_name || '').trim();
+    const areaChoice = String(req.body.area_choice || '').trim();
+    if (newAreaCustom) {
+      areaId = await portalDb.addDesignIdeaAreaForProject(projectId, newAreaCustom);
+    } else if (areaChoice.startsWith('id:')) {
+      const aid = areaChoice.slice(3).trim();
+      if (aid) {
+        const row = await portalDb.getDesignIdeaAreaInProject(aid, projectId);
+        if (row) areaId = row.id;
+      }
+    } else if (areaChoice.startsWith('new:')) {
+      const presetName = areaChoice.slice(4).trim();
+      if (presetName) areaId = await portalDb.addDesignIdeaAreaForProject(projectId, presetName);
+    }
+    const hasContent =
+      (title && title.length > 0) ||
+      (noteText && noteText.length > 0) ||
+      (linkUrl && linkUrl.length > 0) ||
+      !!filePath;
+    if (!hasContent) {
+      if (req.file && req.file.path) fs.unlink(req.file.path, () => {});
+      return res.redirect(
+        '/portal/client/projects/' +
+          projectId +
+          '?msg=' +
+          encodeURIComponent('Add a title, note, link, or attachment.') +
+          '#tab-design-ideas'
+      );
+    }
+    await portalDb.createDesignIdea(projectId, req.session[PORTAL_USER_ID], {
+      areaId,
+      title,
+      noteText,
+      linkUrl,
+      filePath,
+      fileName,
+      fileType,
+    });
+    const proj = access.project;
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DESIGN,
+        message: `New client inspiration was shared on «${proj.title}».`,
+        projectId,
+        tabSuffix: '#tab-design-ideas',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: false,
+      })
+    );
+    res.redirect('/portal/client/projects/' + projectId + '#tab-design-ideas');
+  }
+);
+
+router.post(
+  '/client/projects/:id/design-ideas/:ideaId/comment',
+  express.urlencoded({ extended: true }),
+  requirePortalAuth,
+  async (req, res) => {
+    if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+    const projectId = req.params.id;
+    const ideaId = req.params.ideaId;
+    const access = await requireClientProjectAccess(req, projectId, 'design-ideas');
+    if (!access) return res.status(403).send('Forbidden');
+    const body = String(req.body.body || '').trim();
+    if (!body) return res.redirect('/portal/client/projects/' + projectId + '#idea-' + ideaId);
+    const idea = await portalDb.getDesignIdeaByIdInProject(ideaId, projectId);
+    if (!idea) return res.status(404).send('Not found');
+    await portalDb.addDesignIdeaComment(ideaId, req.session[PORTAL_USER_ID], body);
+    const proj = access.project;
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.COMMENT,
+        message: `The client replied on a design inspiration for «${proj.title}».`,
+        projectId,
+        tabSuffix: '#tab-design-ideas',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+        includeClient: false,
+      })
+    );
+    res.redirect('/portal/client/projects/' + projectId + '#idea-' + ideaId);
+  }
+);
+
 // ----- Mirror Mode (Admin/Designer view as client) -----
 router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const project = await portalDb.getProjectById(req.params.projectId);
@@ -3498,6 +3733,10 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const clientMessageAlerts = await portalDb.getClientHighlightMessages(project.id);
   const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
+  const [designIdeaAreas, designIdeasWithComments] = await Promise.all([
+    portalDb.listDesignIdeaAreasForProject(project.id),
+    portalDb.listDesignIdeasWithCommentsForProject(project.id),
+  ]);
   res.locals.mirrorBanner = true;
   renderPortal(req, res, 'portal/client/project_detail', {
     project,
@@ -3529,6 +3768,8 @@ router.get('/mirror/:projectId', requirePortalAuth, async (req, res) => {
     messagePriorities: portalDb.MESSAGE_PRIORITY_LEVELS,
     projectMeetings,
     query: req.query,
+    designIdeaAreas: designIdeaAreas || [],
+    designIdeasWithComments: designIdeasWithComments || [],
   });
 });
 

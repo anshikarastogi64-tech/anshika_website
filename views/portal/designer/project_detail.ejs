@@ -3,7 +3,7 @@
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
-<% var tabOrderDesigner = ['updates','messages','meetings','timelines','mood-board','vault','material-selection','daily','vastu','other-docs'];
+<% var tabOrderDesigner = ['updates','messages','meetings','timelines','mood-board','design-ideas','vault','material-selection','daily','vastu','other-docs'];
    var dTabs = typeof designerAllowedTabs !== 'undefined' && designerAllowedTabs ? designerAllowedTabs : {};
    tabOrderDesigner.forEach(function(k) { if (dTabs[k] === undefined) dTabs[k] = true; });
    var anyDesignerTab = tabOrderDesigner.some(function(k) { return dTabs[k]; });
@@ -36,6 +36,11 @@
   <% if (dTabs['mood-board']) { %>
   <li class="nav-item" role="presentation">
     <button class="nav-link<%= firstVis === 'mood-board' ? ' active' : '' %>" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
+  </li>
+  <% } %>
+  <% if (dTabs['design-ideas']) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'design-ideas' ? ' active' : '' %>" id="tab-design-ideas-btn" data-bs-toggle="tab" data-bs-target="#tab-design-ideas" type="button" role="tab">Your vision</button>
   </li>
   <% } %>
   <% if (dTabs.vault) { %>
@@ -105,6 +110,9 @@
   <% } %>
   <% if (dTabs['mood-board']) { %>
   <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'designer', moodBoardTabPaneClass: firstVis === 'mood-board' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (dTabs['design-ideas']) { %>
+  <%- include('../partials/project_design_ideas_tab', { project, designIdeaAreas: typeof designIdeaAreas !== 'undefined' ? designIdeaAreas : [], designIdeasWithComments: typeof designIdeasWithComments !== 'undefined' ? designIdeasWithComments : [], ideasMode: 'designer', readOnly: false, ideasTabPaneClass: firstVis === 'design-ideas' ? ' show active' : '', query: typeof query !== 'undefined' ? query : {} }) %>
   <% } %>
   <% if (dTabs.vault) { %>
   <div class="tab-pane fade<%= firstVis === 'vault' ? ' show active' : '' %>" id="tab-vault" role="tabpanel">

@@ -1,6 +1,6 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Progress: <strong><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></strong></p>
-<% var tabOrderClient = ['updates','timelines','mood-board','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages','meetings'];
+<% var tabOrderClient = ['updates','timelines','mood-board','design-ideas','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages','meetings'];
    var cTabs = typeof clientAllowedTabs !== 'undefined' && clientAllowedTabs ? clientAllowedTabs : {};
    tabOrderClient.forEach(function(k) { if (cTabs[k] === undefined) cTabs[k] = true; });
    var anyClientTab = tabOrderClient.some(function(k) { return cTabs[k]; });
@@ -50,6 +50,11 @@
   <% if (cTabs['mood-board']) { %>
   <li class="nav-item" role="presentation">
     <button class="nav-link<%= firstVis === 'mood-board' ? ' active' : '' %>" id="tab-mood-board-btn" data-bs-toggle="tab" data-bs-target="#tab-mood-board" type="button" role="tab">Mood board</button>
+  </li>
+  <% } %>
+  <% if (cTabs['design-ideas']) { %>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link<%= firstVis === 'design-ideas' ? ' active' : '' %>" id="tab-design-ideas-btn" data-bs-toggle="tab" data-bs-target="#tab-design-ideas" type="button" role="tab">Your vision</button>
   </li>
   <% } %>
   <% if (cTabs.vault) { %>
@@ -159,6 +164,9 @@
   <% } %>
   <% if (cTabs['mood-board']) { %>
   <%- include('../partials/mood_board_tab', { project, moodBoardFiles: typeof moodBoardFiles !== 'undefined' ? moodBoardFiles : [], moodBoardMode: 'client', moodBoardTabPaneClass: firstVis === 'mood-board' ? ' show active' : '' }) %>
+  <% } %>
+  <% if (cTabs['design-ideas']) { %>
+  <%- include('../partials/project_design_ideas_tab', { project, designIdeaAreas: typeof designIdeaAreas !== 'undefined' ? designIdeaAreas : [], designIdeasWithComments: typeof designIdeasWithComments !== 'undefined' ? designIdeasWithComments : [], ideasMode: 'client', readOnly: typeof readOnly !== 'undefined' ? readOnly : false, ideasTabPaneClass: firstVis === 'design-ideas' ? ' show active' : '', query: typeof query !== 'undefined' ? query : {} }) %>
   <% } %>
   <% if (cTabs.vault) { %>
   <div class="tab-pane fade<%= firstVis === 'vault' ? ' show active' : '' %>" id="tab-vault" role="tabpanel">

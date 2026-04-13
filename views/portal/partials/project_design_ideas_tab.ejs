@@ -1,0 +1,216 @@
+<%- include('./portal_area_tag_presets') %>
+<%
+  var ideasModeVal = typeof ideasMode !== 'undefined' ? ideasMode : 'client';
+  var ideasReadOnly = typeof readOnly !== 'undefined' && readOnly;
+  var areas = typeof designIdeaAreas !== 'undefined' && designIdeaAreas ? designIdeaAreas : [];
+  var ideas = typeof designIdeasWithComments !== 'undefined' && designIdeasWithComments ? designIdeasWithComments : [];
+  var ideasBase = ideasModeVal === 'admin' ? '/portal/admin/projects/' + project.id : (ideasModeVal === 'designer' ? '/portal/designer/projects/' + project.id : '/portal/client/projects/' + project.id);
+  var paneClass = typeof ideasTabPaneClass !== 'undefined' ? ideasTabPaneClass : '';
+  var _vaultRes = typeof AREA_TAGS_RESIDENTIAL !== 'undefined' ? AREA_TAGS_RESIDENTIAL : [];
+  var _vaultOff = typeof AREA_TAGS_OFFICE !== 'undefined' ? AREA_TAGS_OFFICE : [];
+  function ideaRoleLabel(r) {
+    r = String(r || '').toUpperCase();
+    if (r === 'ADMIN') return 'Studio';
+    if (r === 'DESIGNER') return 'Designer';
+    return 'Client';
+  }
+%>
+<div class="tab-pane fade<%= paneClass %>" id="tab-design-ideas" role="tabpanel">
+  <% if (typeof query !== 'undefined' && query && query.msg) { %>
+  <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
+  <% } %>
+
+  <div class="design-ideas-hero rounded-4 p-4 p-md-5 mb-4 position-relative overflow-hidden">
+    <div class="position-relative z-1">
+      <p class="small text-uppercase mb-2" style="letter-spacing: 0.2em; color: rgba(212, 175, 55, 0.95);">Your space, your narrative</p>
+      <h2 class="serif text-warning mb-3 display-6">Share what inspires you—we shape it into design</h2>
+      <p class="lead mb-0 text-light" style="max-width: 42rem; opacity: 0.92;">
+        Every reference tells us how you want to feel at home or at work. Tag ideas by room or zone, drop a link, upload a sketch or mood image (PDF &amp; presentations welcome), and add a few words if you like. Your designer and our studio team can reply right on each idea.
+      </p>
+    </div>
+    <div class="design-ideas-hero-glow" aria-hidden="true"></div>
+  </div>
+
+  <% if (!ideasReadOnly && ideasModeVal === 'client') { %>
+  <div class="card card-portal mb-4 border-warning border-opacity-25">
+    <div class="card-header serif text-warning">Add inspiration</div>
+    <div class="card-body">
+      <form method="post" action="<%= ideasBase %>/design-ideas" enctype="multipart/form-data" class="row g-3">
+        <div class="col-12">
+          <label class="form-label small text-muted mb-0" for="ideaAreaChoice">Area / zone</label>
+          <select name="area_choice" id="ideaAreaChoice" class="form-select form-select-sm bg-dark text-light border-secondary portal-idea-area-select">
+            <option value="">— General / whole project —</option>
+            <% if (areas.length) { %>
+            <optgroup label="Already on this project">
+              <% areas.forEach(function(a) { %>
+              <option value="id:<%= a.id %>"><%= a.name %></option>
+              <% }); %>
+            </optgroup>
+            <% } %>
+            <optgroup label="Residential (same as Design Vault)">
+              <% _vaultRes.forEach(function(p) { %>
+              <option value="new:<%= p %>"><%= p %></option>
+              <% }); %>
+            </optgroup>
+            <optgroup label="Office (same as Design Vault)">
+              <% _vaultOff.forEach(function(p) { %>
+              <option value="new:<%= p %>"><%= p %></option>
+              <% }); %>
+            </optgroup>
+          </select>
+          <div class="form-text text-muted small">Pick a room or zone from the list (matches your designer’s Design Vault). Or use custom below.</div>
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label small text-muted mb-0" for="ideaNewArea">Custom area <span class="text-muted fw-normal">(optional)</span></label>
+          <input type="text" name="new_area_name" id="ideaNewArea" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="120" placeholder="e.g. Home theatre — overrides dropdown above" autocomplete="off" />
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted mb-0" for="ideaTitle">Short title <span class="text-muted">(optional)</span></label>
+          <input type="text" name="title" id="ideaTitle" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="e.g. Warm wood kitchen reference" />
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted mb-0" for="ideaNote">Notes</label>
+          <textarea name="note_text" id="ideaNote" class="form-control form-control-sm bg-dark text-light border-secondary" rows="3" maxlength="8000" placeholder="What do you love about this? Colours, materials, mood…"></textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small mb-0 text-light" for="ideaLink">Link <span class="text-muted fw-normal">(Share a link if you liked any design anywhere)</span></label>
+          <input type="url" name="link_url" id="ideaLink" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Pinterest, Instagram, magazine, product page…" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small text-muted mb-0" for="ideaFile">Attachment</label>
+          <input type="file" name="file" id="ideaFile" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*,.pdf,.ppt,.pptx,.doc,.docx,.txt" />
+          <div class="form-text text-muted small">Images, PDF, PowerPoint, Word, or text — up to 25 MB.</div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-gold btn-sm">Share with studio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <% } else if (ideasReadOnly) { %>
+  <p class="small text-muted mb-4"><span class="badge bg-secondary">Mirror preview</span> Ideas are read-only here; clients add inspiration from their portal.</p>
+  <% } else { %>
+  <p class="small text-muted mb-4">Clients add inspiration here. Use the thread under each card to respond.</p>
+  <% } %>
+
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <h3 class="serif text-warning h5 mb-0">Inspiration board</h3>
+    <span class="small text-muted"><%= ideas.length %> <%= ideas.length === 1 ? 'idea' : 'ideas' %></span>
+  </div>
+
+  <% if (!ideas.length) { %>
+  <div class="card card-portal border-secondary border-opacity-25">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-lightbulb text-warning" style="font-size:2.5rem" aria-hidden="true"></i>
+      <p class="mt-3 mb-0 text-muted">No inspiration shared yet.<% if (!ideasReadOnly && ideasModeVal === 'client') { %> When you’re ready, use the form above—<% } else { %> The client can add references anytime.<% } %></p>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="row g-4">
+    <% ideas.forEach(function(idea) {
+         var ftype = String(idea.file_type || '').toUpperCase();
+         var isImg = idea.file_path && ftype === 'PHOTO';
+         var isPdf = idea.file_path && (ftype === 'DOCUMENT' && (String(idea.file_name || '').toLowerCase().indexOf('.pdf') !== -1 || String(idea.file_path || '').toLowerCase().indexOf('.pdf') !== -1));
+    %>
+    <div class="col-12">
+      <article class="card card-portal design-idea-card h-100 border-secondary border-opacity-25" id="idea-<%= idea.id %>">
+        <div class="card-body">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+            <div>
+              <% if (idea.area_name) { %>
+              <span class="badge rounded-pill bg-warning text-dark mb-1"><%= idea.area_name %></span>
+              <% } else { %>
+              <span class="badge rounded-pill bg-secondary mb-1">General</span>
+              <% } %>
+              <div class="small text-muted"><%= idea.author_name %> · <%= ideaRoleLabel(idea.author_role) %> · <%= idea.created_at ? new Date(idea.created_at).toLocaleString() : '' %></div>
+            </div>
+          </div>
+          <% if (idea.title) { %>
+          <h4 class="serif h5 text-warning mb-2"><%= idea.title %></h4>
+          <% } %>
+          <% if (idea.note_text) { %>
+          <div class="mb-3" style="white-space: pre-wrap; word-break: break-word;"><%= idea.note_text %></div>
+          <% } %>
+          <% if (idea.link_url) { %>
+          <p class="mb-2"><a href="<%= idea.link_url %>" class="text-warning text-break" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i><%= idea.link_url %></a></p>
+          <% } %>
+          <% if (idea.file_path) { %>
+          <div class="mb-3">
+            <% if (isImg) { %>
+            <a href="<%= idea.file_path %>" target="_blank" rel="noopener noreferrer" class="d-inline-block rounded overflow-hidden border border-secondary border-opacity-25">
+              <img src="<%= idea.file_path %>" alt="" class="img-fluid" style="max-height:220px;object-fit:cover" loading="lazy" />
+            </a>
+            <% } else if (isPdf) { %>
+            <a href="<%= idea.file_path %>" class="btn btn-outline-gold btn-sm" data-portal-pdf="1" data-portal-pdf-name="<%= idea.file_name || 'Attachment' %>"><i class="bi bi-file-earmark-pdf me-1"></i><%= idea.file_name || 'Open PDF' %></a>
+            <% } else { %>
+            <a href="<%= idea.file_path %>" class="btn btn-outline-gold btn-sm" download target="_blank" rel="noopener noreferrer"><i class="bi bi-paperclip me-1"></i><%= idea.file_name || 'Download attachment' %></a>
+            <% } %>
+          </div>
+          <% } %>
+
+          <div class="border-top border-secondary border-opacity-25 pt-3 mt-2">
+            <h5 class="small text-uppercase text-muted mb-2" style="letter-spacing:0.06em">Conversation</h5>
+            <% (idea.comments || []).forEach(function(c) { %>
+            <div class="rounded-3 p-3 mb-2 design-idea-comment">
+              <div class="d-flex justify-content-between flex-wrap gap-1 mb-1">
+                <strong class="small"><%= c.author_name %></strong>
+                <span class="badge bg-dark border border-secondary border-opacity-25"><%= ideaRoleLabel(c.author_role) %></span>
+              </div>
+              <div class="small mb-0" style="white-space: pre-wrap; word-break: break-word;"><%= c.body %></div>
+              <div class="small text-muted mt-1"><%= c.created_at ? new Date(c.created_at).toLocaleString() : '' %></div>
+            </div>
+            <% }); %>
+            <% if (!ideasReadOnly) { %>
+            <form method="post" action="<%= ideasBase %>/design-ideas/<%= idea.id %>/comment" class="mt-3">
+              <label class="form-label small text-muted mb-0" for="cmt-<%= idea.id %>">Add a reply</label>
+              <textarea name="body" id="cmt-<%= idea.id %>" class="form-control form-control-sm bg-dark text-light border-secondary mb-2" rows="2" required maxlength="8000" placeholder="Questions, suggestions, or next steps…"></textarea>
+              <button type="submit" class="btn btn-outline-gold btn-sm">Send</button>
+            </form>
+            <% } %>
+          </div>
+        </div>
+      </article>
+    </div>
+    <% }); %>
+  </div>
+  <% } %>
+</div>
+
+<style>
+  .design-ideas-hero {
+    background: linear-gradient(135deg, rgba(30, 28, 24, 0.98) 0%, rgba(18, 18, 18, 1) 50%, rgba(26, 22, 18, 0.98) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  }
+  .design-ideas-hero-glow {
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    right: -80px;
+    top: -100px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .design-idea-card { scroll-margin-top: 5rem; }
+  .design-idea-comment { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); }
+  /* Dropdown option panel: ensure readable on dark theme */
+  select.portal-idea-area-select option,
+  select.portal-idea-area-select optgroup {
+    background-color: #1e1e1e;
+    color: #e8e8e8;
+  }
+</style>
+<script>
+(function () {
+  function scrollIdeaFromHash() {
+    try {
+      var h = window.location.hash || '';
+      if (h.indexOf('#idea-') !== 0) return;
+      var el = document.querySelector(h);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {}
+  }
+  document.addEventListener('DOMContentLoaded', scrollIdeaFromHash);
+  window.addEventListener('hashchange', scrollIdeaFromHash);
+})();
+</script>
