@@ -292,6 +292,12 @@ db.serialize(() => {
   db.run('ALTER TABLE portal_projects ADD COLUMN payment_terms_json TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN payment_schedule_notify_fingerprint TEXT', () => {});
   db.run('ALTER TABLE portal_projects ADD COLUMN designer_client_messaging_enabled INTEGER NOT NULL DEFAULT 0', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN site_address TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN site_map_lat REAL', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN site_map_lng REAL', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN site_map_place_label TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN site_contact_name TEXT', () => {});
+  db.run('ALTER TABLE portal_projects ADD COLUMN site_contact_phone TEXT', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_project_messages (
       id TEXT PRIMARY KEY,

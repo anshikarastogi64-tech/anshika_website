@@ -298,6 +298,83 @@ function allClientTabsVisibleMap() {
   return m;
 }
 
+function parseWorksiteCoordBody(val) {
+  const s = String(val ?? '').trim();
+  if (!s) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  return n;
+}
+
+function normalizeWorksiteBody(body) {
+  const site_address = String(body.site_address || '').trim().slice(0, 2000);
+  const site_map_place_label = String(body.site_map_place_label || '').trim().slice(0, 500);
+  const site_contact_name = String(body.site_contact_name || '').trim().slice(0, 200);
+  const site_contact_phone = String(body.site_contact_phone || '').trim().slice(0, 80);
+  let site_map_lat = parseWorksiteCoordBody(body.site_map_lat);
+  let site_map_lng = parseWorksiteCoordBody(body.site_map_lng);
+  if (site_map_lat != null && (site_map_lat < -90 || site_map_lat > 90)) site_map_lat = null;
+  if (site_map_lng != null && (site_map_lng < -180 || site_map_lng > 180)) site_map_lng = null;
+  return {
+    site_address: site_address || null,
+    site_map_place_label: site_map_place_label || null,
+    site_contact_name: site_contact_name || null,
+    site_contact_phone: site_contact_phone || null,
+    site_map_lat,
+    site_map_lng,
+  };
+}
+
+async function resolveProjectWorksiteAccess(req, projectId) {
+  const role = req.session[PORTAL_USER_ROLE];
+  const userId = req.session[PORTAL_USER_ID];
+  const projectRow = await portalDb.getProjectById(projectId);
+  if (!projectRow) return null;
+  if (role === 'ADMIN') {
+    return { backUrl: '/portal/admin/projects/' + projectId, savePath: '/portal/admin/projects/' + projectId + '/worksite' };
+  }
+  if (role === 'DESIGNER') {
+    if (!(await portalDb.designerHasProjectAccess(userId, projectId))) return null;
+    return { backUrl: '/portal/designer/projects/' + projectId, savePath: '/portal/designer/projects/' + projectId + '/worksite' };
+  }
+  if (role === 'CLIENT') {
+    const acc = await portalDb.getClientProjectPortalAccess(userId, projectId);
+    if (!acc) return null;
+    return { backUrl: '/portal/client/projects/' + projectId, savePath: '/portal/client/projects/' + projectId + '/worksite' };
+  }
+  return null;
+}
+
+async function renderWorksitePage(req, res, ctx) {
+  const project = await portalDb.getProjectWithRelations(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  enrichProjectLifecycle(project);
+  renderPortal(req, res, 'portal/project_worksite', {
+    title: 'Site location & contact',
+    project,
+    worksiteBackUrl: ctx.backUrl,
+    worksiteSavePath: ctx.savePath,
+    query: req.query,
+    googleMapsJsApiKey: (process.env.GOOGLE_MAPS_JS_API_KEY || '').trim(),
+  });
+}
+
+async function handleWorksitePost(req, res, ctx) {
+  const projectId = req.params.id;
+  const patch = normalizeWorksiteBody(req.body);
+  await portalDb.updateProject(projectId, patch);
+  const p = await portalDb.getProjectById(projectId);
+  portalNotify.safeNotify(
+    portalNotify.notifyProjectStakeholders(portalDb, {
+      category: NC.PROJECT,
+      message: `Site location or contact was updated for «${p?.title || 'Project'}».`,
+      projectId,
+      excludeUserIds: [req.session[PORTAL_USER_ID]],
+    })
+  );
+  res.redirect(ctx.savePath + '?msg=' + encodeURIComponent('Saved site location and contact.'));
+}
+
 function requirePortalAuth(req, res, next) {
   if (!req.session[PORTAL_USER_ID]) {
     return res.redirect('/portal/login');
@@ -741,6 +818,24 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     designIdeasWithComments: designIdeasWithComments || [],
   });
 });
+
+router.get('/admin/projects/:id/worksite', requirePortalAuth, requireAdmin, async (req, res) => {
+  const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
+  if (!ctx) return res.status(404).send('Project not found');
+  return renderWorksitePage(req, res, ctx);
+});
+
+router.post(
+  '/admin/projects/:id/worksite',
+  express.urlencoded({ extended: true }),
+  requirePortalAuth,
+  requireAdmin,
+  async (req, res) => {
+    const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
+    if (!ctx) return res.status(404).send('Project not found');
+    return handleWorksitePost(req, res, ctx);
+  }
+);
 
 router.post('/admin/projects/:id/assign', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
   const designer_id = (req.body.designer_id || '').trim() || null;
@@ -2339,6 +2434,24 @@ router.get('/designer/projects', requirePortalAuth, requireDesigner, async (req,
   renderPortal(req, res, 'portal/designer/projects', { projects });
 });
 
+router.get('/designer/projects/:id/worksite', requirePortalAuth, requireDesigner, async (req, res) => {
+  const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
+  if (!ctx) return res.status(403).send('Forbidden');
+  return renderWorksitePage(req, res, ctx);
+});
+
+router.post(
+  '/designer/projects/:id/worksite',
+  express.urlencoded({ extended: true }),
+  requirePortalAuth,
+  requireDesigner,
+  async (req, res) => {
+    const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
+    if (!ctx) return res.status(403).send('Forbidden');
+    return handleWorksitePost(req, res, ctx);
+  }
+);
+
 router.get('/designer/projects/:id', requirePortalAuth, requireDesigner, async (req, res) => {
   const project = await portalDb.getProjectWithRelations(req.params.id);
   if (!project) return res.status(404).send('Project not found');
@@ -3271,6 +3384,25 @@ router.post('/client/projects/:id/material-selection/:matId/reject', express.url
   );
   res.redirect(redir);
 });
+
+router.get('/client/projects/:id/worksite', requirePortalAuth, async (req, res) => {
+  if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+  const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
+  if (!ctx) return res.status(403).send('Forbidden');
+  return renderWorksitePage(req, res, ctx);
+});
+
+router.post(
+  '/client/projects/:id/worksite',
+  express.urlencoded({ extended: true }),
+  requirePortalAuth,
+  async (req, res) => {
+    if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');
+    const ctx = await resolveProjectWorksiteAccess(req, req.params.id);
+    if (!ctx) return res.status(403).send('Forbidden');
+    return handleWorksitePost(req, res, ctx);
+  }
+);
 
 router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
   if (req.session[PORTAL_USER_ROLE] !== 'CLIENT') return res.status(403).send('Forbidden');

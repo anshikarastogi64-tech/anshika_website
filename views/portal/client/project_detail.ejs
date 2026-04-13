@@ -1,5 +1,11 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Progress: <strong><%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></strong></p>
+<% var _worksiteHref = '/portal/client/projects/' + project.id + '/worksite';
+   if (typeof readOnly !== 'undefined' && readOnly && typeof portalUser !== 'undefined' && portalUser) {
+     _worksiteHref = portalUser.role === 'ADMIN' ? '/portal/admin/projects/' + project.id + '/worksite' : '/portal/designer/projects/' + project.id + '/worksite';
+   }
+%>
+<p class="mb-3"><a href="<%= _worksiteHref %>" class="btn btn-outline-gold btn-sm">Site location &amp; contact</a></p>
 <% var tabOrderClient = ['updates','timelines','mood-board','design-ideas','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages','meetings'];
    var cTabs = typeof clientAllowedTabs !== 'undefined' && clientAllowedTabs ? clientAllowedTabs : {};
    tabOrderClient.forEach(function(k) { if (cTabs[k] === undefined) cTabs[k] = true; });
@@ -7,7 +13,10 @@
    var firstVis = tabOrderClient.find(function(k) { return cTabs[k]; }) || 'updates';
 %>
 <% if (!anyClientTab) { %>
-<div class="alert alert-warning border border-warning text-dark">No sections are enabled for your account on this project. Please contact the studio.</div>
+<div class="alert alert-warning border border-warning text-dark">
+  <p class="mb-2">No sections are enabled for your account on this project. Please contact the studio.</p>
+  <p class="mb-0"><a href="<%= _worksiteHref %>" class="btn btn-outline-dark btn-sm">Site location &amp; contact</a></p>
+</div>
 <% } else { %>
 <% if (cTabs.messages && typeof clientMessageAlerts !== 'undefined' && clientMessageAlerts.length) { %>
 <div class="portal-message-alerts mb-3">

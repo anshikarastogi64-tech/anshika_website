@@ -1,0 +1,269 @@
+<% var p = project;
+   var back = typeof worksiteBackUrl !== 'undefined' ? worksiteBackUrl : '/portal/';
+   var save = typeof worksiteSavePath !== 'undefined' ? worksiteSavePath : '#';
+   var gkey = typeof googleMapsJsApiKey === 'string' ? googleMapsJsApiKey : '';
+   var lat0 = p.site_map_lat != null && p.site_map_lat !== '' ? Number(p.site_map_lat) : null;
+   var lng0 = p.site_map_lng != null && p.site_map_lng !== '' ? Number(p.site_map_lng) : null;
+   var hasPin = lat0 != null && lng0 != null && !Number.isNaN(lat0) && !Number.isNaN(lng0);
+%>
+<h1 class="serif text-warning mb-2">Site location &amp; contact</h1>
+<p class="mb-4"><span class="text-muted">Project:</span> <strong class="text-light"><%= p.title %></strong>
+  <% if (p.client_name) { %> <span class="text-muted">· Client: <%= p.client_name %></span><% } %>
+  <br /><a href="<%= back %>" class="btn btn-outline-gold btn-sm mt-2">← Back to project</a></p>
+
+<% if (typeof query !== 'undefined' && query && query.msg) { %>
+<div class="alert alert-success border border-success text-dark mb-4" role="alert"><%= query.msg %></div>
+<% } %>
+
+<p class="small text-muted mb-4">Anyone on this project (studio, designer, or client) can update the work-site address, map pin, and on-site contact. Changes notify other people linked to the project.</p>
+
+<form method="post" action="<%= save %>" id="worksiteForm" class="card card-portal mb-4">
+  <div class="card-header serif text-warning">Work site details</div>
+  <div class="card-body row g-3">
+    <div class="col-12">
+      <label class="form-label small text-muted mb-0" for="site_address">Site address</label>
+      <textarea name="site_address" id="site_address" class="form-control form-control-sm bg-dark text-light border-secondary" rows="3" maxlength="2000" placeholder="Full address, landmarks, directions…"><%= p.site_address || '' %></textarea>
+    </div>
+
+    <% if (gkey) { %>
+    <div class="col-12">
+      <label class="form-label small text-muted mb-0" for="worksite-search">Search on Google Maps</label>
+      <input type="text" id="worksite-search" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Search for a building, area, or pin code" autocomplete="off" />
+      <div class="form-text text-muted small">Pick a result or drag the pin. Latitude and longitude save with the project.</div>
+    </div>
+    <div class="col-12">
+      <div id="worksite-map" class="rounded border border-secondary border-opacity-50" style="height:360px;width:100%;min-height:280px;background:#1a1a1a;"></div>
+    </div>
+    <% } else { %>
+    <div class="col-12">
+      <div class="alert alert-secondary border text-dark small mb-0">
+        <strong>Map search</strong> needs a <code>GOOGLE_MAPS_JS_API_KEY</code> in your server <code>.env</code> (Maps JavaScript API + Places API enabled). Until then, enter coordinates manually below or paste a Google Maps link into the address field.
+      </div>
+    </div>
+    <% } %>
+
+    <div class="col-md-6">
+      <label class="form-label small text-muted mb-0" for="site_map_lat">Latitude</label>
+      <input type="text" name="site_map_lat" id="site_map_lat" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g. 28.6139" value="<%= hasPin ? lat0 : '' %>" />
+    </div>
+    <div class="col-md-6">
+      <label class="form-label small text-muted mb-0" for="site_map_lng">Longitude</label>
+      <input type="text" name="site_map_lng" id="site_map_lng" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g. 77.2090" value="<%= hasPin ? lng0 : '' %>" />
+    </div>
+    <div class="col-12">
+      <label class="form-label small text-muted mb-0" for="site_map_place_label">Map place name <span class="fw-normal">(optional, from search)</span></label>
+      <input type="text" name="site_map_place_label" id="site_map_place_label" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="500" placeholder="e.g. Building or area name from Google" value="<%= p.site_map_place_label || '' %>" />
+    </div>
+    <% if (hasPin) { %>
+    <div class="col-12">
+      <a class="btn btn-outline-gold btn-sm" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps?q=<%= encodeURIComponent(String(lat0) + ',' + String(lng0)) %>">Open pin in Google Maps</a>
+    </div>
+    <% } %>
+
+    <div class="col-12"><hr class="border-secondary opacity-25" /></div>
+
+    <div class="col-md-6">
+      <label class="form-label small text-muted mb-0" for="site_contact_name">Contact person on site</label>
+      <input type="text" name="site_contact_name" id="site_contact_name" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="Name" value="<%= p.site_contact_name || '' %>" />
+    </div>
+    <div class="col-md-6">
+      <label class="form-label small text-muted mb-0" for="site_contact_phone">Contact number</label>
+      <input type="tel" name="site_contact_phone" id="site_contact_phone" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="80" placeholder="Phone / WhatsApp" value="<%= p.site_contact_phone || '' %>" />
+    </div>
+
+    <div class="col-12">
+      <button type="submit" class="btn btn-gold">Save</button>
+    </div>
+  </div>
+</form>
+
+<div class="card card-portal mb-4 border-secondary border-opacity-25" id="worksite-share-card">
+  <div class="card-header serif text-warning">Share location</div>
+  <div class="card-body">
+    <p class="small text-muted mb-3">Share this work-site summary on WhatsApp, Telegram, SMS, email, or your phone’s system share sheet. The text uses what you have entered above (save the form to keep it on the project).</p>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <button type="button" class="btn btn-outline-gold btn-sm" id="worksite-share-native"><i class="bi bi-share" aria-hidden="true"></i> Share / More apps</button>
+      <a class="btn btn-outline-success btn-sm" id="worksite-share-whatsapp" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      <a class="btn btn-outline-info btn-sm" id="worksite-share-telegram" href="#" target="_blank" rel="noopener noreferrer">Telegram</a>
+      <a class="btn btn-outline-light btn-sm" id="worksite-share-sms" href="#">Message / SMS</a>
+      <a class="btn btn-outline-warning btn-sm" id="worksite-share-email" href="#">Email</a>
+      <a class="btn btn-outline-light btn-sm border-secondary" id="worksite-share-x" href="#" target="_blank" rel="noopener noreferrer">X (Twitter)</a>
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="worksite-share-copy">Copy text</button>
+    </div>
+    <p class="small text-muted mb-1">Preview</p>
+    <pre class="small text-light mb-0 p-3 rounded border border-secondary border-opacity-25" style="background:rgba(0,0,0,0.25);white-space:pre-wrap;word-break:break-word;max-height:200px;overflow:auto" id="worksite-share-preview"></pre>
+    <p class="small text-muted mt-2 mb-0" id="worksite-share-copy-feedback" hidden>Copied to clipboard.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var projectTitle = <%- JSON.stringify(p.title || 'Project') %>;
+  var inputs = ['site_address', 'site_map_lat', 'site_map_lng', 'site_map_place_label', 'site_contact_name', 'site_contact_phone'];
+
+  function val(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function buildMapsUrl() {
+    var la = parseFloat(val('site_map_lat'));
+    var ln = parseFloat(val('site_map_lng'));
+    if (!isFinite(la) || !isFinite(ln)) return '';
+    return 'https://www.google.com/maps?q=' + encodeURIComponent(la + ',' + ln);
+  }
+
+  function buildShareText() {
+    var lines = [];
+    lines.push('Work site — ' + projectTitle);
+    var addr = val('site_address');
+    var place = val('site_map_place_label');
+    var mapsUrl = buildMapsUrl();
+    if (addr) lines.push('Address: ' + addr);
+    if (place) lines.push('Place: ' + place);
+    if (mapsUrl) lines.push('Map: ' + mapsUrl);
+    var cn = val('site_contact_name');
+    var cp = val('site_contact_phone');
+    if (cn) lines.push('Contact: ' + cn);
+    if (cp) lines.push('Phone: ' + cp);
+    if (lines.length === 1) lines.push('(Add address, map pin, or contact above, then share.)');
+    return lines.join('\n');
+  }
+
+  function updateShareUi() {
+    var text = buildShareText();
+    var mapsUrl = buildMapsUrl();
+    var preview = document.getElementById('worksite-share-preview');
+    if (preview) preview.textContent = text;
+
+    var encText = encodeURIComponent(text);
+    var wa = document.getElementById('worksite-share-whatsapp');
+    if (wa) wa.href = 'https://wa.me/?text=' + encText;
+
+    var tg = document.getElementById('worksite-share-telegram');
+    if (tg) {
+      var u = mapsUrl || '';
+      tg.href = 'https://t.me/share/url?url=' + encodeURIComponent(u) + '&text=' + encodeURIComponent(text);
+    }
+
+    var sms = document.getElementById('worksite-share-sms');
+    if (sms) sms.href = 'sms:?body=' + encText;
+
+    var subj = encodeURIComponent('Work site: ' + projectTitle);
+    var em = document.getElementById('worksite-share-email');
+    if (em) em.href = 'mailto:?subject=' + subj + '&body=' + encText;
+
+    var x = document.getElementById('worksite-share-x');
+    if (x) x.href = 'https://twitter.com/intent/tweet?text=' + encText;
+  }
+
+  inputs.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateShareUi);
+    if (el) el.addEventListener('change', updateShareUi);
+  });
+
+  var btnNative = document.getElementById('worksite-share-native');
+  if (btnNative) btnNative.addEventListener('click', function () {
+    var text = buildShareText();
+    var mapsUrl = buildMapsUrl();
+    if (navigator.share) {
+      navigator.share({
+        title: 'Work site — ' + projectTitle,
+        text: text,
+        url: mapsUrl || undefined,
+      }).catch(function () {});
+    } else {
+      updateShareUi();
+      var wa = document.getElementById('worksite-share-whatsapp');
+      if (wa) window.open(wa.href, '_blank', 'noopener,noreferrer');
+    }
+  });
+
+  var btnCopy = document.getElementById('worksite-share-copy');
+  if (btnCopy) btnCopy.addEventListener('click', function () {
+    var text = buildShareText();
+    var fb = document.getElementById('worksite-share-copy-feedback');
+    function showFb() {
+      if (fb) {
+        fb.hidden = false;
+        setTimeout(function () { fb.hidden = true; }, 2500);
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(showFb).catch(function () {
+        prompt('Copy this text:', text);
+      });
+    } else {
+      prompt('Copy this text:', text);
+    }
+  });
+
+  updateShareUi();
+})();
+</script>
+
+<% if (gkey) { %>
+<script>
+  window.initWorksiteMap = function () {
+    try {
+      var latEl = document.getElementById('site_map_lat');
+      var lngEl = document.getElementById('site_map_lng');
+      var placeEl = document.getElementById('site_map_place_label');
+      var defLat = 20.5937;
+      var defLng = 78.9629;
+      var lat = parseFloat(latEl && latEl.value);
+      var lng = parseFloat(lngEl && lngEl.value);
+      if (!isFinite(lat) || !isFinite(lng)) {
+        lat = defLat;
+        lng = defLng;
+      }
+      var mapEl = document.getElementById('worksite-map');
+      if (!mapEl || !window.google || !google.maps) return;
+      var map = new google.maps.Map(mapEl, {
+        center: { lat: lat, lng: lng },
+        zoom: <%= hasPin ? 16 : 5 %>,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true,
+      });
+      var marker = new google.maps.Marker({
+        map: map,
+        position: { lat: lat, lng: lng },
+        draggable: true,
+      });
+      function writeCoords(pos) {
+        if (latEl) latEl.value = pos.lat().toFixed(7);
+        if (lngEl) lngEl.value = pos.lng().toFixed(7);
+      }
+      marker.addListener('dragend', function () {
+        writeCoords(marker.getPosition());
+      });
+      map.addListener('click', function (e) {
+        if (!e.latLng) return;
+        marker.setPosition(e.latLng);
+        writeCoords(e.latLng);
+        map.panTo(e.latLng);
+      });
+      var searchInput = document.getElementById('worksite-search');
+      if (searchInput && google.maps.places) {
+        var ac = new google.maps.places.Autocomplete(searchInput, { fields: ['geometry', 'name', 'formatted_address'] });
+        ac.addListener('place_changed', function () {
+          var place = ac.getPlace();
+          if (!place.geometry || !place.geometry.location) return;
+          var loc = place.geometry.location;
+          marker.setPosition(loc);
+          map.panTo(loc);
+          if (place.geometry.viewport) map.fitBounds(place.geometry.viewport);
+          else map.setZoom(17);
+          writeCoords(loc);
+          if (placeEl) {
+            placeEl.value = place.name || place.formatted_address || '';
+          }
+        });
+      }
+    } catch (e) {}
+  };
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=<%= gkey %>&amp;libraries=places&amp;callback=initWorksiteMap"></script>
+<% } %>
