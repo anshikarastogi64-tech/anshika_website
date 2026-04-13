@@ -1,0 +1,5 @@
+<% var primaryClass = typeof primaryBtnClass !== 'undefined' ? primaryBtnClass : 'btn-outline-gold'; %>
+<div class="d-flex flex-wrap gap-2 align-items-center<%= typeof wrapClass !== 'undefined' ? ' ' + wrapClass : ' mb-3' %>">
+  <a href="<%= worksiteHref %>" class="btn <%= primaryClass %> btn-sm">Site location &amp; contact</a>
+  <a href="<%= worksiteHref %>#worksite-share" class="btn btn-outline-secondary btn-sm"><i class="bi bi-share me-1" aria-hidden="true"></i>Share location</a>
+</div>

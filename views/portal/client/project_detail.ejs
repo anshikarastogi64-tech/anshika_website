@@ -5,7 +5,7 @@
      _worksiteHref = portalUser.role === 'ADMIN' ? '/portal/admin/projects/' + project.id + '/worksite' : '/portal/designer/projects/' + project.id + '/worksite';
    }
 %>
-<p class="mb-3"><a href="<%= _worksiteHref %>" class="btn btn-outline-gold btn-sm">Site location &amp; contact</a></p>
+<%- include('../partials/project_location_actions', { worksiteHref: _worksiteHref }) %>
 <% var tabOrderClient = ['updates','timelines','mood-board','design-ideas','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages','meetings'];
    var cTabs = typeof clientAllowedTabs !== 'undefined' && clientAllowedTabs ? clientAllowedTabs : {};
    tabOrderClient.forEach(function(k) { if (cTabs[k] === undefined) cTabs[k] = true; });
@@ -15,7 +15,7 @@
 <% if (!anyClientTab) { %>
 <div class="alert alert-warning border border-warning text-dark">
   <p class="mb-2">No sections are enabled for your account on this project. Please contact the studio.</p>
-  <p class="mb-0"><a href="<%= _worksiteHref %>" class="btn btn-outline-dark btn-sm">Site location &amp; contact</a></p>
+  <%- include('../partials/project_location_actions', { worksiteHref: _worksiteHref, primaryBtnClass: 'btn-outline-dark', wrapClass: 'mb-0' }) %>
 </div>
 <% } else { %>
 <% if (cTabs.messages && typeof clientMessageAlerts !== 'undefined' && clientMessageAlerts.length) { %>

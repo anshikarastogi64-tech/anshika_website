@@ -77,7 +77,7 @@
   </div>
 </form>
 
-<div class="card card-portal mb-4 border-secondary border-opacity-25" id="worksite-share-card">
+<div class="card card-portal mb-4 border-secondary border-opacity-25" id="worksite-share">
   <div class="card-header serif text-warning">Share location</div>
   <div class="card-body">
     <p class="small text-muted mb-3">Share this work-site summary on WhatsApp, Telegram, SMS, email, or your phone’s system share sheet. The text uses what you have entered above (save the form to keep it on the project).</p>
@@ -200,6 +200,17 @@
   });
 
   updateShareUi();
+})();
+</script>
+<script>
+(function () {
+  if (location.hash !== '#worksite-share') return;
+  function go() {
+    var el = document.getElementById('worksite-share');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  if (document.readyState === 'complete') go();
+  else window.addEventListener('load', go);
 })();
 </script>
 

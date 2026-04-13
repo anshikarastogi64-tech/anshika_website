@@ -1,6 +1,6 @@
 <h1 class="serif text-warning mb-4"><%= project.title %></h1>
 <p class="mb-3">Client: <%= project.client_name %> | Progress: <%= typeof lifecycleHeadline === 'function' ? lifecycleHeadline(project) : (LIFECYCLE_STAGES[project.current_stage] ? LIFECYCLE_STAGES[project.current_stage].name : project.current_stage) %></p>
-<p class="mb-3"><a href="/portal/designer/projects/<%= project.id %>/worksite" class="btn btn-outline-gold btn-sm">Site location &amp; contact</a></p>
+<%- include('../partials/project_location_actions', { worksiteHref: '/portal/designer/projects/' + project.id + '/worksite' }) %>
 <% if (typeof query !== 'undefined' && query && query.msg) { %>
 <div class="alert alert-warning border border-warning text-dark mb-3" role="alert"><%= query.msg %></div>
 <% } %>
