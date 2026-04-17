@@ -769,6 +769,7 @@ db.serialize(() => {
     )`
   );
   db.run('ALTER TABLE portal_material_selections ADD COLUMN linked_design_version_id TEXT', () => {});
+  db.run('ALTER TABLE portal_material_selections ADD COLUMN specification TEXT NOT NULL DEFAULT \'\'', () => {});
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_design_comments (
       id TEXT PRIMARY KEY,

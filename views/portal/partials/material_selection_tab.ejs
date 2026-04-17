@@ -3,6 +3,7 @@
   const AREA_TAGS_OFFICE = ['Reception', 'Conference Room', 'Cabin / Executive Office', 'Workstation Area', 'Open Office', 'Meeting Room', 'Pantry / Cafeteria', 'Corridor', 'Washroom', 'Server Room', 'Storage', 'Break Room', 'Lounge', 'Waiting Area'];
   const mats = typeof materialSelections !== 'undefined' && Array.isArray(materialSelections) ? materialSelections : [];
   const designs = typeof designsForMaterialLink !== 'undefined' && Array.isArray(designsForMaterialLink) ? designsForMaterialLink : [];
+  var designsWithVersions = designs.filter(function(d) { return (d.versions || []).length > 0; });
   const byArea = {};
   mats.forEach(function(m) {
     var a = (m.area_tag || 'General').trim() || 'General';
@@ -25,7 +26,7 @@
     <% if (typeof readOnly !== 'undefined' && readOnly) { %><span class="badge bg-secondary">Preview (mirror)</span><% } %>
   </div>
   <div class="card-body">
-    <p class="small text-muted mb-3">Laminate and material photos with codes, grouped by area (same area names as Design Vault). Optionally link a row to an <strong>admin-approved</strong> 2D/3D version. The client approves or rejects each item.</p>
+    <p class="small text-muted mb-3">Laminate and material photos with codes, grouped by area (same area names as Design Vault). Optionally link a row to an <strong>admin-approved</strong> 2D/3D version. Add a <strong>specification</strong> (finish, size, brand, etc.) when helpful. The client approves or rejects each item. Use <strong>Edit</strong> on an existing row to change details or replace the photo (client status returns to Pending).</p>
     <% if (showUploader && typeof project !== 'undefined' && project) { %>
     <form method="post" action="<%= uploadUrl %>" enctype="multipart/form-data" class="row g-2 align-items-end mb-4 pb-4 border-bottom border-secondary border-opacity-25" id="materialSelectionUploadForm">
       <div class="col-auto">
@@ -52,7 +53,6 @@
         <label class="form-label small mb-0 d-block" for="matAreaCustom">Custom area</label>
         <input type="text" name="area_tag_custom" id="matAreaCustom" class="form-control form-control-sm bg-dark text-light border-secondary" style="min-width:160px" placeholder="Optional override" maxlength="200" />
       </div>
-      <% var designsWithVersions = designs.filter(function(d) { return (d.versions || []).length > 0; }); %>
       <% if (designsWithVersions.length) { %>
       <div class="col-12 col-md-auto">
         <label class="form-label small mb-0 d-block" for="matLinkedDesign">Link to approved design version (optional)</label>
@@ -66,6 +66,10 @@
         </select>
       </div>
       <% } %>
+      <div class="col-12">
+        <label class="form-label small mb-0 d-block" for="matSpec">Specification <span class="fw-normal text-muted">(optional)</span></label>
+        <textarea name="specification" id="matSpec" class="form-control form-control-sm bg-dark text-light border-secondary" rows="2" maxlength="4000" placeholder="e.g. laminate code details, finish, thickness, supplier…"></textarea>
+      </div>
       <div class="col-auto">
         <button type="submit" class="btn btn-gold btn-sm">Upload</button>
       </div>
@@ -100,7 +104,11 @@
         <h6 class="text-warning mb-2"><%= area %></h6>
         <div class="row g-3">
           <% byArea[area].forEach(function(m) { %>
-          <% var msSt = String(m.client_status || 'PENDING').toUpperCase(); %>
+          <% var msSt = String(m.client_status || 'PENDING').toUpperCase();
+             var curArea = String(m.area_tag || 'General').trim() || 'General';
+             var inPreset = AREA_TAGS_RESIDENTIAL.indexOf(curArea) >= 0 || AREA_TAGS_OFFICE.indexOf(curArea) >= 0;
+             var selVersion = m.linked_design_version_id ? String(m.linked_design_version_id) : '';
+          %>
           <div class="col-6 col-md-4 col-lg-3 material-selection-item" data-ms-status="<%= msSt %>">
             <div class="border border-secondary border-opacity-25 rounded overflow-hidden h-100 bg-dark bg-opacity-25">
               <a href="<%= m.image_url %>" target="_blank" rel="noopener" class="d-block ratio ratio-1x1 bg-black">
@@ -108,6 +116,9 @@
               </a>
               <div class="p-2 small">
                 <div class="fw-semibold text-light text-truncate" title="<%= m.material_code %>">Code: <%= m.material_code %></div>
+                <% if (m.specification && String(m.specification).trim()) { %>
+                <div class="text-muted mt-1" style="font-size:0.78rem;white-space:pre-wrap;word-break:break-word;max-height:4.5rem;overflow:auto" title="Specification"><span class="text-secondary">Spec:</span> <%= m.specification %></div>
+                <% } %>
                 <% if (m.linked_design_id || m.linked_design_version_id) { %>
                   <% if (m.linked_design_area_tag || m.linked_design_category) { %>
                 <div class="text-muted text-truncate" title="Linked design version">↳ <%= m.linked_design_area_tag || 'Design' %> · <%= m.linked_design_category === 'VISUALIZATIONS' ? '3D' : '2D' %><% if (m.linked_version_number != null && m.linked_version_number !== '') { %> · v<%= m.linked_version_number %><% } %></div>
@@ -118,8 +129,55 @@
                 <div class="text-danger small mt-1">Note: <%= m.client_note %></div>
                 <% } %>
                 <% if (showUploader) { %>
+                <button type="button" class="btn btn-outline-gold btn-sm mt-2 w-100" data-bs-toggle="collapse" data-bs-target="#editMat-<%= m.id %>" aria-expanded="false" aria-controls="editMat-<%= m.id %>">Edit</button>
+                <div class="collapse mt-2" id="editMat-<%= m.id %>">
+                  <form method="post" action="<%= uploadUrl %>/<%= m.id %>/update" enctype="multipart/form-data" class="border border-secondary border-opacity-50 rounded p-2 bg-black bg-opacity-25">
+                    <div class="mb-2">
+                      <label class="form-label small mb-0" for="mat_edit_code_<%= m.id %>">Material code</label>
+                      <input type="text" name="material_code" id="mat_edit_code_<%= m.id %>" class="form-control form-control-sm bg-dark text-light border-secondary" required maxlength="200" value="<%= m.material_code %>" />
+                    </div>
+                    <div class="mb-2">
+                      <label class="form-label small mb-0" for="mat_edit_area_<%= m.id %>">Area</label>
+                      <select name="area_tag" id="mat_edit_area_<%= m.id %>" class="form-select form-select-sm bg-dark text-light border-secondary">
+                        <option value="">— Other (type below) —</option>
+                        <optgroup label="Residential">
+                          <% AREA_TAGS_RESIDENTIAL.forEach(function(tag) { %><option value="<%= tag %>" <%= tag === curArea ? 'selected' : '' %>><%= tag %></option><% }); %>
+                        </optgroup>
+                        <optgroup label="Office">
+                          <% AREA_TAGS_OFFICE.forEach(function(tag) { %><option value="<%= tag %>" <%= tag === curArea ? 'selected' : '' %>><%= tag %></option><% }); %>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <div class="mb-2">
+                      <label class="form-label small mb-0" for="mat_edit_custom_<%= m.id %>">Custom area</label>
+                      <input type="text" name="area_tag_custom" id="mat_edit_custom_<%= m.id %>" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="200" placeholder="If not in list" value="<%= inPreset ? '' : curArea %>" />
+                    </div>
+                    <% if (designsWithVersions.length) { %>
+                    <div class="mb-2">
+                      <label class="form-label small mb-0" for="mat_edit_link_<%= m.id %>">Link to approved version</label>
+                      <select name="linked_design_version_id" id="mat_edit_link_<%= m.id %>" class="form-select form-select-sm bg-dark text-light border-secondary">
+                        <option value="">— Not linked —</option>
+                        <% designsWithVersions.forEach(function(d) { %>
+                          <% (d.versions || []).forEach(function(v) { %>
+                        <option value="<%= v.id %>" <%= String(v.id) === selVersion ? 'selected' : '' %>><%= (d.area_tag || 'General') %> · <%= d.category === 'VISUALIZATIONS' ? '3D' : '2D' %> · v<%= v.version_number %></option>
+                          <% }); %>
+                        <% }); %>
+                      </select>
+                    </div>
+                    <% } %>
+                    <div class="mb-2">
+                      <label class="form-label small mb-0" for="mat_edit_spec_<%= m.id %>">Specification</label>
+                      <textarea name="specification" id="mat_edit_spec_<%= m.id %>" class="form-control form-control-sm bg-dark text-light border-secondary" rows="2" maxlength="4000" placeholder="Finish, size, brand…"><%= m.specification || '' %></textarea>
+                    </div>
+                    <div class="mb-2">
+                      <label class="form-label small mb-0" for="mat_edit_file_<%= m.id %>">Replace photo <span class="fw-normal text-muted">(optional)</span></label>
+                      <input type="file" name="file" id="mat_edit_file_<%= m.id %>" class="form-control form-control-sm bg-dark text-light border-secondary" accept="image/*" />
+                    </div>
+                    <button type="submit" class="btn btn-gold btn-sm w-100">Save changes</button>
+                  </form>
+                </div>
                 <form method="post" action="<%= uploadUrl %>/<%= m.id %>/delete" class="mt-2" onsubmit="return confirm('Delete this material row?');">
-                  <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                  <button type="submit" class="btn btn-outline-danger btn-sm w-100">Delete</button>
                 </form>
                 <% } %>
                 <% if (canClientAct && (m.client_status === 'PENDING' || !m.client_status)) { %>

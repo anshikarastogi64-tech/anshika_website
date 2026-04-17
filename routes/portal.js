@@ -1731,6 +1731,7 @@ router.post(
       return res.redirect('/portal/admin/projects/' + projectId + '?msg=Photo+and+material+code+required#tab-material-selection');
     }
     const imageUrl = '/assets/uploads/portal/materials/' + path.basename(req.file.filename);
+    const specification = (req.body && req.body.specification) ? String(req.body.specification).trim() : '';
     await portalDb.createMaterialSelection({
       projectId,
       areaTag,
@@ -1738,6 +1739,7 @@ router.post(
       materialCode: code,
       imageUrl,
       fileName: req.file.originalname,
+      specification,
       uploadedByUserId: req.session[PORTAL_USER_ID],
       uploadedByRole: 'ADMIN',
     });
@@ -1745,6 +1747,57 @@ router.post(
       portalNotify.notifyProjectStakeholders(portalDb, {
         category: NC.DOCUMENTS,
         message: `New material selection (${areaTag} · code ${code}) was added to «${project.title}». Please review and approve.`,
+        projectId,
+        tabSuffix: '#tab-material-selection',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+    res.redirect('/portal/admin/projects/' + projectId + '#tab-material-selection');
+  }
+);
+
+router.post(
+  '/admin/projects/:id/material-selection/:matId/update',
+  requirePortalAuth,
+  requireAdmin,
+  materialsUpload.single('file'),
+  async (req, res) => {
+    const { id: projectId, matId } = req.params;
+    const project = await portalDb.getProjectById(projectId);
+    if (!project) return res.status(404).send('Project not found');
+    const code = (req.body && req.body.material_code) ? String(req.body.material_code).trim() : '';
+    if (!code) {
+      return res.redirect('/portal/admin/projects/' + projectId + '?msg=' + encodeURIComponent('Material code is required.') + '#tab-material-selection');
+    }
+    const areaTag =
+      (req.body && (req.body.area_tag_custom || '').trim()) ||
+      (req.body && (req.body.area_tag || '').trim()) ||
+      'General';
+    const linkedDesignVersionId = (req.body && req.body.linked_design_version_id)
+      ? String(req.body.linked_design_version_id).trim()
+      : '';
+    const specification = (req.body && req.body.specification) ? String(req.body.specification).trim() : '';
+    const old = await portalDb.getMaterialSelectionById(matId);
+    if (!old || old.project_id !== projectId) return res.status(404).send('Not found');
+    let imageUrl;
+    let fileName;
+    if (req.file) {
+      imageUrl = '/assets/uploads/portal/materials/' + path.basename(req.file.filename);
+      fileName = req.file.originalname;
+    }
+    const r = await portalDb.updateMaterialSelection(projectId, matId, {
+      materialCode: code,
+      areaTag,
+      linkedDesignVersionId: linkedDesignVersionId || null,
+      specification,
+      imageUrl,
+      fileName,
+    });
+    if (r.ok && req.file && old.image_url) unlinkPortalMaterialFile(old.image_url);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DOCUMENTS,
+        message: `A material selection was updated on «${project.title}» (${areaTag} · ${code}). Client approval may be needed again.`,
         projectId,
         tabSuffix: '#tab-material-selection',
         excludeUserIds: [req.session[PORTAL_USER_ID]],
@@ -2959,6 +3012,7 @@ router.post(
       return res.redirect('/portal/designer/projects/' + projectId + '?msg=Photo+and+material+code+required#tab-material-selection');
     }
     const imageUrl = '/assets/uploads/portal/materials/' + path.basename(req.file.filename);
+    const specification = (req.body && req.body.specification) ? String(req.body.specification).trim() : '';
     await portalDb.createMaterialSelection({
       projectId,
       areaTag,
@@ -2966,6 +3020,7 @@ router.post(
       materialCode: code,
       imageUrl,
       fileName: req.file.originalname,
+      specification,
       uploadedByUserId: req.session[PORTAL_USER_ID],
       uploadedByRole: 'DESIGNER',
     });
@@ -2973,6 +3028,60 @@ router.post(
       portalNotify.notifyProjectStakeholders(portalDb, {
         category: NC.DOCUMENTS,
         message: `New material selection (${areaTag} · code ${code}) was added to «${project.title}». Please review and approve.`,
+        projectId,
+        tabSuffix: '#tab-material-selection',
+        excludeUserIds: [req.session[PORTAL_USER_ID]],
+      })
+    );
+    res.redirect('/portal/designer/projects/' + projectId + '#tab-material-selection');
+  }
+);
+
+router.post(
+  '/designer/projects/:id/material-selection/:matId/update',
+  requirePortalAuth,
+  requireDesigner,
+  materialsUpload.single('file'),
+  async (req, res) => {
+    const { id: projectId, matId } = req.params;
+    const project = await portalDb.getProjectById(projectId);
+    if (!project || (req.session[PORTAL_USER_ROLE] !== 'ADMIN' && !(await portalDb.designerHasProjectAccess(req.session[PORTAL_USER_ID], project.id)))) {
+      return res.status(403).send('Forbidden');
+    }
+    if (!(await assertDesignerTab(req, projectId, 'material-selection'))) return res.status(403).send('Forbidden');
+    const code = (req.body && req.body.material_code) ? String(req.body.material_code).trim() : '';
+    if (!code) {
+      return res.redirect('/portal/designer/projects/' + projectId + '?msg=' + encodeURIComponent('Material code is required.') + '#tab-material-selection');
+    }
+    const areaTag =
+      (req.body && (req.body.area_tag_custom || '').trim()) ||
+      (req.body && (req.body.area_tag || '').trim()) ||
+      'General';
+    const linkedDesignVersionId = (req.body && req.body.linked_design_version_id)
+      ? String(req.body.linked_design_version_id).trim()
+      : '';
+    const specification = (req.body && req.body.specification) ? String(req.body.specification).trim() : '';
+    const old = await portalDb.getMaterialSelectionById(matId);
+    if (!old || old.project_id !== projectId) return res.status(404).send('Not found');
+    let imageUrl;
+    let fileName;
+    if (req.file) {
+      imageUrl = '/assets/uploads/portal/materials/' + path.basename(req.file.filename);
+      fileName = req.file.originalname;
+    }
+    const r = await portalDb.updateMaterialSelection(projectId, matId, {
+      materialCode: code,
+      areaTag,
+      linkedDesignVersionId: linkedDesignVersionId || null,
+      specification,
+      imageUrl,
+      fileName,
+    });
+    if (r.ok && req.file && old.image_url) unlinkPortalMaterialFile(old.image_url);
+    portalNotify.safeNotify(
+      portalNotify.notifyProjectStakeholders(portalDb, {
+        category: NC.DOCUMENTS,
+        message: `A material selection was updated on «${project.title}» (${areaTag} · ${code}). Client approval may be needed again.`,
         projectId,
         tabSuffix: '#tab-material-selection',
         excludeUserIds: [req.session[PORTAL_USER_ID]],
