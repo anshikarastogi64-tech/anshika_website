@@ -40,78 +40,90 @@
 }
 @media (max-width: 576px) { .about-new .profile-photo { width: 140px; } .about-new .profile-name { font-size: 20px; } }
 </style>
+<% var about = typeof aboutContent !== 'undefined' && aboutContent ? aboutContent : {};
+   var intro = about.intro || {};
+   var profile = about.profile || {};
+   var actions = about.actions || {};
+   var philosophy = about.philosophy || {};
+   var project_types = about.project_types || {};
+   var skills = about.skills || {};
+   var featured = about.featured || {};
+   function skillSplit(s) {
+     return String(s || '').split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean);
+   }
+   var heroSkills = skillSplit(profile.skills_hero);
+   var sectionSkills = skillSplit(skills.list);
+   var showFeatured = featured.show !== '0' && featured.show !== 0 && String(featured.show).toLowerCase() !== 'false';
+%>
 
 <section id="about" class="about about-new">
   <div class="container">
-    <!-- Profile block - fills initial viewport -->
+    <% if ((intro.title && String(intro.title).trim()) || (intro.paragraph && String(intro.paragraph).trim())) { %>
+    <div class="pt-4 pb-2" data-aos="fade-up">
+      <% if (intro.title && String(intro.title).trim()) { %><h1 class="h3 mb-2" style="color:#222"><%= intro.title %></h1><% } %>
+      <% if (intro.paragraph && String(intro.paragraph).trim()) { %><p class="text-muted lead mb-0" style="font-size:1rem"><%= intro.paragraph %></p><% } %>
+    </div>
+    <% } %>
     <div class="profile-top" data-aos="fade-up">
       <div class="profile-container">
         <div class="profile-layout">
           <div class="profile-photo">
-            <img loading="lazy" src="/assets/img/me.png" class="img-fluid" alt="Anshika Rastogi - Interior Designer">
+            <img loading="lazy" src="<%= profile.photo_url || '/assets/img/me.png' %>" class="img-fluid" alt="<%= profile.photo_alt || '' %>">
           </div>
           <div class="profile-content">
-            <h2 class="profile-name">Anshika Rastogi</h2>
-            <h3 class="profile-title">Interior Designer & Consultant</h3>
-            <p class="profile-bio">Experienced in Modern & Modular Interior design. Specializing in space planning, color & material selection. I bring creativity to produce the best outcome for your space—style meets function.</p>
+            <h2 class="profile-name"><%= profile.name || '' %></h2>
+            <h3 class="profile-title"><%= profile.job_title || '' %></h3>
+            <p class="profile-bio"><%= profile.bio || '' %></p>
             <div class="profile-details">
-              <div class="profile-detail"><i class="bi bi-briefcase"></i> 7 Years Experience</div>
-              <div class="profile-detail"><i class="bi bi-mortarboard"></i> Master in Design (IIFT)</div>
-              <div class="profile-detail"><i class="bi bi-geo-alt"></i> Hyderabad & Global</div>
-              <div class="profile-detail"><i class="bi bi-envelope"></i> anshika@designersvision.com</div>
-              <div class="profile-detail"><i class="bi bi-telephone"></i> +91 9557058902</div>
+              <% if (profile.detail_experience && String(profile.detail_experience).trim()) { %><div class="profile-detail"><i class="bi bi-briefcase"></i> <%= profile.detail_experience %></div><% } %>
+              <% if (profile.detail_education && String(profile.detail_education).trim()) { %><div class="profile-detail"><i class="bi bi-mortarboard"></i> <%= profile.detail_education %></div><% } %>
+              <% if (profile.detail_location && String(profile.detail_location).trim()) { %><div class="profile-detail"><i class="bi bi-geo-alt"></i> <%= profile.detail_location %></div><% } %>
+              <% if (profile.detail_email && String(profile.detail_email).trim()) { %><div class="profile-detail"><i class="bi bi-envelope"></i> <%= profile.detail_email %></div><% } %>
+              <% if (profile.detail_phone && String(profile.detail_phone).trim()) { %><div class="profile-detail"><i class="bi bi-telephone"></i> <%= profile.detail_phone %></div><% } %>
             </div>
             <div class="profile-skills">
-              <span class="skill-pill">Sketch UP</span>
-              <span class="skill-pill">Photoshop</span>
-              <span class="skill-pill">AutoCAD</span>
-              <span class="skill-pill">Space Planning</span>
-              <span class="skill-pill">Project Management</span>
-              <span class="skill-pill">Residential & Commercial</span>
+              <% heroSkills.forEach(function(pill) { %>
+              <span class="skill-pill"><%= pill %></span>
+              <% }); %>
             </div>
             <div class="profile-actions">
-              <a href="/experience" class="btn-about">Experience</a>
-              <a href="/portfolio" class="btn-about">Portfolio</a>
-              <a href="/contact" class="btn-about btn-outline">Contact</a>
+              <a href="<%= actions.btn_experience_href || '/experience' %>" class="btn-about"><%= actions.btn_experience_label || 'Experience' %></a>
+              <a href="<%= actions.btn_portfolio_href || '/portfolio' %>" class="btn-about"><%= actions.btn_portfolio_label || 'Portfolio' %></a>
+              <a href="<%= actions.btn_contact_href || '/contact' %>" class="btn-about btn-outline"><%= actions.btn_contact_label || 'Contact' %></a>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Scrollable details section -->
     <div class="profile-scroll">
       <div class="section-divider" data-aos="fade"></div>
 
       <div class="philosophy-section mb-4" data-aos="fade-up">
-        <h4 class="mb-3" style="color: #34b7a7;"><i class="bi bi-lightbulb me-2"></i>Design Philosophy</h4>
-        <p class="mb-0" style="text-align: justify;">
-          I believe great interior design balances aesthetics with functionality. Every space tells a story—I aim to create
-          environments that reflect your personality while maximizing comfort and usability. From concept to execution, I focus
-          on quality materials, thoughtful layout, and seamless project delivery.
-        </p>
+        <h4 class="mb-3" style="color: #34b7a7;"><i class="bi bi-lightbulb me-2"></i><%= philosophy.heading || 'Design Philosophy' %></h4>
+        <p class="mb-0" style="text-align: justify; white-space: pre-wrap;"><%= philosophy.body || '' %></p>
       </div>
 
       <div class="row g-3 mb-4" data-aos="fade-up">
         <div class="col-md-4">
           <div class="project-type-card">
             <i class="bi bi-house-door me-2"></i>
-            <strong>Residential</strong>
-            <p class="mb-0 small text-muted mt-1">Homes, apartments & villas—creating personalized, livable spaces.</p>
+            <strong><%= project_types.residential_title || 'Residential' %></strong>
+            <p class="mb-0 small text-muted mt-1"><%= project_types.residential_text || '' %></p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="project-type-card">
             <i class="bi bi-building me-2"></i>
-            <strong>Commercial</strong>
-            <p class="mb-0 small text-muted mt-1">Offices, retail & workspaces—designs that boost productivity.</p>
+            <strong><%= project_types.commercial_title || 'Commercial' %></strong>
+            <p class="mb-0 small text-muted mt-1"><%= project_types.commercial_text || '' %></p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="project-type-card">
             <i class="bi bi-cup-hot me-2"></i>
-            <strong>Hospitality</strong>
-            <p class="mb-0 small text-muted mt-1">Restaurants, bars & hotels—memorable guest experiences.</p>
+            <strong><%= project_types.hospitality_title || 'Hospitality' %></strong>
+            <p class="mb-0 small text-muted mt-1"><%= project_types.hospitality_text || '' %></p>
           </div>
         </div>
       </div>
@@ -119,27 +131,18 @@
       <div class="section-divider" data-aos="fade"></div>
 
       <section id="skills" class="skills skills-compact pt-2">
-        <div class="section-title" data-aos="fade-up"><h2>Skills</h2></div>
+        <div class="section-title" data-aos="fade-up"><h2><%= skills.section_heading || 'Skills' %></h2></div>
         <div class="skills-pills" data-aos="fade-up">
-          <span class="skill-pill">Sketch UP</span>
-          <span class="skill-pill">Photoshop</span>
-          <span class="skill-pill">AutoCAD</span>
-          <span class="skill-pill">Technical Drawing</span>
-          <span class="skill-pill">Illustration</span>
-          <span class="skill-pill">Project Management</span>
-          <span class="skill-pill">Space Planning</span>
-          <span class="skill-pill">Design Process</span>
-          <span class="skill-pill">Image Manipulation</span>
-          <span class="skill-pill">Color Sense</span>
-          <span class="skill-pill">Compusoft</span>
-          <span class="skill-pill">Residential & Commercial Design</span>
+          <% sectionSkills.forEach(function(pill) { %>
+          <span class="skill-pill"><%= pill %></span>
+          <% }); %>
         </div>
       </section>
 
-      <% if (typeof featuredProject !== 'undefined' && featuredProject) { %>
+      <% if (showFeatured && typeof featuredProject !== 'undefined' && featuredProject) { %>
       <div class="section-divider" data-aos="fade"></div>
       <div class="mb-4" data-aos="fade-up">
-        <div class="section-title"><h2>Featured Project</h2></div>
+        <div class="section-title"><h2><%= featured.section_title || 'Featured Project' %></h2></div>
         <div class="row">
           <div class="col-lg-6 mx-auto">
             <a href="/portfolio/project/<%= featuredProject.id %>" class="text-decoration-none text-dark">

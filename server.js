@@ -17,6 +17,7 @@ const {
   buildSitemapXml,
   publicBaseUrl,
 } = require('./lib/seo');
+const { loadAboutContent, saveAboutContent } = require('./lib/about-content');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -177,17 +178,11 @@ app.get('/', async (req, res) => {
 app.get('/about', (req, res) => res.redirect(301, '/about-new'));
 
 app.get('/about-new', async (req, res) => {
-  const title = await getBlock('about', 'intro', 'title', 'About');
-  const paragraph = await getBlock(
-    'about',
-    'intro',
-    'paragraph',
-    'Interior design is the art and science of enhancing interior spaces to achieve a more aesthetically pleasing and functional environment.'
-  );
   const footerName = await getBlock('global', 'footer', 'owner_name', 'Anshika Rastogi');
+  const aboutContent = await loadAboutContent(getBlock);
   db.get('SELECT id, name, city, initial_text, cover_image_path FROM portfolio_projects WHERE cover_image_path IS NOT NULL AND cover_image_path != ? ORDER BY sort_order ASC, id ASC LIMIT 1', [''], async (err, row) => {
     const contentData = {
-      aboutIntro: { title, paragraph },
+      aboutContent,
       featuredProject: !err && row ? row : null,
     };
     try {
@@ -573,27 +568,21 @@ app.post('/admin/hero', requireAdmin, async (req, res) => {
 });
 
 app.get('/admin/about', requireAdmin, async (req, res) => {
-  const title = await getBlock('about', 'intro', 'title', 'About');
-  const paragraph = await getBlock(
-    'about',
-    'intro',
-    'paragraph',
-    'Interior design is the art and science of enhancing interior spaces to achieve a more aesthetically pleasing and functional environment.'
-  );
-  res.render('admin/about', {
-    aboutIntro: { title, paragraph },
-    message: '',
+  const about = await loadAboutContent(getBlock);
+  const inner = await ejs.renderFile(path.join(__dirname, 'views', 'admin', 'about_form.ejs'), {
+    about,
+    message: req.query.saved === '1' ? 'About page saved successfully.' : '',
   });
+  res.render('admin/layout', { body: inner });
 });
 
-app.post('/admin/about', requireAdmin, async (req, res) => {
-  const { title, paragraph } = req.body;
-  await saveBlock('about', 'intro', 'title', title || '');
-  await saveBlock('about', 'intro', 'paragraph', paragraph || '');
-  res.render('admin/about', {
-    aboutIntro: { title, paragraph },
-    message: 'About content updated successfully.',
-  });
+app.post('/admin/about', requireAdmin, upload.single('profile_photo'), async (req, res) => {
+  let profilePhotoUrl;
+  if (req.file) {
+    profilePhotoUrl = '/assets/uploads/' + path.basename(req.file.filename);
+  }
+  await saveAboutContent(saveBlock, req.body, { profilePhotoUrl });
+  res.redirect('/admin/about?saved=1');
 });
 
 app.get('/admin/contact', requireAdmin, async (req, res) => {

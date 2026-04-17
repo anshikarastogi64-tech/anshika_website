@@ -1,0 +1,159 @@
+<% var a = typeof about !== 'undefined' && about ? about : {};
+   var intro = a.intro || {};
+   var profile = a.profile || {};
+   var actions = a.actions || {};
+   var philosophy = a.philosophy || {};
+   var pt = a.project_types || {};
+   var skills = a.skills || {};
+   var featured = a.featured || {};
+%>
+<div class="row">
+  <div class="col-xl-10">
+    <h1 class="h3 mb-4">Edit About Us page</h1>
+    <% if (typeof message !== 'undefined' && message) { %>
+    <div class="alert alert-success"><%= message %></div>
+    <% } %>
+    <p class="text-muted small mb-4">All fields are saved to the site database. Profile photo: upload a new image or paste a URL path (e.g. <code>/assets/img/me.png</code> or <code>/assets/uploads/your-file.jpg</code>).</p>
+    <form method="post" action="/admin/about" enctype="multipart/form-data" class="pb-5">
+      <h2 class="h5 border-bottom pb-2 mb-3">Page intro (optional)</h2>
+      <div class="mb-3">
+        <label class="form-label" for="intro_title">Intro title</label>
+        <input type="text" class="form-control" id="intro_title" name="intro_title" maxlength="200" value="<%= intro.title || '' %>">
+      </div>
+      <div class="mb-4">
+        <label class="form-label" for="intro_paragraph">Intro paragraph</label>
+        <textarea class="form-control" id="intro_paragraph" name="intro_paragraph" rows="3" maxlength="4000"><%= intro.paragraph || '' %></textarea>
+      </div>
+
+      <h2 class="h5 border-bottom pb-2 mb-3">Profile hero</h2>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label" for="profile_photo_url">Photo URL</label>
+          <input type="text" class="form-control" id="profile_photo_url" name="profile_photo_url" maxlength="500" value="<%= profile.photo_url || '' %>" placeholder="/assets/img/me.png">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="profile_photo">Or upload new photo</label>
+          <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="profile_photo_alt">Photo alt text</label>
+          <input type="text" class="form-control" id="profile_photo_alt" name="profile_photo_alt" maxlength="300" value="<%= profile.photo_alt || '' %>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="profile_name">Name</label>
+          <input type="text" class="form-control" id="profile_name" name="profile_name" maxlength="200" value="<%= profile.name || '' %>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="profile_job_title">Title / role</label>
+          <input type="text" class="form-control" id="profile_job_title" name="profile_job_title" maxlength="200" value="<%= profile.job_title || '' %>">
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="profile_bio">Bio</label>
+          <textarea class="form-control" id="profile_bio" name="profile_bio" rows="3" maxlength="4000"><%= profile.bio || '' %></textarea>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label" for="profile_detail_experience">Experience line</label>
+          <input type="text" class="form-control" id="profile_detail_experience" name="profile_detail_experience" maxlength="200" value="<%= profile.detail_experience || '' %>">
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label" for="profile_detail_education">Education line</label>
+          <input type="text" class="form-control" id="profile_detail_education" name="profile_detail_education" maxlength="200" value="<%= profile.detail_education || '' %>">
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label" for="profile_detail_location">Location line</label>
+          <input type="text" class="form-control" id="profile_detail_location" name="profile_detail_location" maxlength="200" value="<%= profile.detail_location || '' %>">
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label" for="profile_detail_email">Email line</label>
+          <input type="text" class="form-control" id="profile_detail_email" name="profile_detail_email" maxlength="200" value="<%= profile.detail_email || '' %>">
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label" for="profile_detail_phone">Phone line</label>
+          <input type="text" class="form-control" id="profile_detail_phone" name="profile_detail_phone" maxlength="200" value="<%= profile.detail_phone || '' %>">
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="profile_skills_hero">Skill pills under bio <span class="text-muted fw-normal">(one per line)</span></label>
+          <textarea class="form-control font-monospace small" id="profile_skills_hero" name="profile_skills_hero" rows="6" maxlength="2000"><%= profile.skills_hero || '' %></textarea>
+        </div>
+      </div>
+
+      <h2 class="h5 border-bottom pb-2 mb-3">Action buttons</h2>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label" for="btn_experience_label">Experience button label</label>
+          <input type="text" class="form-control" id="btn_experience_label" name="btn_experience_label" maxlength="80" value="<%= actions.btn_experience_label || '' %>">
+          <label class="form-label mt-2" for="btn_experience_href">Link</label>
+          <input type="text" class="form-control" id="btn_experience_href" name="btn_experience_href" maxlength="200" value="<%= actions.btn_experience_href || '' %>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="btn_portfolio_label">Portfolio button label</label>
+          <input type="text" class="form-control" id="btn_portfolio_label" name="btn_portfolio_label" maxlength="80" value="<%= actions.btn_portfolio_label || '' %>">
+          <label class="form-label mt-2" for="btn_portfolio_href">Link</label>
+          <input type="text" class="form-control" id="btn_portfolio_href" name="btn_portfolio_href" maxlength="200" value="<%= actions.btn_portfolio_href || '' %>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="btn_contact_label">Contact button label</label>
+          <input type="text" class="form-control" id="btn_contact_label" name="btn_contact_label" maxlength="80" value="<%= actions.btn_contact_label || '' %>">
+          <label class="form-label mt-2" for="btn_contact_href">Link</label>
+          <input type="text" class="form-control" id="btn_contact_href" name="btn_contact_href" maxlength="200" value="<%= actions.btn_contact_href || '' %>">
+        </div>
+      </div>
+
+      <h2 class="h5 border-bottom pb-2 mb-3">Design philosophy</h2>
+      <div class="mb-3">
+        <label class="form-label" for="philosophy_heading">Heading</label>
+        <input type="text" class="form-control" id="philosophy_heading" name="philosophy_heading" maxlength="200" value="<%= philosophy.heading || '' %>">
+      </div>
+      <div class="mb-4">
+        <label class="form-label" for="philosophy_body">Body text</label>
+        <textarea class="form-control" id="philosophy_body" name="philosophy_body" rows="5" maxlength="6000"><%= philosophy.body || '' %></textarea>
+      </div>
+
+      <h2 class="h5 border-bottom pb-2 mb-3">Project type cards</h2>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label" for="residential_title">Residential title</label>
+          <input type="text" class="form-control" id="residential_title" name="residential_title" maxlength="120" value="<%= pt.residential_title || '' %>">
+          <label class="form-label mt-2" for="residential_text">Text</label>
+          <textarea class="form-control" id="residential_text" name="residential_text" rows="2" maxlength="500"><%= pt.residential_text || '' %></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="commercial_title">Commercial title</label>
+          <input type="text" class="form-control" id="commercial_title" name="commercial_title" maxlength="120" value="<%= pt.commercial_title || '' %>">
+          <label class="form-label mt-2" for="commercial_text">Text</label>
+          <textarea class="form-control" id="commercial_text" name="commercial_text" rows="2" maxlength="500"><%= pt.commercial_text || '' %></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="hospitality_title">Hospitality title</label>
+          <input type="text" class="form-control" id="hospitality_title" name="hospitality_title" maxlength="120" value="<%= pt.hospitality_title || '' %>">
+          <label class="form-label mt-2" for="hospitality_text">Text</label>
+          <textarea class="form-control" id="hospitality_text" name="hospitality_text" rows="2" maxlength="500"><%= pt.hospitality_text || '' %></textarea>
+        </div>
+      </div>
+
+      <h2 class="h5 border-bottom pb-2 mb-3">Skills section</h2>
+      <div class="mb-3">
+        <label class="form-label" for="skills_section_heading">Section heading</label>
+        <input type="text" class="form-control" id="skills_section_heading" name="skills_section_heading" maxlength="120" value="<%= skills.section_heading || '' %>">
+      </div>
+      <div class="mb-4">
+        <label class="form-label" for="skills_list">Skill pills <span class="text-muted fw-normal">(one per line)</span></label>
+        <textarea class="form-control font-monospace small" id="skills_list" name="skills_list" rows="10" maxlength="4000"><%= skills.list || '' %></textarea>
+      </div>
+
+      <h2 class="h5 border-bottom pb-2 mb-3">Featured project strip</h2>
+      <div class="mb-3">
+        <label class="form-label" for="featured_section_title">Section title</label>
+        <input type="text" class="form-control" id="featured_section_title" name="featured_section_title" maxlength="120" value="<%= featured.section_title || '' %>">
+      </div>
+      <div class="form-check mb-4">
+        <input type="hidden" name="featured_show" value="0">
+        <input class="form-check-input" type="checkbox" name="featured_show" value="1" id="featured_show" <%= (featured.show !== '0' && featured.show !== 0 && String(featured.show).toLowerCase() !== 'false') ? 'checked' : '' %>>
+        <label class="form-check-label" for="featured_show">Show featured project (first portfolio project with a cover image)</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg">Save all About content</button>
+      <a href="/about-new" target="_blank" rel="noopener" class="btn btn-outline-secondary ms-2">Preview live page</a>
+    </form>
+  </div>
+</div>
