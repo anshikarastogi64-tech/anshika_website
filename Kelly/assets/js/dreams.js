@@ -475,8 +475,8 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 10000 !important;
-        width: 75vw !important;
-        max-width: 280px !important;
+        width: 70vw !important;
+        max-width: 260px !important;
         max-height: 65vh !important;
         border-radius: 10px !important;
         border: 1.5px solid rgba(212, 175, 55, 0.6) !important;
@@ -560,85 +560,70 @@
               // Reduce padding on header and content for smaller screens
               const header = clonedDetails.querySelector('.detail-header');
               if (header) {
-                header.style.cssText = `
-                  padding: 6px 8px !important;
-                  font-size: 13px !important;
-                  width: 100% !important;
-                  max-width: 100% !important;
-                  box-sizing: border-box !important;
-                  overflow: hidden !important;
-                `;
+                header.style.setProperty('padding', '6px', 'important');
+                header.style.setProperty('font-size', '12px', 'important');
+                header.style.setProperty('width', '100%', 'important');
+                header.style.setProperty('max-width', '100%', 'important');
+                header.style.setProperty('box-sizing', 'border-box', 'important');
+                header.style.setProperty('overflow', 'hidden', 'important');
+                header.style.setProperty('border-bottom', '1px solid rgba(212, 175, 55, 0.3)', 'important');
               }
 
               const headerH4 = clonedDetails.querySelector('.detail-header h4');
               if (headerH4) {
-                headerH4.style.cssText = `
-                  font-size: 15px !important;
-                  padding-right: 40px !important;
-                  margin: 0 !important;
-                `;
+                headerH4.style.setProperty('font-size', '14px', 'important');
+                headerH4.style.setProperty('padding-right', '35px', 'important');
+                headerH4.style.setProperty('margin', '0', 'important');
               }
 
               const badge = clonedDetails.querySelector('.detail-badge');
               if (badge) {
-                badge.style.cssText = `
-                  font-size: 9px !important;
-                  padding: 4px 8px !important;
-                `;
+                badge.style.setProperty('font-size', '9px', 'important');
+                badge.style.setProperty('padding', '3px 6px', 'important');
               }
 
               const content = clonedDetails.querySelector('.detail-content');
               if (content) {
-                content.style.cssText = `
-                  padding: 6px 8px !important;
-                  font-size: 11px !important;
-                  width: 100% !important;
-                  max-width: 100% !important;
-                  box-sizing: border-box !important;
-                  overflow-x: hidden !important;
-                `;
+                content.style.setProperty('padding', '6px', 'important');
+                content.style.setProperty('font-size', '11px', 'important');
+                content.style.setProperty('width', '100%', 'important');
+                content.style.setProperty('max-width', '100%', 'important');
+                content.style.setProperty('box-sizing', 'border-box', 'important');
+                content.style.setProperty('overflow-x', 'hidden', 'important');
               }
 
               // Make rows more compact
               const rows = clonedDetails.querySelectorAll('.detail-row');
               rows.forEach(row => {
-                row.style.cssText = `
-                  padding: 5px !important;
-                  margin-bottom: 6px !important;
-                  font-size: 11px !important;
-                  width: 100% !important;
-                  max-width: 100% !important;
-                  box-sizing: border-box !important;
-                  overflow: hidden !important;
-                  word-wrap: break-word !important;
-                  gap: 6px !important;
-                `;
+                row.style.setProperty('padding', '4px', 'important');
+                row.style.setProperty('margin-bottom', '5px', 'important');
+                row.style.setProperty('font-size', '10px', 'important');
+                row.style.setProperty('width', '100%', 'important');
+                row.style.setProperty('max-width', '100%', 'important');
+                row.style.setProperty('box-sizing', 'border-box', 'important');
+                row.style.setProperty('overflow', 'hidden', 'important');
+                row.style.setProperty('word-wrap', 'break-word', 'important');
+                row.style.setProperty('gap', '5px', 'important');
 
                 const icon = row.querySelector('.detail-icon');
                 if (icon) {
-                  icon.style.cssText = `
-                    font-size: 20px !important;
-                    width: 24px !important;
-                  `;
+                  icon.style.setProperty('font-size', '18px', 'important');
+                  icon.style.setProperty('width', '20px', 'important');
                 }
 
                 const strong = row.querySelector('strong');
                 if (strong) {
-                  strong.style.cssText = `
-                    font-size: 12px !important;
-                    word-wrap: break-word !important;
-                    margin-bottom: 2px !important;
-                  `;
+                  strong.style.setProperty('font-size', '11px', 'important');
+                  strong.style.setProperty('word-wrap', 'break-word', 'important');
+                  strong.style.setProperty('margin-bottom', '2px', 'important');
                 }
 
                 const p = row.querySelector('p');
                 if (p) {
-                  p.style.cssText = `
-                    font-size: 11px !important;
-                    word-wrap: break-word !important;
-                    overflow-wrap: break-word !important;
-                    line-height: 1.4 !important;
-                  `;
+                  p.style.setProperty('font-size', '10px', 'important');
+                  p.style.setProperty('word-wrap', 'break-word', 'important');
+                  p.style.setProperty('overflow-wrap', 'break-word', 'important');
+                  p.style.setProperty('line-height', '1.3', 'important');
                 }
 
                 // Force all child divs to respect container width
