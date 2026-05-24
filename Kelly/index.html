@@ -465,9 +465,10 @@
               stroke="url(#goldGradient)" stroke-width="4" fill="none" filter="url(#glow)"/>
 
         <!-- Connecting lines from center -->
-        <line x1="300" y1="300" x2="300" y2="80" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.6" style="stroke-dasharray: none; stroke-dashoffset: 0;"/>
-        <line class="center-line line-left" x1="300" y1="300" x2="80" y2="480" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.6"/>
-        <line class="center-line line-right" x1="300" y1="300" x2="520" y2="480" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.6"/>
+        <!-- Top line - Works on desktop, needs inline style for mobile -->
+        <line x1="300" y1="300" x2="300" y2="80" stroke="#FFD700" stroke-width="3" opacity="0.8" style="display: inline !important;"/>
+        <line class="center-line line-left" x1="300" y1="300" x2="80" y2="480" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.8"/>
+        <line class="center-line line-right" x1="300" y1="300" x2="520" y2="480" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.8"/>
 
         <!-- Center circle with rotating ring -->
         <circle cx="300" cy="300" r="45" fill="none" stroke="url(#goldGradient)" stroke-width="2" class="center-ring" opacity="0.6"/>

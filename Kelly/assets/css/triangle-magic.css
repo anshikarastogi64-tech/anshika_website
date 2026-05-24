@@ -88,9 +88,11 @@
 
 .line-top {
   animation-delay: 1s, 3s;
-  stroke-width: 3.5;
+  stroke-width: 3;
   opacity: 0.9;
 }
+
+/* Desktop - removed conflicting rules, handled at end of file */
 
 .line-left {
   animation-delay: 1.5s, 3.5s;
@@ -108,10 +110,10 @@
 
 @keyframes pulseLine {
   0%, 100% {
-    opacity: 0.4;
+    opacity: 0.7;
   }
   50% {
-    opacity: 0.9;
+    opacity: 1;
   }
 }
 
@@ -154,7 +156,7 @@
 .point-top {
   top: 17%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -100%);
 }
 
 .point-left {
@@ -567,7 +569,7 @@
     transform: translate(-50%, -50%) !important;
     width: 280px !important;
     height: 280px !important;
-    z-index: 2 !important;
+    z-index: 20 !important;
     pointer-events: none !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -582,12 +584,40 @@
   }
 
   /* Show the triangle lines fully */
-  .magic-triangle-svg .triangle-path,
-  .magic-triangle-svg .center-line,
-  .magic-triangle-svg line,
-  .magic-triangle-svg circle {
-    opacity: 1 !important;
+  .magic-triangle-svg .triangle-path {
+    opacity: 0.9 !important;
     visibility: visible !important;
+    display: block !important;
+    stroke: url(#goldGradient) !important;
+    stroke-width: 3 !important;
+  }
+
+  .magic-triangle-svg .center-line,
+  .magic-triangle-svg line {
+    opacity: 0.9 !important;
+    visibility: visible !important;
+    display: inline !important;
+    stroke: url(#goldGradient) !important;
+    stroke-width: 3 !important;
+  }
+
+  .magic-triangle-svg circle {
+    opacity: 0.9 !important;
+    visibility: visible !important;
+    display: block !important;
+    stroke: url(#goldGradient) !important;
+    stroke-width: 3 !important;
+  }
+
+  /* Ensure top line is specifically visible */
+  .magic-triangle-svg .line-top,
+  .magic-triangle-svg line:first-of-type {
+    opacity: 0.8 !important;
+    visibility: visible !important;
+    display: inline !important;
+    stroke: #FFD700 !important;
+    stroke-width: 3 !important;
+    pointer-events: none !important;
   }
 
   /* Hide decorative elements BUT KEEP GLOBE */
@@ -625,24 +655,26 @@
     z-index: 15 !important;
   }
 
-  /* Position at TRIANGLE VERTICES for mobile */
+  /* Position at TRIANGLE VERTICES for mobile - TOP box: BOTTOM CENTER aligned, others: TOP CENTER aligned */
   .point-top {
-    top: 57px !important;
+    top: 97px !important;
     left: 50% !important;
-    transform: translateX(-50%) !important;
+    transform: translateX(-50%) translateY(-100px) !important;
   }
 
   .point-left {
-    bottom: 57px !important;
-    left: 11% !important;
+    top: 284px !important;
+    bottom: auto !important;
+    left: 19.8% !important;
     transform: translateX(-50%) !important;
   }
 
   .point-right {
-    bottom: 57px !important;
-    right: 11% !important;
-    left: auto !important;
-    transform: translateX(50%) !important;
+    top: 284px !important;
+    bottom: auto !important;
+    left: 80.2% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
   }
 
   /* Compact card design - SQUARE for mobile */
@@ -991,5 +1023,45 @@
     transform: none !important;
     background: rgba(0, 0, 0, 0.95) !important;
     border-color: #D4AF37 !important;
+  }
+}
+
+/* CRITICAL FIX - Force top line visible on ALL screen sizes */
+.line-top,
+line.line-top,
+.center-line.line-top,
+svg line.line-top {
+  visibility: visible !important;
+  display: inline !important;
+  pointer-events: none !important;
+}
+
+/* Desktop specific override - FIX DISPLAY BLOCK FROM MOBILE */
+@media (min-width: 769px) {
+  /* Ensure SVG is above power cards */
+  .magic-triangle-svg {
+    z-index: 100 !important;
+    position: absolute !important;
+  }
+
+  /* Top line with ID - force inline for desktop */
+  #top-center-line {
+    display: inline !important;
+    visibility: visible !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Keep power cards below SVG */
+  .power-point {
+    z-index: 10 !important;
+  }
+}
+
+/* Mobile - top line visible */
+@media (max-width: 768px) {
+  #top-center-line {
+    display: inline !important;
+    visibility: visible !important;
+    opacity: 0.9 !important;
   }
 }
