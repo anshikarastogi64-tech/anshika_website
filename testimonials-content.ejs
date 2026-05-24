@@ -47,17 +47,71 @@
 
   .testimonials-logo {
     font-family: 'Playfair Display', serif;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    color: #FFD700;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     text-decoration: none;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    text-shadow: none;
+    letter-spacing: 3px;
+    position: relative;
+    animation: shimmer 3s ease-in-out infinite;
     transition: all 0.3s;
   }
 
+  @keyframes shimmer {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .testimonials-logo::before {
+    content: '✨';
+    position: absolute;
+    left: -30px;
+    font-size: 20px;
+    animation: sparkle-left 2s ease-in-out infinite;
+  }
+
+  .testimonials-logo::after {
+    content: '✨';
+    position: absolute;
+    right: -30px;
+    font-size: 20px;
+    animation: sparkle-right 2s ease-in-out infinite;
+  }
+
+  @keyframes sparkle-left {
+    0%, 100% {
+      opacity: 0.5;
+      transform: rotate(0deg) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: rotate(180deg) scale(1.2);
+    }
+  }
+
+  @keyframes sparkle-right {
+    0%, 100% {
+      opacity: 1;
+      transform: rotate(0deg) scale(1.2);
+    }
+    50% {
+      opacity: 0.5;
+      transform: rotate(-180deg) scale(1);
+    }
+  }
+
   .testimonials-logo:hover {
-    color: #FFA500;
-    transform: scale(1.05);
+    transform: scale(1.08);
+    letter-spacing: 4px;
   }
 
   .testimonials-nav-links {
@@ -513,7 +567,7 @@
   <!-- Custom Header -->
   <header class="testimonials-header">
     <nav class="testimonials-nav">
-      <a href="/Kelly/index.html" class="testimonials-logo">Kelly Designers</a>
+      <a href="/Kelly/index.html" class="testimonials-logo">ANSHIKA</a>
 
       <button class="mobile-menu-toggle" onclick="document.querySelector('.testimonials-nav-links').classList.toggle('active')">
         <i class="bx bx-menu"></i>
