@@ -10,11 +10,23 @@
 
   /* Testimonials Magical Theme */
   #testimonials-magical {
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    background: linear-gradient(135deg,
+      #1a1432 0%,
+      #2d1b4e 25%,
+      #1e3a5f 50%,
+      #2d1b4e 75%,
+      #1a1432 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
     min-height: 100vh;
     position: relative;
     overflow: hidden;
     padding: 0;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
   /* Custom Header matching home page */
@@ -209,14 +221,26 @@
 
   .testimonials-star {
     position: absolute;
-    background: #FFD700;
     border-radius: 50%;
-    animation: twinkle 3s ease-in-out infinite;
+    animation: twinkle 3s ease-in-out infinite, float 10s ease-in-out infinite;
   }
 
   @keyframes twinkle {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.2); }
+    0%, 100% {
+      opacity: 0.4;
+      transform: scale(1);
+      box-shadow: 0 0 10px currentColor;
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.5);
+      box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
   }
 
   .testimonials-content {
@@ -235,10 +259,21 @@
     font-family: 'Playfair Display', serif;
     font-size: 56px;
     font-weight: 700;
-    color: #FFD700;
+    background: linear-gradient(135deg, #FFD700 0%, #FF6B9D 50%, #C44BE6 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 20px;
-    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-    animation: fadeInDown 1s ease;
+    text-shadow: none;
+    animation: fadeInDown 1s ease, shimmerText 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))
+            drop-shadow(0 0 40px rgba(255, 107, 157, 0.2));
+  }
+
+  @keyframes shimmerText {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
   .testimonials-hero p {
@@ -280,41 +315,76 @@
 
   /* Testimonial Cards */
   .testimonial-card-magical {
-    background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(15, 52, 96, 0.95));
+    background: linear-gradient(135deg,
+      rgba(88, 44, 131, 0.15) 0%,
+      rgba(75, 0, 130, 0.2) 50%,
+      rgba(138, 43, 226, 0.15) 100%);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 35px;
     margin-bottom: 30px;
-    border: 2px solid rgba(255, 215, 0, 0.3);
+    border: 2px solid;
+    border-image: linear-gradient(135deg, #FFD700, #FF6B9D, #C44BE6, #FFD700) 1;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 215, 0, 0.4);
     position: relative;
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 40px rgba(138, 43, 226, 0.3),
+                0 0 20px rgba(255, 107, 157, 0.2);
     cursor: pointer;
     text-decoration: none;
     display: block;
   }
 
   .testimonial-card-magical::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(255, 215, 0, 0.1) 50%,
+      transparent 70%);
+    transform: rotate(45deg);
+    transition: all 0.6s;
+  }
+
+  .testimonial-card-magical::after {
     content: '✨';
     position: absolute;
     top: -20px;
     right: -20px;
     font-size: 100px;
-    opacity: 0.1;
+    opacity: 0.15;
     transition: all 0.4s;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
   }
 
   .testimonial-card-magical:hover {
     transform: translateY(-10px) scale(1.02);
-    border-color: #FFD700;
-    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.2);
+    border-color: #FF6B9D;
+    box-shadow: 0 20px 60px rgba(255, 107, 157, 0.6),
+                0 0 60px rgba(196, 75, 230, 0.4),
+                0 0 100px rgba(255, 215, 0, 0.2);
+    background: linear-gradient(135deg,
+      rgba(88, 44, 131, 0.25) 0%,
+      rgba(75, 0, 130, 0.3) 50%,
+      rgba(138, 43, 226, 0.25) 100%);
   }
 
   .testimonial-card-magical:hover::before {
+    left: 50%;
+    top: 50%;
+  }
+
+  .testimonial-card-magical:hover::after {
     top: -10px;
     right: -10px;
-    opacity: 0.2;
-    transform: rotate(15deg);
+    opacity: 0.3;
+    transform: rotate(15deg) scale(1.1);
   }
 
   .testimonial-header {
@@ -506,22 +576,55 @@
   .cta-button {
     display: inline-block;
     padding: 18px 45px;
-    background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%);
-    color: #1a1a2e;
+    background: linear-gradient(135deg, #FFD700 0%, #FF6B9D 50%, #C44BE6 100%);
+    background-size: 200% auto;
+    color: #fff;
     text-decoration: none;
     border-radius: 30px;
     font-weight: 700;
     font-size: 18px;
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5),
+                0 0 40px rgba(196, 75, 230, 0.3);
     transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 1px;
+    animation: shimmerButton 3s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent);
+    transform: rotate(45deg);
+    animation: shine 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmerButton {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes shine {
+    0% { left: -100%; }
+    100% { left: 200%; }
   }
 
   .cta-button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6);
-    color: #1a1a2e;
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 50px rgba(255, 107, 157, 0.7),
+                0 0 60px rgba(196, 75, 230, 0.5),
+                0 0 80px rgba(255, 215, 0, 0.3);
+    color: #fff;
   }
 
   /* Responsive */
@@ -585,13 +688,16 @@
 
   <!-- Floating Stars Background -->
   <div class="testimonials-stars">
-    <div class="testimonials-star" style="width: 3px; height: 3px; top: 10%; left: 20%; animation-delay: 0s;"></div>
-    <div class="testimonials-star" style="width: 2px; height: 2px; top: 20%; left: 80%; animation-delay: 0.5s;"></div>
-    <div class="testimonials-star" style="width: 4px; height: 4px; top: 30%; left: 50%; animation-delay: 1s;"></div>
-    <div class="testimonials-star" style="width: 3px; height: 3px; top: 50%; left: 10%; animation-delay: 1.5s;"></div>
-    <div class="testimonials-star" style="width: 2px; height: 2px; top: 60%; left: 90%; animation-delay: 2s;"></div>
-    <div class="testimonials-star" style="width: 3px; height: 3px; top: 80%; left: 30%; animation-delay: 2.5s;"></div>
-    <div class="testimonials-star" style="width: 4px; height: 4px; top: 70%; left: 70%; animation-delay: 3s;"></div>
+    <div class="testimonials-star" style="width: 3px; height: 3px; top: 10%; left: 20%; background: #FFD700; color: #FFD700; animation-delay: 0s;"></div>
+    <div class="testimonials-star" style="width: 2px; height: 2px; top: 20%; left: 80%; background: #FF6B9D; color: #FF6B9D; animation-delay: 0.5s;"></div>
+    <div class="testimonials-star" style="width: 4px; height: 4px; top: 30%; left: 50%; background: #C44BE6; color: #C44BE6; animation-delay: 1s;"></div>
+    <div class="testimonials-star" style="width: 3px; height: 3px; top: 50%; left: 10%; background: #4ECDC4; color: #4ECDC4; animation-delay: 1.5s;"></div>
+    <div class="testimonials-star" style="width: 2px; height: 2px; top: 60%; left: 90%; background: #FFA500; color: #FFA500; animation-delay: 2s;"></div>
+    <div class="testimonials-star" style="width: 3px; height: 3px; top: 80%; left: 30%; background: #FF6B9D; color: #FF6B9D; animation-delay: 2.5s;"></div>
+    <div class="testimonials-star" style="width: 4px; height: 4px; top: 70%; left: 70%; background: #FFD700; color: #FFD700; animation-delay: 3s;"></div>
+    <div class="testimonials-star" style="width: 3px; height: 3px; top: 15%; left: 60%; background: #C44BE6; color: #C44BE6; animation-delay: 0.8s;"></div>
+    <div class="testimonials-star" style="width: 2px; height: 2px; top: 40%; left: 75%; background: #4ECDC4; color: #4ECDC4; animation-delay: 1.8s;"></div>
+    <div class="testimonials-star" style="width: 3px; height: 3px; top: 85%; left: 65%; background: #FFD700; color: #FFD700; animation-delay: 2.2s;"></div>
   </div>
 
   <div class="testimonials-content container">
