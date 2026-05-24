@@ -1653,23 +1653,7 @@ body::before {
   50% { transform: scale(1.2); }
 }
 
-.btn-dream-secondary {
-  padding: 20px 50px;
-  background: transparent;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 600;
-  border: 2px solid #fff;
-  border-radius: 50px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.btn-dream-secondary:hover {
-  background: #fff;
-  color: #667eea;
-  transform: translateY(-5px);
-}
+/* btn-dream-secondary styles moved to magical-cta.css for better organization */
 
 .final-social {
   display: flex;
