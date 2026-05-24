@@ -248,6 +248,10 @@
     pointer-events: auto;
   }
 
+  .power-point:hover {
+    z-index: 150 !important;
+  }
+
   /* Position adjustments */
   .point-top .power-details {
     top: 100%;
@@ -272,6 +276,7 @@
     transform: scale(1.05);
     box-shadow: 0 15px 50px rgba(212, 175, 55, 0.4);
     cursor: pointer;
+    z-index: 150 !important;
   }
 }
 
