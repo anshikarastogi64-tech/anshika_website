@@ -154,7 +154,7 @@
 
 /* Secondary button enhancement - Portfolio Button */
 .btn-dream-secondary {
-  position: relative;
+  position: relative !important;
   padding: 18px 45px !important;
   font-size: 17px !important;
   font-weight: 600 !important;
@@ -165,15 +165,20 @@
   border-radius: 50px !important;
   text-decoration: none !important;
   display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 10px !important;
+  min-width: 280px !important;
+  min-height: 56px !important;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
   box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3),
               0 0 30px rgba(255, 215, 0, 0.2),
               inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
-  overflow: hidden !important;
+  overflow: visible !important;
+  z-index: 5 !important;
 }
 
 .btn-dream-secondary::before {
