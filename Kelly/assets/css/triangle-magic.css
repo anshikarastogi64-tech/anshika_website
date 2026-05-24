@@ -712,6 +712,57 @@
     transform: translateX(-50%) !important;
   }
 
+  /* Force consistent styling for all boxes */
+  .point-top .power-compact,
+  .point-left .power-compact,
+  .point-right .power-compact {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 2px solid #D4AF37 !important;
+    opacity: 1 !important;
+  }
+
+  .point-top .power-compact h3,
+  .point-left .power-compact h3,
+  .point-right .power-compact h3 {
+    color: #FFD700 !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+  }
+
+  .point-top .power-tagline,
+  .point-left .power-tagline,
+  .point-right .power-tagline {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 500 !important;
+    opacity: 1 !important;
+  }
+
+  .point-top .power-icon-svg svg,
+  .point-left .power-icon-svg svg,
+  .point-right .power-icon-svg svg {
+    opacity: 1 !important;
+  }
+
+  .point-top .power-icon-svg svg circle,
+  .point-top .power-icon-svg svg line,
+  .point-top .power-icon-svg svg path,
+  .point-left .power-icon-svg svg circle,
+  .point-left .power-icon-svg svg line,
+  .point-left .power-icon-svg svg path,
+  .point-right .power-icon-svg svg circle,
+  .point-right .power-icon-svg svg line,
+  .point-right .power-icon-svg svg path {
+    stroke: #D4AF37 !important;
+    fill: #D4AF37 !important;
+    opacity: 1 !important;
+  }
+
+  .point-top .power-icon-svg svg circle[fill="none"],
+  .point-left .power-icon-svg svg circle[fill="none"],
+  .point-right .power-icon-svg svg circle[fill="none"] {
+    fill: none !important;
+  }
+
   /* Compact card design - SQUARE for mobile */
   .power-point .power-compact {
     display: flex !important;
