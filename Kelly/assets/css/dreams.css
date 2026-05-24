@@ -1839,11 +1839,13 @@ body::before {
   /* Dream Begins Section */
   #dream-begins {
     padding: 60px 15px !important;
+    overflow-x: hidden;
   }
 
   #dream-begins .story-container {
     max-width: 100% !important;
-    padding: 0 !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
   }
 
   #dream-begins .story-container > div {
@@ -1855,8 +1857,10 @@ body::before {
   }
 
   #dream-begins .story-left > div {
-    padding: 30px 20px !important;
+    padding: 25px 18px !important;
     margin-bottom: 30px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   #dream-begins .story-left > div > div[style*="position: absolute"] {
@@ -1901,17 +1905,30 @@ body::before {
   }
 
   /* Image grid in Dream Begins */
+  .story-right {
+    padding: 0 5px !important;
+  }
+
+  .story-right > div {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .story-right > div > div[style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
     gap: 15px !important;
+    padding: 0 !important;
   }
 
   .story-right > div > div > div {
     margin-bottom: 15px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .story-right > div > div img {
     height: 220px !important;
+    width: 100% !important;
   }
 
   .story-right > div > div[style*="position: absolute"][style*="top: 50%"] {
@@ -1930,16 +1947,26 @@ body::before {
   /* Designer Section */
   #meet-designer {
     padding: 60px 15px !important;
+    overflow-x: hidden;
   }
 
   .designer-reveal {
     grid-template-columns: 1fr;
     gap: 40px;
     max-width: 100%;
+    padding: 0 5px !important;
+    margin: 0 !important;
+  }
+
+  .designer-story {
+    padding: 0 5px !important;
+    margin: 0 !important;
   }
 
   .designer-image-container {
     margin-bottom: 30px;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .designer-photo {
@@ -1961,13 +1988,16 @@ body::before {
 
   .story-text {
     font-size: 16px !important;
+    padding: 0 5px !important;
   }
 
   /* Credentials */
   .credentials-row {
     grid-template-columns: 1fr !important;
-    padding: 20px !important;
+    padding: 20px 15px !important;
     gap: 20px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .credential-item {
@@ -1989,9 +2019,11 @@ body::before {
   }
 
   .recognition-banner {
-    padding: 20px !important;
+    padding: 20px 15px !important;
     flex-direction: column !important;
     text-align: center;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .recognition-banner > div:first-child {
@@ -2011,6 +2043,9 @@ body::before {
     flex-wrap: wrap !important;
     gap: 12px !important;
     justify-content: center !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 5px !important;
   }
 
   .magic-badge {
@@ -2029,8 +2064,10 @@ body::before {
   /* Expertise Tags */
   .expertise-tags-final {
     gap: 10px !important;
-    padding: 15px !important;
+    padding: 15px 10px !important;
     justify-content: center !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .expertise-tags-final span {
@@ -2047,11 +2084,14 @@ body::before {
   }
 
   .professional-statement {
-    padding: 20px !important;
+    padding: 20px 15px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .professional-statement p {
     font-size: 15px !important;
+    padding: 0 5px !important;
   }
 
   /* Section Titles */
