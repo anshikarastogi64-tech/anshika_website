@@ -482,17 +482,40 @@
   }
 }
 
+/* Desktop/Mobile text toggle */
+.mobile-only {
+  display: none;
+}
+
+.desktop-only {
+  display: inline;
+}
+
 /* Mobile Responsive - Magical Triangle Redesign */
 @media (max-width: 768px) {
+  .mobile-only {
+    display: inline;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
   /* Triangle section - magical compact design */
   .triangle-container {
     height: 600px;
     min-height: 600px;
-    padding: 20px 15px;
+    padding: 20px 10px;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
+  }
+
+  #magic-triangle {
+    padding: 50px 15px !important;
+    overflow-x: hidden;
   }
 
   /* Show compact triangle SVG */
@@ -678,25 +701,28 @@
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) scale(0.8) !important;
-    width: 90% !important;
-    max-width: 340px !important;
+    width: calc(100% - 40px) !important;
+    max-width: 360px !important;
     max-height: 0;
     opacity: 0;
     overflow: hidden;
     transition: all 0.3s ease;
-    border: 2px solid rgba(212, 175, 55, 0.6) !important;
+    border: 2px solid rgba(212, 175, 55, 0.7) !important;
     border-radius: 20px !important;
-    z-index: 200 !important;
+    z-index: 9999 !important;
     pointer-events: none;
     margin: 0 !important;
+    background: rgba(0, 0, 0, 0.98) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(212, 175, 55, 0.4) !important;
   }
 
   /* Expanded state - modal */
   .power-point.expanded .power-details {
-    max-height: 500px;
+    max-height: 85vh;
     opacity: 1;
     transform: translate(-50%, -50%) scale(1) !important;
     pointer-events: auto;
+    overflow: visible;
   }
 
   /* Modal backdrop */
@@ -707,9 +733,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    z-index: 150;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9998;
     animation: fadeIn 0.3s ease;
   }
 
@@ -720,39 +746,43 @@
 
   .detail-header {
     padding: 18px 20px;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(20px);
+    background: transparent;
     border-radius: 20px 20px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    border-bottom: 2px solid rgba(212, 175, 55, 0.4);
+    position: relative;
+    z-index: 10000;
   }
 
   .detail-header h4 {
-    font-size: 19px !important;
+    font-size: 20px !important;
     margin: 0 !important;
     color: #D4AF37;
     font-weight: 600;
+    text-shadow: 0 2px 8px rgba(212, 175, 55, 0.5);
   }
 
   .detail-badge {
     font-size: 11px !important;
-    padding: 5px 12px !important;
-    background: rgba(212, 175, 55, 0.25);
-    border: 1px solid rgba(212, 175, 55, 0.4);
+    padding: 6px 14px !important;
+    background: rgba(212, 175, 55, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.6);
     border-radius: 12px;
-    color: #D4AF37;
-    font-weight: 600;
+    color: #fff;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
 
   .detail-content {
     padding: 20px;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(20px);
+    background: transparent;
     border-radius: 0 0 20px 20px;
     overflow-y: auto;
-    max-height: 380px;
+    max-height: calc(85vh - 100px);
+    position: relative;
+    z-index: 10000;
   }
 
   .detail-row {
@@ -797,20 +827,27 @@
   .power-details::after {
     content: '✕';
     position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 30px;
-    height: 30px;
+    top: 18px;
+    right: 18px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(212, 175, 55, 0.2);
-    border: 1px solid rgba(212, 175, 55, 0.4);
+    background: rgba(212, 175, 55, 0.3);
+    border: 2px solid rgba(212, 175, 55, 0.6);
     border-radius: 50%;
-    color: #D4AF37;
-    font-size: 18px;
+    color: #fff;
+    font-size: 20px;
     font-weight: bold;
     cursor: pointer;
-    z-index: 10;
+    z-index: 10001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+  }
+
+  .power-details::after:active {
+    transform: scale(0.9);
+    background: rgba(212, 175, 55, 0.5);
   }
 }
