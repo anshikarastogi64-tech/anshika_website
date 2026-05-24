@@ -625,7 +625,7 @@
     z-index: 15 !important;
   }
 
-  /* Position at vertices */
+  /* Position in SQUARE/GRID layout for mobile */
   .point-top {
     top: 15px !important;
     left: 50% !important;
@@ -634,12 +634,14 @@
 
   .point-left {
     bottom: 15px !important;
-    left: 35px !important;
+    left: 50% !important;
+    transform: translateX(-130%) !important;
   }
 
   .point-right {
     bottom: 15px !important;
-    right: 35px !important;
+    left: 50% !important;
+    transform: translateX(30%) !important;
   }
 
   /* Compact card design */
