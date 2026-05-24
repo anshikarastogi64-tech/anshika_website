@@ -530,7 +530,7 @@
   /* Section setup */
   #magic-triangle {
     padding: 40px 15px 50px 15px !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     width: 100% !important;
   }
 
