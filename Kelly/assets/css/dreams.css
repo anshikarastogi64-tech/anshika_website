@@ -1700,6 +1700,7 @@ body::before {
   body { cursor: auto; }
   #brush-cursor { display: none; }
 
+  /* Menu */
   .menu-trigger {
     top: 20px;
     right: 20px;
@@ -1723,25 +1724,25 @@ body::before {
     padding: 80px 30px;
   }
 
-  .dream-nav { gap: 25px; }
+  .dream-nav { gap: 20px; }
 
   .link-icon {
-    font-size: 26px;
-    width: 48px;
-    height: 48px;
+    font-size: 24px;
+    width: 45px;
+    height: 45px;
   }
 
   .link-text {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .link-sketch {
-    left: 80px;
+    left: 75px;
   }
 
   .nav-link:hover .link-sketch,
   .nav-link.active .link-sketch {
-    width: calc(100% - 80px);
+    width: calc(100% - 75px);
   }
 
   .menu-footer {
@@ -1749,7 +1750,7 @@ body::before {
   }
 
   .menu-tagline {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .menu-social-link {
@@ -1758,53 +1759,400 @@ body::before {
     font-size: 20px;
   }
 
-  .dream-title { font-size: 50px; }
-  .subtitle-handwritten { font-size: 28px; }
-
-  .story-section { padding: 60px 30px; }
-  .story-container { grid-template-columns: 1fr; gap: 40px; }
-  .designer-reveal { grid-template-columns: 1fr; gap: 50px; }
-
-  .section-title { font-size: 40px; }
-  .section-title-center { font-size: 40px; }
-  .handwritten-big { font-size: 50px; }
-  .handwritten-heading { font-size: 50px; }
-  .handwritten-massive { font-size: 50px; }
-  .handwritten-massive.highlight { font-size: 60px; }
-
-  .polaroid-gallery { grid-template-columns: 1fr; gap: 40px; }
-  .secret-features { grid-template-columns: 1fr; }
-  .final-buttons { flex-direction: column; align-items: center; }
-
-  .designer-photo { height: 400px; }
-  .doodle { font-size: 30px; }
-  .doodle-arrow { right: -30px; font-size: 40px; }
-
-  .credentials-row {
-    grid-template-columns: 1fr;
-    padding: 20px;
+  /* Opening Scene */
+  .dream-title {
+    font-size: 40px;
+    padding: 0 20px;
   }
 
-  .credential-icon { font-size: 32px; }
-  .credential-info strong { font-size: 15px; }
-  .credential-info span { font-size: 13px; }
+  .subtitle-handwritten {
+    font-size: 24px;
+  }
 
-  .magic-badges { gap: 15px; }
-  .magic-badge { padding: 15px 20px; }
-  .magic-badge i { font-size: 24px; }
-  .magic-badge span { font-size: 14px; }
+  .scroll-dream {
+    padding: 12px 30px;
+    font-size: 14px;
+  }
 
-  .expertise-tags { gap: 10px; }
-  .tag { padding: 6px 15px; font-size: 12px; }
+  /* Sections */
+  .story-section {
+    padding: 60px 20px;
+    min-height: auto;
+  }
 
-  .dark-section { padding: 80px 30px; }
+  .story-container {
+    grid-template-columns: 1fr !important;
+    gap: 40px;
+    padding: 0;
+  }
+
+  /* Dream Begins Section */
+  #dream-begins .story-container > div {
+    order: 2;
+  }
+
+  #dream-begins .story-container > div:first-child {
+    order: 1;
+  }
+
+  #dream-begins h2 {
+    font-size: 32px !important;
+  }
+
+  #dream-begins p {
+    font-size: 16px !important;
+  }
+
+  #dream-begins > div > div {
+    padding: 30px 20px !important;
+  }
+
+  #dream-begins .story-container > div > div {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Designer Section */
+  .designer-reveal {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .designer-photo {
+    height: 350px;
+  }
+
+  .doodle {
+    font-size: 25px;
+  }
+
+  .doodle-arrow {
+    right: -25px;
+    font-size: 35px;
+  }
+
+  .handwritten-heading {
+    font-size: 36px !important;
+  }
+
+  .story-text {
+    font-size: 16px !important;
+  }
+
+  /* Credentials */
+  .credentials-row {
+    grid-template-columns: 1fr !important;
+    padding: 20px !important;
+    gap: 20px !important;
+  }
+
+  .credential-item {
+    flex-direction: column !important;
+    text-align: center;
+    gap: 10px !important;
+  }
+
+  .credential-icon {
+    font-size: 32px !important;
+  }
+
+  .credential-info strong {
+    font-size: 15px !important;
+  }
+
+  .credential-info span {
+    font-size: 13px !important;
+  }
+
+  .recognition-banner {
+    padding: 20px !important;
+    flex-direction: column !important;
+    text-align: center;
+  }
+
+  .recognition-banner > div:first-child {
+    font-size: 35px !important;
+  }
+
+  .recognition-banner strong {
+    font-size: 16px !important;
+  }
+
+  .recognition-banner span {
+    font-size: 14px !important;
+  }
+
+  /* Badges */
+  .magic-badges {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    justify-content: center !important;
+  }
+
+  .magic-badge {
+    padding: 15px 20px !important;
+    flex: 0 1 auto;
+  }
+
+  .magic-badge i {
+    font-size: 24px !important;
+  }
+
+  .magic-badge span {
+    font-size: 15px !important;
+  }
+
+  /* Expertise Tags */
+  .expertise-tags-final {
+    gap: 10px !important;
+    padding: 15px !important;
+    justify-content: center !important;
+  }
+
+  .expertise-tags-final span {
+    padding: 10px 20px !important;
+    font-size: 13px !important;
+  }
+
+  .specialization-header h3 {
+    font-size: 20px !important;
+  }
+
+  .specialization-header p {
+    font-size: 14px !important;
+  }
+
+  .professional-statement {
+    padding: 20px !important;
+  }
+
+  .professional-statement p {
+    font-size: 15px !important;
+  }
+
+  /* Section Titles */
+  .section-title { font-size: 36px; }
+  .section-title-center { font-size: 36px; }
+  .section-subtitle-center { font-size: 16px !important; }
+  .handwritten-big { font-size: 40px; }
+  .handwritten-massive { font-size: 44px; }
+  .handwritten-massive.highlight { font-size: 50px; }
+
+  /* Services Section */
+  .services-showcase {
+    padding: 60px 20px !important;
+  }
+
+  .services-categories {
+    gap: 10px !important;
+    margin-bottom: 30px !important;
+  }
+
+  .cat-btn-dream {
+    padding: 10px 20px !important;
+    font-size: 13px !important;
+  }
+
+  .services-dream-grid {
+    grid-template-columns: 1fr !important;
+    gap: 25px !important;
+    padding: 0 !important;
+  }
+
+  .service-dream-card {
+    padding: 15px !important;
+  }
+
+  .service-dream-card h4 {
+    font-size: 20px !important;
+  }
+
+  .service-dream-card p {
+    font-size: 14px !important;
+  }
+
+  .service-dream-img img {
+    height: 220px !important;
+  }
+
+  .gallery-cta {
+    margin-top: 40px !important;
+  }
+
+  .gallery-cta a {
+    padding: 15px 35px !important;
+    font-size: 16px !important;
+  }
+
+  /* Trust & Transparency Section */
+  #trust-transparency {
+    padding: 50px 20px !important;
+  }
+
+  #trust-transparency h2 {
+    font-size: 32px !important;
+    margin-bottom: 12px !important;
+  }
+
+  #trust-transparency > div > div:first-child p {
+    font-size: 16px !important;
+  }
+
+  #trust-transparency > div > div:nth-child(2) {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
+  }
+
+  #trust-transparency > div > div:nth-child(2) > div {
+    padding: 25px !important;
+  }
+
+  #trust-transparency > div > div:nth-child(2) > div h3 {
+    font-size: 22px !important;
+  }
+
+  #trust-transparency > div > div:nth-child(2) > div > div:not(h3) {
+    font-size: 15px !important;
+  }
+
+  #trust-transparency > div > div:last-child {
+    padding: 25px 30px !important;
+  }
+
+  #trust-transparency > div > div:last-child p {
+    font-size: 16px !important;
+    margin-bottom: 15px !important;
+  }
+
+  #trust-transparency > div > div:last-child > div {
+    gap: 25px !important;
+  }
+
+  #trust-transparency > div > div:last-child > div > div > div:first-child {
+    font-size: 28px !important;
+  }
+
+  /* Secret Sauce Section */
+  .secret-features {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .feature-card {
+    padding: 25px;
+  }
+
+  .feature-emoji {
+    font-size: 45px;
+  }
+
+  .feature-card h3 {
+    font-size: 20px;
+  }
+
+  .feature-card p {
+    font-size: 15px;
+  }
+
+  .secret-title {
+    font-size: 32px;
+  }
+
+  .rainbow-text {
+    font-size: 36px;
+  }
+
+  /* Process Timeline */
+  .timeline-path {
+    padding: 0 20px;
+  }
+
+  .timeline-step {
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .step-bubble {
+    width: 70px;
+    height: 70px;
+  }
+
+  .step-number {
+    font-size: 32px;
+  }
+
+  .step-content h3 {
+    font-size: 22px;
+  }
+
+  .step-content p {
+    font-size: 15px;
+  }
+
+  .timeline-connector {
+    display: none;
+  }
+
+  /* Final CTA */
+  .final-buttons {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .btn-dream-primary,
+  .btn-dream-secondary {
+    width: 100%;
+    max-width: 300px;
+    padding: 16px 40px !important;
+    font-size: 16px !important;
+  }
+
+  .final-title .handwritten-massive {
+    font-size: 40px !important;
+  }
+
+  .final-title .handwritten-massive.highlight {
+    font-size: 46px !important;
+  }
+
+  .final-text {
+    font-size: 16px;
+  }
+
+  .final-social {
+    gap: 15px;
+  }
+
+  .social-bubble {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+
+  .signature {
+    font-size: 16px;
+  }
+
+  .signature-name {
+    font-size: 26px;
+  }
+
+  /* Dark sections */
+  .dark-section {
+    padding: 60px 20px;
+  }
 
   .powers-container {
     grid-template-columns: 1fr;
     gap: 30px;
   }
 
-  .power-card { padding: 30px; }
+  .power-card {
+    padding: 30px;
+  }
 
   .power-icon-circle {
     width: 100px;
@@ -1816,20 +2164,50 @@ body::before {
     height: 70px;
   }
 
-  .power-title { font-size: 26px; }
-  .power-description { font-size: 15px; }
+  .power-title {
+    font-size: 24px;
+  }
 
-  .symbol { font-size: 12px; padding: 6px 12px; }
+  .power-description {
+    font-size: 15px;
+  }
 
-  .stat-item strong { font-size: 26px; }
-  .stat-item span { font-size: 12px; }
+  .symbol {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .stat-item strong {
+    font-size: 24px;
+  }
+
+  .stat-item span {
+    font-size: 11px;
+  }
 
   .powers-conclusion {
-    padding: 30px;
+    padding: 25px;
     margin-top: 40px;
   }
 
-  .conclusion-icon { font-size: 50px; }
-  .powers-conclusion h3 { font-size: 28px; }
-  .powers-conclusion p { font-size: 16px; }
+  .conclusion-icon {
+    font-size: 45px;
+  }
+
+  .powers-conclusion h3 {
+    font-size: 26px;
+  }
+
+  .powers-conclusion p {
+    font-size: 15px;
+  }
+
+  /* Floating elements - reduce on mobile */
+  .floating-symbol {
+    opacity: 0.08 !important;
+  }
+
+  .dream-cloud {
+    opacity: 0.4 !important;
+  }
 }

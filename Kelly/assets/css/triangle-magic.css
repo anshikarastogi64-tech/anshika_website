@@ -486,7 +486,7 @@
 @media (max-width: 768px) {
   .triangle-container {
     height: auto;
-    min-height: 800px;
+    min-height: auto;
     padding: 20px;
   }
 
@@ -497,11 +497,26 @@
     right: auto !important;
     bottom: auto !important;
     transform: none !important;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
   }
 
   .power-compact {
     min-width: 100%;
+    padding: 20px;
+  }
+
+  .power-compact h3 {
+    font-size: 22px !important;
+  }
+
+  .power-tagline {
+    font-size: 13px !important;
+  }
+
+  .power-icon-svg {
+    width: 50px !important;
+    height: 50px !important;
+    margin-bottom: 12px !important;
   }
 
   .power-details {
@@ -512,25 +527,89 @@
     transform: none !important;
     width: 100%;
     margin-top: 15px;
-  }
-
-  .power-point .power-details {
     max-height: 600px;
     opacity: 1;
+  }
+
+  .detail-header {
+    padding: 20px;
+  }
+
+  .detail-header h4 {
+    font-size: 20px !important;
+  }
+
+  .detail-badge {
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+  }
+
+  .detail-content {
+    padding: 15px 20px;
+  }
+
+  .detail-row {
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .detail-icon {
+    font-size: 24px !important;
+    width: 35px !important;
+  }
+
+  .detail-row strong {
+    font-size: 15px !important;
+  }
+
+  .detail-row p {
+    font-size: 13px !important;
   }
 
   .magic-triangle-svg {
     display: none;
   }
 
+  .triangle-center-clickable {
+    position: relative !important;
+    transform: none !important;
+    width: 80px !important;
+    height: 80px !important;
+    margin: 20px auto;
+    display: flex !important;
+  }
+
+  .triangle-center-clickable::after {
+    font-size: 38px !important;
+  }
+
   .triangle-center-label {
-    position: relative;
-    transform: none;
-    margin: 30px 0;
+    position: relative !important;
+    transform: none !important;
+    opacity: 1 !important;
+    margin: 20px 0;
     pointer-events: all;
+    display: block !important;
+  }
+
+  .center-label-content {
+    padding: 20px 25px;
+  }
+
+  .center-label-content h4 {
+    font-size: 22px !important;
+  }
+
+  .center-label-content p {
+    font-size: 14px !important;
   }
 
   .floating-symbol {
-    font-size: 30px;
+    font-size: 25px;
+    opacity: 0.08 !important;
+  }
+
+  .triangle-bg-elements {
+    display: none;
   }
 }
