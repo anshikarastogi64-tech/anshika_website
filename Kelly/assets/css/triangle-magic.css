@@ -949,13 +949,17 @@
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.5) !important;
   }
 
-  /* Disable desktop hover completely on mobile */
-  .power-point:hover .power-details {
-    display: block !important;
-    bottom: -100% !important;
+  /* Explicitly block hover on mobile when NOT expanded */
+  .power-point:not(.expanded):hover .power-details,
+  .point-top:not(.expanded):hover .power-details,
+  .point-left:not(.expanded):hover .power-details,
+  .point-right:not(.expanded):hover .power-details {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
-  .power-point:hover .power-compact {
+  .power-point:not(.expanded):hover .power-compact {
     transform: none !important;
     background: rgba(0, 0, 0, 0.95) !important;
     border-color: #D4AF37 !important;
