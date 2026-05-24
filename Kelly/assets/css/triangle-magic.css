@@ -491,202 +491,164 @@
   display: inline;
 }
 
-/* Mobile Responsive - Magical Triangle Redesign */
+/* ============================================
+   MOBILE TRIANGLE - SIMPLIFIED NO ANIMATIONS
+   ============================================ */
 @media (max-width: 768px) {
-  .mobile-only {
-    display: inline !important;
-  }
 
-  .desktop-only {
-    display: none !important;
-  }
+  /* Text visibility */
+  .mobile-only { display: inline !important; }
+  .desktop-only { display: none !important; }
 
-  /* Triangle section - completely redesigned for mobile */
+  /* Section */
   #magic-triangle {
-    padding: 40px 0 60px 0 !important;
+    padding: 40px 0 50px 0 !important;
     overflow: hidden !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
   #magic-triangle .section-title-center {
-    font-size: 28px !important;
+    font-size: 26px !important;
     padding: 0 20px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
   }
 
   #magic-triangle .section-subtitle-center {
-    font-size: 14px !important;
+    font-size: 13px !important;
     padding: 0 20px !important;
-    margin-bottom: 40px !important;
+    margin-bottom: 30px !important;
   }
 
+  /* Container - Fixed size */
   .triangle-container {
     position: relative !important;
     width: 100% !important;
-    height: 480px !important;
-    max-width: 380px !important;
+    height: 450px !important;
+    max-width: 360px !important;
     margin: 0 auto !important;
-    padding: 0 20px !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
   }
 
-  /* Smaller, centered triangle */
+  /* Triangle SVG - NO ANIMATIONS */
   .magic-triangle-svg {
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 280px !important;
-    height: 280px !important;
+    width: 260px !important;
+    height: 260px !important;
     z-index: 1 !important;
     pointer-events: none !important;
   }
 
-  /* Hide decorative elements on mobile */
-  .triangle-bg-elements {
-    display: none;
+  /* Disable triangle animations on mobile */
+  .magic-triangle-svg * {
+    animation: none !important;
   }
 
-  .floating-symbol {
-    display: none;
-  }
-
-  /* Center globe - smaller and subtle */
-  .triangle-center-clickable {
-    display: flex !important;
-    width: 50px;
-    height: 50px;
-    z-index: 5;
-  }
-
-  .triangle-center-clickable::before {
-    display: none;
-  }
-
-  .triangle-center-clickable::after {
-    font-size: 24px;
-  }
-
-  /* Center label - hidden on mobile to reduce clutter */
+  /* Hide ALL decorative elements */
+  .triangle-bg-elements,
+  .floating-symbol,
+  .triangle-center-clickable,
   .triangle-center-label {
     display: none !important;
   }
 
-  /* Power points - precisely positioned at triangle corners */
+  /* ========================================
+     POWER CARDS - POSITIONED AT VERTICES
+     ======================================== */
+
   .power-point {
     position: absolute !important;
     z-index: 10 !important;
   }
 
-  /* TOP vertex - centered at top of triangle */
+  /* Precise vertex positioning */
   .point-top {
-    top: 10px !important;
+    top: 8px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
   }
 
-  /* BOTTOM LEFT vertex - much closer */
   .point-left {
-    bottom: 5px !important;
-    left: 25px !important;
+    bottom: 8px !important;
+    left: 30px !important;
     transform: none !important;
   }
 
-  /* BOTTOM RIGHT vertex - much closer */
   .point-right {
-    bottom: 5px !important;
-    right: 25px !important;
+    bottom: 8px !important;
+    right: 30px !important;
     transform: none !important;
   }
 
-  /* FORCE SHOW: Compact, clean power cards */
+  /* Compact cards - NO ANIMATIONS */
   .power-point .power-compact {
     display: flex !important;
-    width: 90px !important;
-    min-width: 90px !important;
-    max-width: 90px !important;
+    width: 85px !important;
+    min-width: 85px !important;
+    max-width: 85px !important;
     height: auto !important;
-    padding: 10px 8px !important;
-    background: rgba(0, 0, 0, 0.92) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 2.5px solid #D4AF37 !important;
-    border-radius: 18px !important;
+    padding: 8px 6px !important;
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 2px solid #D4AF37 !important;
+    border-radius: 16px !important;
     cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: transform 0.2s ease !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 5px !important;
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.8),
-      0 0 20px rgba(212, 175, 55, 0.5),
-      inset 0 1px 2px rgba(255, 215, 0, 0.2) !important;
-    animation: subtlePulse 4s ease-in-out infinite !important;
+    gap: 4px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(212, 175, 55, 0.4) !important;
+    animation: none !important;
     position: relative !important;
-    overflow: visible !important;
   }
 
   .power-compact:active {
-    transform: scale(0.92) !important;
+    transform: scale(0.95) !important;
   }
 
-  /* Stagger animation */
-  .point-top .power-compact { animation-delay: 0s !important; }
-  .point-left .power-compact { animation-delay: 1.3s !important; }
-  .point-right .power-compact { animation-delay: 2.6s !important; }
-
-  @keyframes subtlePulse {
-    0%, 100% {
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.8),
-        0 0 20px rgba(212, 175, 55, 0.5),
-        inset 0 1px 2px rgba(255, 215, 0, 0.2);
-    }
-    50% {
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.8),
-        0 0 35px rgba(212, 175, 55, 0.8),
-        inset 0 1px 2px rgba(255, 215, 0, 0.3);
-    }
-  }
-
-  /* Icon */
+  /* Icon - smaller */
   .power-icon-svg {
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
-    filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.6)) !important;
+    filter: none !important;
   }
 
   .power-icon-svg svg {
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
-  /* Text */
+  /* Text - cleaner */
   .power-compact h3 {
-    font-size: 12px !important;
+    font-size: 11px !important;
     margin: 0 !important;
     line-height: 1.2 !important;
     color: #FFD700 !important;
     font-weight: 700 !important;
     text-align: center !important;
-    text-shadow: 0 2px 8px rgba(212, 175, 55, 0.6) !important;
+    text-shadow: none !important;
   }
 
   .power-tagline {
-    font-size: 9px !important;
+    font-size: 8.5px !important;
     margin: 0 !important;
-    color: rgba(255, 255, 255, 0.75) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
     text-align: center !important;
-    line-height: 1.2 !important;
-    font-weight: 500 !important;
+    line-height: 1.1 !important;
+    font-weight: 400 !important;
   }
 
-  /* FORCE HIDE: Desktop detail cards on mobile (hidden by default) */
+  /* ========================================
+     MODAL - CLEAN & FAST
+     ======================================== */
+
+  /* Hidden by default */
   .power-point .power-details {
     display: none !important;
     visibility: hidden !important;
@@ -695,23 +657,20 @@
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: calc(100vw - 60px) !important;
+    width: calc(100vw - 50px) !important;
     max-width: 320px !important;
-    max-height: 68vh !important;
-    background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%) !important;
+    max-height: 65vh !important;
+    background: #16213e !important;
     border: 3px solid #FFD700 !important;
-    border-radius: 24px !important;
-    box-shadow:
-      0 25px 80px rgba(0, 0, 0, 0.95),
-      0 0 80px rgba(255, 215, 0, 0.6),
-      inset 0 0 60px rgba(255, 215, 0, 0.1) !important;
-    z-index: 1000000 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 1), 0 0 60px rgba(255, 215, 0, 0.5) !important;
+    z-index: 999999 !important;
     pointer-events: none !important;
-    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    transition: none !important;
     overflow: hidden !important;
   }
 
-  /* Show modal ONLY when expanded */
+  /* Show when tapped */
   .power-point.expanded .power-details {
     display: block !important;
     visibility: visible !important;
@@ -719,73 +678,64 @@
     pointer-events: auto !important;
   }
 
-  /* Dark backdrop - BEHIND modal */
+  /* Backdrop - simple, no blur on mobile for performance */
   .power-point.expanded::before {
     content: '' !important;
     position: fixed !important;
-    inset: 0 !important;
-    background: rgba(0, 0, 0, 0.96) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.95) !important;
     z-index: 999998 !important;
-    animation: backdropFade 0.3s ease !important;
+    animation: none !important;
   }
 
-  @keyframes backdropFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  /* Header */
+  /* Modal header */
   .power-point .detail-header {
-    padding: 18px 16px !important;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.18) 0%, rgba(255, 215, 0, 0.06) 100%) !important;
-    border-radius: 24px 24px 0 0 !important;
+    padding: 16px 14px !important;
+    background: rgba(255, 215, 0, 0.1) !important;
+    border-radius: 20px 20px 0 0 !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    border-bottom: 2px solid rgba(255, 215, 0, 0.4) !important;
-    flex-shrink: 0 !important;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3) !important;
   }
 
   .power-point .detail-header h4 {
-    font-size: 17px !important;
+    font-size: 16px !important;
     margin: 0 !important;
-    padding-right: 8px !important;
+    padding-right: 6px !important;
     color: #FFD700 !important;
     font-weight: 700 !important;
-    text-shadow: 0 3px 15px rgba(255, 215, 0, 0.8) !important;
-    letter-spacing: 0.3px !important;
+    letter-spacing: 0.2px !important;
     line-height: 1.3 !important;
     word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
   }
 
   .power-point .detail-badge {
-    font-size: 10px !important;
-    padding: 5px 10px !important;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
-    border-radius: 20px !important;
+    font-size: 9px !important;
+    padding: 4px 8px !important;
+    background: #FFD700 !important;
+    border-radius: 12px !important;
     color: #000 !important;
     font-weight: 800 !important;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5) !important;
     white-space: nowrap !important;
-    flex-shrink: 0 !important;
   }
 
-  /* Content */
+  /* Modal content */
   .power-point .detail-content {
-    padding: 18px 16px 20px 16px !important;
-    max-height: calc(68vh - 80px) !important;
+    padding: 16px 14px 18px 14px !important;
+    max-height: calc(65vh - 70px) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    flex: 1 !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .power-point .detail-row {
     display: flex !important;
-    gap: 10px !important;
-    margin-bottom: 14px !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
     align-items: flex-start !important;
   }
 
@@ -794,8 +744,8 @@
   }
 
   .power-point .detail-icon {
-    font-size: 22px !important;
-    width: 28px !important;
+    font-size: 20px !important;
+    width: 26px !important;
     text-align: center !important;
     flex-shrink: 0 !important;
     line-height: 1 !important;
@@ -808,58 +758,53 @@
 
   .power-point .detail-row strong {
     display: block !important;
-    font-size: 13px !important;
-    margin-bottom: 4px !important;
+    font-size: 12px !important;
+    margin-bottom: 3px !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     line-height: 1.3 !important;
     word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
   }
 
   .power-point .detail-row p {
-    font-size: 11.5px !important;
+    font-size: 11px !important;
     line-height: 1.5 !important;
     margin: 0 !important;
     color: rgba(255, 255, 255, 0.85) !important;
     word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    hyphens: auto !important;
   }
 
-  /* Close button */
+  /* Close button - Large and clear */
   .power-point.expanded .power-details::after {
     content: '×' !important;
     position: absolute !important;
-    top: 16px !important;
-    right: 16px !important;
-    width: 38px !important;
-    height: 38px !important;
+    top: 14px !important;
+    right: 14px !important;
+    width: 36px !important;
+    height: 36px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: rgba(255, 215, 0, 0.2) !important;
-    border: 2.5px solid rgba(255, 215, 0, 0.8) !important;
+    background: rgba(255, 215, 0, 0.25) !important;
+    border: 2px solid #FFD700 !important;
     border-radius: 50% !important;
     color: #FFD700 !important;
-    font-size: 28px !important;
-    font-weight: 300 !important;
+    font-size: 26px !important;
+    font-weight: 400 !important;
     line-height: 1 !important;
     cursor: pointer !important;
     z-index: 10 !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6) !important;
-    transition: all 0.2s ease !important;
+    transition: none !important;
   }
 
   .power-point.expanded .power-details::after:active {
-    transform: scale(0.88) !important;
-    background: rgba(255, 215, 0, 0.35) !important;
+    transform: scale(0.9) !important;
+    background: rgba(255, 215, 0, 0.4) !important;
   }
 
-  /* Override desktop hover behavior on mobile */
+  /* Disable desktop hover */
   .power-point:hover .power-details {
     display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
   }
+
 }
