@@ -475,14 +475,14 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 10000 !important;
-        width: 85vw !important;
-        max-width: 320px !important;
-        max-height: 70vh !important;
+        width: 80vw !important;
+        max-width: 300px !important;
+        max-height: 65vh !important;
         border-radius: 12px !important;
-        border: 2px solid rgba(212, 175, 55, 0.6) !important;
+        border: 1.5px solid rgba(212, 175, 55, 0.6) !important;
         overflow-x: hidden !important;
         overflow-y: auto !important;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9) !important;
         background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
         display: none !important;
         opacity: 0 !important;
@@ -557,19 +557,43 @@
               // Reduce padding on header and content for smaller screens
               const header = clonedDetails.querySelector('.detail-header');
               if (header) {
-                header.style.padding = '15px !important';
+                header.style.cssText = `
+                  padding: 12px !important;
+                  font-size: 14px !important;
+                `;
+              }
+
+              const headerH4 = clonedDetails.querySelector('.detail-header h4');
+              if (headerH4) {
+                headerH4.style.fontSize = '17px !important';
               }
 
               const content = clonedDetails.querySelector('.detail-content');
               if (content) {
-                content.style.padding = '15px !important';
+                content.style.cssText = `
+                  padding: 12px !important;
+                  font-size: 12px !important;
+                `;
               }
 
               // Make rows more compact
               const rows = clonedDetails.querySelectorAll('.detail-row');
               rows.forEach(row => {
-                row.style.padding = '10px !important';
-                row.style.fontSize = '13px !important';
+                row.style.cssText = `
+                  padding: 8px !important;
+                  margin-bottom: 10px !important;
+                  font-size: 12px !important;
+                `;
+
+                const strong = row.querySelector('strong');
+                if (strong) {
+                  strong.style.fontSize = '13px !important';
+                }
+
+                const p = row.querySelector('p');
+                if (p) {
+                  p.style.fontSize = '12px !important';
+                }
               });
 
               // Create close button
