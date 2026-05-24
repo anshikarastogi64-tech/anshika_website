@@ -271,7 +271,32 @@
 
   .point-left:hover .power-details,
   .point-right:hover .power-details {
-    transform: translateX(-50%) translateY(0);
+    max-height: 600px !important;
+    opacity: 1 !important;
+    transform: translateX(-50%) translateY(0) !important;
+    pointer-events: auto !important;
+    z-index: 200 !important;
+  }
+
+  .point-left:hover,
+  .point-right:hover {
+    z-index: 150 !important;
+  }
+
+  .point-left:hover .power-compact,
+  .point-right:hover .power-compact {
+    z-index: 200 !important;
+  }
+
+  /* Ensure bottom cards are hoverable */
+  .point-left,
+  .point-right {
+    pointer-events: auto !important;
+  }
+
+  .point-left .power-compact,
+  .point-right .power-compact {
+    pointer-events: auto !important;
   }
 
   /* Hover effect on cards */
@@ -1019,21 +1044,6 @@
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.5) !important;
   }
 
-  /* Explicitly block hover on mobile when NOT expanded */
-  .power-point:not(.expanded):hover .power-details,
-  .point-top:not(.expanded):hover .power-details,
-  .point-left:not(.expanded):hover .power-details,
-  .point-right:not(.expanded):hover .power-details {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-
-  .power-point:not(.expanded):hover .power-compact {
-    transform: none !important;
-    background: rgba(0, 0, 0, 0.95) !important;
-    border-color: #D4AF37 !important;
-  }
 }
 
 /* CRITICAL FIX - Force top line visible on ALL screen sizes */
@@ -1052,6 +1062,7 @@ svg line.line-top {
   .magic-triangle-svg {
     z-index: 100 !important;
     position: absolute !important;
+    pointer-events: none !important;
   }
 
   /* Top line with ID - force inline for desktop */
@@ -1067,11 +1078,27 @@ svg line.line-top {
   }
 }
 
-/* Mobile - top line visible */
+/* Mobile - top line visible and block hover */
 @media (max-width: 768px) {
   #top-center-line {
     display: inline !important;
     visibility: visible !important;
     opacity: 0.9 !important;
+  }
+
+  /* Explicitly block hover on mobile when NOT expanded */
+  .power-point:not(.expanded):hover .power-details,
+  .point-top:not(.expanded):hover .power-details,
+  .point-left:not(.expanded):hover .power-details,
+  .point-right:not(.expanded):hover .power-details {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .power-point:not(.expanded):hover .power-compact {
+    transform: none !important;
+    background: rgba(0, 0, 0, 0.95) !important;
+    border-color: #D4AF37 !important;
   }
 }
