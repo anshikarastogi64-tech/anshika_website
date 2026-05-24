@@ -651,6 +651,10 @@
     opacity: 1 !important;
     width: 85px !important;
     height: 85px !important;
+    min-width: unset !important;
+    max-width: 85px !important;
+    min-height: unset !important;
+    max-height: 85px !important;
     padding: 8px 6px !important;
     background: rgba(0, 0, 0, 0.95) !important;
     border: 2px solid #D4AF37 !important;
