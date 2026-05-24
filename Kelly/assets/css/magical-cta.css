@@ -1,0 +1,214 @@
+/* Magical CTA Button */
+.magical-cta-btn {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px 50px !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%) !important;
+  background-size: 200% 200%;
+  border: none !important;
+  border-radius: 50px !important;
+  color: #000 !important;
+  cursor: pointer !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-shadow:
+    0 10px 40px rgba(255, 215, 0, 0.5),
+    0 0 20px rgba(255, 215, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  animation: gradientShift 3s ease infinite, floatButton 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+  text-decoration: none !important;
+  z-index: 10 !important;
+}
+
+.magical-cta-btn:hover {
+  transform: scale(1.08) translateY(-5px);
+  box-shadow:
+    0 15px 60px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 165, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  color: #000 !important;
+}
+
+.magical-cta-btn:active {
+  transform: scale(1.02) translateY(-2px);
+}
+
+.btn-text {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  animation: textPulse 2s ease-in-out infinite;
+}
+
+/* Background glow effect */
+.btn-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 70%);
+  animation: rotateGlow 4s linear infinite;
+  pointer-events: none;
+}
+
+/* Shine effect on hover */
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.magical-cta-btn:hover .btn-shine {
+  left: 100%;
+}
+
+/* Animations */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes floatButton {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes rotateGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Magical particles around button */
+.magical-cta-btn::before {
+  content: '✨';
+  position: absolute;
+  top: -20px;
+  left: 10%;
+  font-size: 20px;
+  animation: particleFloat1 3s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+.magical-cta-btn::after {
+  content: '⭐';
+  position: absolute;
+  bottom: -20px;
+  right: 10%;
+  font-size: 18px;
+  animation: particleFloat2 3s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+@keyframes particleFloat1 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(180deg);
+  }
+}
+
+@keyframes particleFloat2 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(15px) rotate(-180deg);
+  }
+}
+
+/* Secondary button enhancement */
+.btn-dream-secondary {
+  position: relative;
+  padding: 16px 40px !important;
+  font-size: 16px !important;
+  border: 2px solid rgba(212, 175, 55, 0.6) !important;
+  background: transparent !important;
+  color: #D4AF37 !important;
+  transition: all 0.3s ease;
+}
+
+.btn-dream-secondary:hover {
+  background: rgba(212, 175, 55, 0.1) !important;
+  border-color: #FFD700 !important;
+  color: #FFD700 !important;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(212, 175, 55, 0.3);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .magical-cta-btn {
+    padding: 18px 35px !important;
+    font-size: 16px !important;
+    letter-spacing: 1px;
+  }
+
+  .btn-dream-secondary {
+    padding: 14px 30px !important;
+    font-size: 14px !important;
+  }
+
+  .magical-cta-btn::before,
+  .magical-cta-btn::after {
+    font-size: 16px;
+  }
+}
+
+/* Extra excitement on first view */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.final-buttons {
+  animation: bounceIn 1s ease-out 0.5s backwards;
+}

@@ -1,0 +1,365 @@
+/* Dream Contact Form Modal */
+.dream-form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.dream-form-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dream-form-container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  border-radius: 30px;
+  padding: 50px 40px;
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  transform: scale(0.8) translateY(50px);
+  transition: transform 0.4s ease;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(212, 175, 55, 0.3);
+}
+
+.dream-form-modal.active .dream-form-container {
+  transform: scale(1) translateY(0);
+}
+
+/* Close button */
+.form-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(212, 175, 55, 0.2);
+  border: 2px solid #D4AF37;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 24px;
+  color: #FFD700;
+  z-index: 10;
+}
+
+.form-close-btn:hover {
+  background: rgba(212, 175, 55, 0.4);
+  transform: rotate(90deg);
+}
+
+/* Form header */
+.form-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.form-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  animation: shimmerText 3s ease-in-out infinite;
+}
+
+.form-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+@keyframes shimmerText {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Form fields */
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  color: #FFD700;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.form-group label .required {
+  color: #ff6b6b;
+  margin-left: 3px;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: 15px;
+  color: #fff;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #FFD700;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-select option {
+  background: #16213e;
+  color: #fff;
+}
+
+/* Submit button */
+.form-submit-btn {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: none;
+  border-radius: 15px;
+  color: #000;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-submit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+}
+
+.form-submit-btn:active {
+  transform: translateY(-1px);
+}
+
+.form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-submit-btn .btn-text {
+  position: relative;
+  z-index: 2;
+}
+
+.form-submit-btn .btn-loader {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0, 0, 0, 0.3);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.form-submit-btn.loading .btn-text {
+  opacity: 0;
+}
+
+.form-submit-btn.loading .btn-loader {
+  display: block;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Success message */
+.form-success {
+  display: none;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.form-success.active {
+  display: block;
+}
+
+.success-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: successPop 0.5s ease-out;
+}
+
+@keyframes successPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: #FFD700;
+  margin-bottom: 15px;
+}
+
+.success-message {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.success-close-btn {
+  padding: 15px 40px;
+  background: transparent;
+  border: 2px solid #FFD700;
+  border-radius: 50px;
+  color: #FFD700;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.success-close-btn:hover {
+  background: rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .dream-form-container {
+    padding: 40px 25px;
+    margin: 20px;
+  }
+
+  .form-title {
+    font-size: 28px;
+  }
+
+  .form-subtitle {
+    font-size: 14px;
+  }
+
+  .form-input,
+  .form-textarea,
+  .form-select {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+
+  .form-submit-btn {
+    padding: 15px;
+    font-size: 16px;
+  }
+
+  .success-icon {
+    font-size: 60px;
+  }
+
+  .success-title {
+    font-size: 24px;
+  }
+
+  .success-message {
+    font-size: 14px;
+  }
+}
+
+/* Floating particles in modal */
+.modal-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 30px;
+}
+
+.modal-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: rgba(255, 215, 0, 0.5);
+  border-radius: 50%;
+  animation: floatModalParticle 5s linear infinite;
+}
+
+.modal-particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.modal-particle:nth-child(2) { left: 30%; animation-delay: 1s; }
+.modal-particle:nth-child(3) { left: 50%; animation-delay: 2s; }
+.modal-particle:nth-child(4) { left: 70%; animation-delay: 1.5s; }
+.modal-particle:nth-child(5) { left: 90%; animation-delay: 0.5s; }
+
+@keyframes floatModalParticle {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}

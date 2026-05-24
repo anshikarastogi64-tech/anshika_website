@@ -12,9 +12,22 @@
   let brushTrail = [];
 
   /**
+   * Hide Magical Loader
+   */
+  function hideLoader() {
+    const loader = document.getElementById('magicalLoader');
+    if (loader) {
+      setTimeout(() => {
+        loader.classList.add('hidden');
+      }, 3000); // Hide after 3 seconds
+    }
+  }
+
+  /**
    * Initialize all animations
    */
   function init() {
+    hideLoader();
     initPaintbrushCursor();
     initCreativeMenu();
     initOpeningScene();

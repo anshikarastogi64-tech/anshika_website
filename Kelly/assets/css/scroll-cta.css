@@ -1,0 +1,183 @@
+/* Enhanced Scroll Call-to-Action */
+.scroll-cta-container {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 100;
+  animation: fadeInUp 1.5s ease-out 2s backwards;
+}
+
+.scroll-cta-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 15px;
+  text-shadow:
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 165, 0, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 20px rgba(255, 215, 0, 0.8),
+      0 0 40px rgba(255, 165, 0, 0.6),
+      0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    text-shadow:
+      0 0 30px rgba(255, 215, 0, 1),
+      0 0 60px rgba(255, 165, 0, 0.8),
+      0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Enhanced scroll bubble */
+.scroll-dream {
+  margin: 0 auto 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scroll-dream:hover {
+  transform: scale(1.1);
+}
+
+.scroll-dream span {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #FFFFFF;
+  text-shadow:
+    0 0 15px rgba(255, 215, 0, 0.8),
+    0 0 30px rgba(255, 165, 0, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Bouncing arrow */
+.scroll-arrow {
+  font-size: 32px;
+  color: #FFFFFF;
+  animation: bounceArrow 2s ease-in-out infinite;
+  text-shadow:
+    0 0 20px rgba(255, 215, 0, 0.9),
+    0 0 40px rgba(255, 165, 0, 0.7),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+}
+
+@keyframes bounceArrow {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(15px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Make entire scroll CTA clickable and smooth scroll */
+.scroll-cta-container {
+  cursor: pointer;
+}
+
+/* Add shine effect on hover */
+.scroll-cta-container::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.scroll-cta-container:hover::before {
+  opacity: 1;
+  animation: expandShine 1s ease-out;
+}
+
+@keyframes expandShine {
+  0% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+
+/* Floating hint text */
+.scroll-cta-container::after {
+  content: '300+ Dream Homes Await Below 👇';
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  text-shadow:
+    0 0 15px rgba(255, 215, 0, 0.8),
+    0 0 30px rgba(255, 165, 0, 0.6),
+    0 2px 3px rgba(0, 0, 0, 0.6);
+  animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .scroll-cta-container {
+    bottom: 30px;
+  }
+
+  .scroll-cta-text {
+    font-size: 20px;
+  }
+
+  .scroll-arrow {
+    font-size: 28px;
+  }
+
+  .scroll-cta-container::after {
+    font-size: 14px;
+    bottom: -35px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .scroll-cta-text {
+    font-size: 22px;
+  }
+}

@@ -21,6 +21,10 @@
 
   <link href="assets/css/dreams.css?v=31" rel="stylesheet">
   <link href="assets/css/triangle-magic.css?v=57" rel="stylesheet">
+  <link href="assets/css/loader.css" rel="stylesheet">
+  <link href="assets/css/magical-cta.css?v=1" rel="stylesheet">
+  <link href="assets/css/dream-form.css" rel="stylesheet">
+  <link href="assets/css/scroll-cta.css?v=3" rel="stylesheet">
 
   <style>
     /* Force uniform sizing for credentials and tags */
@@ -70,6 +74,39 @@
 </head>
 
 <body>
+
+  <!-- Magical Loader -->
+  <div class="magical-loader" id="magicalLoader">
+    <div class="loader-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <div class="loader-content">
+      <div class="symbol-circle">
+        <div class="center-glow"></div>
+        <div class="interior-symbol">🏛️</div>
+        <div class="interior-symbol">🪴</div>
+        <div class="interior-symbol">✨</div>
+        <div class="interior-symbol">🎨</div>
+      </div>
+
+      <h1 class="loader-name">ANSHIKA</h1>
+      <p class="loader-tagline">CRAFTING DREAMS INTO REALITY</p>
+
+      <div class="loading-bar-container">
+        <div class="loading-bar"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Paintbrush Cursor -->
   <canvas id="brush-canvas"></canvas>
@@ -174,9 +211,14 @@
       </h1>
       <div class="subtitle-handwritten">— Anshika Rastogi</div>
 
-      <div class="scroll-dream" style="box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);">
-        <div class="dream-bubble"></div>
-        <span>Begin the journey</span>
+      <!-- Scroll CTA with bounce animation -->
+      <div class="scroll-cta-container">
+        <p class="scroll-cta-text">Discover the Magic ✨</p>
+        <div class="scroll-dream" style="box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);">
+          <div class="dream-bubble"></div>
+          <span>Scroll to Explore</span>
+        </div>
+        <div class="scroll-arrow">↓</div>
       </div>
     </div>
 
@@ -1100,13 +1142,14 @@
       </p>
 
       <div class="final-buttons">
-        <a href="/contact" class="btn-dream-primary">
-          <span>Start My Journey</span>
-          <div class="btn-sparkles">✨</div>
+        <a href="/contact" class="btn-dream-primary magical-cta-btn">
+          <span class="btn-text">✨ YES! Let's Build My Dream Home ✨</span>
+          <div class="btn-glow"></div>
+          <div class="btn-shine"></div>
         </a>
 
         <a href="/portfolio" class="btn-dream-secondary">
-          <span>See Dream Homes</span>
+          <span>Explore Dream Transformations</span>
         </a>
       </div>
 
@@ -1132,7 +1175,82 @@
     </div>
   </section>
 
+  <!-- Dream Contact Form Modal -->
+  <div class="dream-form-modal" id="dreamFormModal">
+    <div class="dream-form-container">
+      <div class="modal-particles">
+        <div class="modal-particle"></div>
+        <div class="modal-particle"></div>
+        <div class="modal-particle"></div>
+        <div class="modal-particle"></div>
+        <div class="modal-particle"></div>
+      </div>
+
+      <button class="form-close-btn" id="formCloseBtn">×</button>
+
+      <div class="form-content" id="formContent">
+        <div class="form-header">
+          <h2 class="form-title">✨ Let's Build Your Dream ✨</h2>
+          <p class="form-subtitle">Share your vision, and I'll make it reality</p>
+        </div>
+
+        <form id="dreamContactForm">
+          <div class="form-group">
+            <label>Your Name <span class="required">*</span></label>
+            <input type="text" name="name" class="form-input" placeholder="Enter your full name" required>
+          </div>
+
+          <div class="form-group">
+            <label>Mobile Number <span class="required">*</span></label>
+            <input type="tel" name="mobile" class="form-input" placeholder="Enter your mobile number" required pattern="[0-9]{10}">
+          </div>
+
+          <div class="form-group">
+            <label>Email Address <span class="required">*</span></label>
+            <input type="email" name="email" class="form-input" placeholder="Enter your email" required>
+          </div>
+
+          <div class="form-group">
+            <label>Project Type <span class="required">*</span></label>
+            <select name="projectType" class="form-select" required>
+              <option value="">Select project type</option>
+              <option value="Home Interior">Home Interior - Complete Design</option>
+              <option value="Kitchen Design">Kitchen Design</option>
+              <option value="Bedroom Design">Bedroom Design</option>
+              <option value="Living Room">Living Room Design</option>
+              <option value="Office Interior">Office/Commercial Interior</option>
+              <option value="Vastu Consultation">Vastu Consultation</option>
+              <option value="Astro Alignment">Astro Alignment</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Your Dream Vision</label>
+            <textarea name="message" class="form-textarea" placeholder="Tell me about your dream space... What inspired you? What feeling do you want when you walk in?"></textarea>
+          </div>
+
+          <button type="submit" class="form-submit-btn">
+            <span class="btn-text">✨ Start My Dream Journey ✨</span>
+            <div class="btn-loader"></div>
+          </button>
+        </form>
+      </div>
+
+      <div class="form-success" id="formSuccess">
+        <div class="success-icon">🎉</div>
+        <h3 class="success-title">Your Dream Begins Now!</h3>
+        <p class="success-message">
+          Thank you for trusting me with your vision! I've received your details and will reach out within 24 hours.<br><br>
+          Check your WhatsApp for a special welcome message! 💫
+        </p>
+        <button class="success-close-btn" id="successCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="assets/js/dreams.js?v=47"></script>
+  <script src="assets/js/dream-form.js"></script>
 
 </body>
 
