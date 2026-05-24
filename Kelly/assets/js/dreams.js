@@ -459,13 +459,18 @@
       const powerPoints = document.querySelectorAll('.power-point');
       const triangleContainer = document.querySelector('.triangle-container');
 
+      console.log('[MOBILE TRIANGLE] Initializing mobile modals. Found power points:', powerPoints.length);
+
       // Create backdrop element
       let backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop-mobile';
       document.body.appendChild(backdrop);
 
+      console.log('[MOBILE TRIANGLE] Backdrop created and appended to body');
+
       // Function to close all modals
       function closeAllModals() {
+        console.log('[MOBILE TRIANGLE] Closing all modals');
         powerPoints.forEach(p => {
           p.classList.remove('expanded');
           // Remove close button if exists
@@ -477,25 +482,46 @@
       }
 
       // Power point tap to open modal
-      powerPoints.forEach(point => {
+      powerPoints.forEach((point, index) => {
         const compactCard = point.querySelector('.power-compact');
         const details = point.querySelector('.power-details');
+
+        console.log(`[MOBILE TRIANGLE] Setting up power point ${index}:`, {
+          hasCompact: !!compactCard,
+          hasDetails: !!details
+        });
 
         if (compactCard && details) {
           compactCard.addEventListener('click', function(e) {
             e.stopPropagation();
+            console.log(`[MOBILE TRIANGLE] Clicked power point ${index}`);
 
             // Check if already expanded
             const isExpanded = point.classList.contains('expanded');
+            console.log('[MOBILE TRIANGLE] Is expanded:', isExpanded);
 
             // Close all first
             closeAllModals();
 
             // If wasn't expanded, open this one
             if (!isExpanded) {
+              console.log('[MOBILE TRIANGLE] Opening modal...');
               point.classList.add('expanded');
               backdrop.classList.add('active');
               document.body.style.overflow = 'hidden';
+
+              // Log computed styles
+              const computedStyles = window.getComputedStyle(details);
+              console.log('[MOBILE TRIANGLE] Modal computed styles:', {
+                display: computedStyles.display,
+                visibility: computedStyles.visibility,
+                opacity: computedStyles.opacity,
+                background: computedStyles.background,
+                backgroundColor: computedStyles.backgroundColor,
+                zIndex: computedStyles.zIndex,
+                position: computedStyles.position,
+                transform: computedStyles.transform
+              });
 
               // Create close button
               const closeBtn = document.createElement('button');
@@ -504,9 +530,12 @@
               closeBtn.setAttribute('aria-label', 'Close modal');
               details.appendChild(closeBtn);
 
+              console.log('[MOBILE TRIANGLE] Close button created');
+
               // Close button click
               closeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                console.log('[MOBILE TRIANGLE] Close button clicked');
                 closeAllModals();
               });
             }
@@ -517,6 +546,7 @@
       // Backdrop click to close
       backdrop.addEventListener('click', function(e) {
         e.stopPropagation();
+        console.log('[MOBILE TRIANGLE] Backdrop clicked');
         closeAllModals();
       });
 
