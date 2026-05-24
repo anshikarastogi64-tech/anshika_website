@@ -532,6 +532,101 @@
                 transition: none !important;
               `;
 
+              // FORCE ALL CHILD ELEMENTS TO BE VISIBLE
+              const header = details.querySelector('.detail-header');
+              if (header) {
+                header.style.cssText = `
+                  display: flex !important;
+                  visibility: visible !important;
+                  opacity: 1 !important;
+                  padding: 20px !important;
+                  background: rgba(255, 215, 0, 0.15) !important;
+                  border-bottom: 2px solid rgba(212, 175, 55, 0.4) !important;
+                  border-radius: 20px 20px 0 0 !important;
+                  z-index: 1 !important;
+                `;
+
+                const h4 = header.querySelector('h4');
+                if (h4) {
+                  h4.style.cssText = `
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    color: #FFD700 !important;
+                    font-size: 20px !important;
+                    font-weight: 700 !important;
+                    margin: 0 !important;
+                  `;
+                }
+              }
+
+              const content = details.querySelector('.detail-content');
+              if (content) {
+                content.style.cssText = `
+                  display: block !important;
+                  visibility: visible !important;
+                  opacity: 1 !important;
+                  padding: 20px !important;
+                  max-height: calc(80vh - 140px) !important;
+                  overflow-y: auto !important;
+                  background: transparent !important;
+                  z-index: 1 !important;
+                `;
+
+                // Force all rows and their children to be visible
+                const rows = content.querySelectorAll('.detail-row');
+                rows.forEach(row => {
+                  row.style.cssText = `
+                    display: flex !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    gap: 12px !important;
+                    margin-bottom: 16px !important;
+                    background: rgba(255, 255, 255, 0.08) !important;
+                    padding: 14px !important;
+                    border-radius: 12px !important;
+                    border: 1px solid rgba(212, 175, 55, 0.2) !important;
+                  `;
+
+                  // Force icons, strong, and p elements visible
+                  const icon = row.querySelector('.detail-icon');
+                  if (icon) {
+                    icon.style.cssText = `
+                      display: block !important;
+                      visibility: visible !important;
+                      opacity: 1 !important;
+                      font-size: 26px !important;
+                    `;
+                  }
+
+                  const strong = row.querySelector('strong');
+                  if (strong) {
+                    strong.style.cssText = `
+                      display: block !important;
+                      visibility: visible !important;
+                      opacity: 1 !important;
+                      color: #FFD700 !important;
+                      font-size: 15px !important;
+                      font-weight: 700 !important;
+                    `;
+                  }
+
+                  const p = row.querySelector('p');
+                  if (p) {
+                    p.style.cssText = `
+                      display: block !important;
+                      visibility: visible !important;
+                      opacity: 1 !important;
+                      color: #FFFFFF !important;
+                      font-size: 13px !important;
+                      line-height: 1.6 !important;
+                    `;
+                  }
+                });
+              }
+
+              console.log('[MOBILE TRIANGLE] Forced inline styles on modal container + all children');
+
               // Log computed styles
               setTimeout(() => {
                 const computedStyles = window.getComputedStyle(details);
