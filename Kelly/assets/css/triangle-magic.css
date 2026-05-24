@@ -634,14 +634,14 @@
 
   .point-left {
     bottom: 15px !important;
-    left: 50% !important;
-    transform: translateX(-130%) !important;
+    left: 30% !important;
+    transform: translateX(-50%) !important;
   }
 
   .point-right {
     bottom: 15px !important;
-    left: 50% !important;
-    transform: translateX(30%) !important;
+    left: 70% !important;
+    transform: translateX(-50%) !important;
   }
 
   /* Compact card design - SQUARE for mobile */
