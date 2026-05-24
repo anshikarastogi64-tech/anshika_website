@@ -475,10 +475,10 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 10000 !important;
-        width: 80vw !important;
-        max-width: 300px !important;
+        width: 75vw !important;
+        max-width: 280px !important;
         max-height: 65vh !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         border: 1.5px solid rgba(212, 175, 55, 0.6) !important;
         overflow-x: hidden !important;
         overflow-y: auto !important;
@@ -561,8 +561,8 @@
               const header = clonedDetails.querySelector('.detail-header');
               if (header) {
                 header.style.cssText = `
-                  padding: 8px !important;
-                  font-size: 14px !important;
+                  padding: 6px 8px !important;
+                  font-size: 13px !important;
                   width: 100% !important;
                   max-width: 100% !important;
                   box-sizing: border-box !important;
@@ -573,16 +573,25 @@
               const headerH4 = clonedDetails.querySelector('.detail-header h4');
               if (headerH4) {
                 headerH4.style.cssText = `
-                  font-size: 16px !important;
+                  font-size: 15px !important;
                   padding-right: 40px !important;
+                  margin: 0 !important;
+                `;
+              }
+
+              const badge = clonedDetails.querySelector('.detail-badge');
+              if (badge) {
+                badge.style.cssText = `
+                  font-size: 9px !important;
+                  padding: 4px 8px !important;
                 `;
               }
 
               const content = clonedDetails.querySelector('.detail-content');
               if (content) {
                 content.style.cssText = `
-                  padding: 8px !important;
-                  font-size: 12px !important;
+                  padding: 6px 8px !important;
+                  font-size: 11px !important;
                   width: 100% !important;
                   max-width: 100% !important;
                   box-sizing: border-box !important;
@@ -594,31 +603,41 @@
               const rows = clonedDetails.querySelectorAll('.detail-row');
               rows.forEach(row => {
                 row.style.cssText = `
-                  padding: 6px !important;
-                  margin-bottom: 8px !important;
-                  font-size: 12px !important;
+                  padding: 5px !important;
+                  margin-bottom: 6px !important;
+                  font-size: 11px !important;
                   width: 100% !important;
                   max-width: 100% !important;
                   box-sizing: border-box !important;
                   overflow: hidden !important;
                   word-wrap: break-word !important;
-                  gap: 8px !important;
+                  gap: 6px !important;
                 `;
+
+                const icon = row.querySelector('.detail-icon');
+                if (icon) {
+                  icon.style.cssText = `
+                    font-size: 20px !important;
+                    width: 24px !important;
+                  `;
+                }
 
                 const strong = row.querySelector('strong');
                 if (strong) {
                   strong.style.cssText = `
-                    font-size: 13px !important;
+                    font-size: 12px !important;
                     word-wrap: break-word !important;
+                    margin-bottom: 2px !important;
                   `;
                 }
 
                 const p = row.querySelector('p');
                 if (p) {
                   p.style.cssText = `
-                    font-size: 12px !important;
+                    font-size: 11px !important;
                     word-wrap: break-word !important;
                     overflow-wrap: break-word !important;
+                    line-height: 1.4 !important;
                   `;
                 }
 
