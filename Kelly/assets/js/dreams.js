@@ -561,7 +561,7 @@
               const header = clonedDetails.querySelector('.detail-header');
               if (header) {
                 header.style.cssText = `
-                  padding: 12px !important;
+                  padding: 8px !important;
                   font-size: 14px !important;
                   width: 100% !important;
                   max-width: 100% !important;
@@ -572,13 +572,16 @@
 
               const headerH4 = clonedDetails.querySelector('.detail-header h4');
               if (headerH4) {
-                headerH4.style.fontSize = '17px !important';
+                headerH4.style.cssText = `
+                  font-size: 16px !important;
+                  padding-right: 40px !important;
+                `;
               }
 
               const content = clonedDetails.querySelector('.detail-content');
               if (content) {
                 content.style.cssText = `
-                  padding: 12px !important;
+                  padding: 8px !important;
                   font-size: 12px !important;
                   width: 100% !important;
                   max-width: 100% !important;
@@ -591,14 +594,15 @@
               const rows = clonedDetails.querySelectorAll('.detail-row');
               rows.forEach(row => {
                 row.style.cssText = `
-                  padding: 8px !important;
-                  margin-bottom: 10px !important;
+                  padding: 6px !important;
+                  margin-bottom: 8px !important;
                   font-size: 12px !important;
                   width: 100% !important;
                   max-width: 100% !important;
                   box-sizing: border-box !important;
                   overflow: hidden !important;
                   word-wrap: break-word !important;
+                  gap: 8px !important;
                 `;
 
                 const strong = row.querySelector('strong');
