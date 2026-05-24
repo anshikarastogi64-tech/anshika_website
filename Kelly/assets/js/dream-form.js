@@ -100,8 +100,13 @@
     submitBtn.disabled = true;
 
     try {
-      // Send to admin via your existing email system
-      await sendToAdmin(data);
+      // Try to send to admin via email (will fail on localhost without PHP)
+      try {
+        await sendToAdmin(data);
+      } catch (emailError) {
+        console.warn('Email sending failed (expected on localhost):', emailError);
+        // Continue anyway - WhatsApp will still work
+      }
 
       // Send WhatsApp message to customer
       sendWhatsAppToCustomer(data);
