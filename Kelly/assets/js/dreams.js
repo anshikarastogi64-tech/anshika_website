@@ -466,21 +466,42 @@
       backdrop.className = 'modal-backdrop-mobile';
       document.body.appendChild(backdrop);
 
-      console.log('[MOBILE TRIANGLE] Backdrop created and appended to body');
+      // Create modal container that will hold cloned content
+      let modalContainer = document.createElement('div');
+      modalContainer.className = 'mobile-modal-container';
+      modalContainer.style.cssText = `
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 10000 !important;
+        width: calc(100vw - 30px) !important;
+        max-width: 400px !important;
+        max-height: 80vh !important;
+        border-radius: 20px !important;
+        border: 2px solid rgba(212, 175, 55, 0.6) !important;
+        overflow: visible !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
+        background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      `;
+      document.body.appendChild(modalContainer);
 
-      // Flag to prevent immediate backdrop close
-      let isOpening = false;
+      console.log('[MOBILE TRIANGLE] Backdrop and modal container created');
 
       // Function to close all modals
       function closeAllModals() {
         console.log('[MOBILE TRIANGLE] Closing all modals');
         powerPoints.forEach(p => {
           p.classList.remove('expanded');
-          // Remove close button if exists
-          const closeBtn = p.querySelector('.power-modal-close');
-          if (closeBtn) closeBtn.remove();
         });
         backdrop.classList.remove('active');
+        modalContainer.style.display = 'none';
+        modalContainer.style.opacity = '0';
+        modalContainer.style.pointerEvents = 'none';
+        modalContainer.innerHTML = ''; // Clear content
         document.body.style.overflow = '';
       }
 
@@ -508,128 +529,28 @@
 
             // If wasn't expanded, open this one
             if (!isExpanded) {
-              console.log('[MOBILE TRIANGLE] Opening modal...');
-              isOpening = true; // Set flag to prevent immediate backdrop close
+              console.log('[MOBILE TRIANGLE] Opening modal with NEW APPROACH - cloning to body');
               point.classList.add('expanded');
 
-              // FORCE INLINE STYLES - BYPASS CSS COMPLETELY
-              details.style.cssText = `
+              // CLONE the details content
+              const clonedDetails = details.cloneNode(true);
+
+              // Clear modal container and add cloned content
+              modalContainer.innerHTML = '';
+              modalContainer.appendChild(clonedDetails);
+
+              // Make cloned content visible with inline styles
+              clonedDetails.style.cssText = `
                 display: block !important;
-                position: fixed !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) scale(1) !important;
-                opacity: 1 !important;
                 visibility: visible !important;
-                pointer-events: auto !important;
-                z-index: 10000 !important;
-                background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
-                width: calc(100vw - 30px) !important;
-                max-width: 400px !important;
-                max-height: 80vh !important;
-                border-radius: 20px !important;
-                border: 2px solid rgba(212, 175, 55, 0.6) !important;
-                overflow: visible !important;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
-                transition: none !important;
+                opacity: 1 !important;
+                width: 100% !important;
+                height: 100% !important;
+                overflow-y: auto !important;
+                position: relative !important;
               `;
 
-              // FORCE ALL CHILD ELEMENTS TO BE VISIBLE
-              const header = details.querySelector('.detail-header');
-              if (header) {
-                header.style.cssText = `
-                  display: flex !important;
-                  visibility: visible !important;
-                  opacity: 1 !important;
-                  padding: 20px !important;
-                  background: rgba(255, 215, 0, 0.15) !important;
-                  border-bottom: 2px solid rgba(212, 175, 55, 0.4) !important;
-                  border-radius: 20px 20px 0 0 !important;
-                  z-index: 1 !important;
-                `;
-
-                const h4 = header.querySelector('h4');
-                if (h4) {
-                  h4.style.cssText = `
-                    display: block !important;
-                    visibility: visible !important;
-                    opacity: 1 !important;
-                    color: #FFD700 !important;
-                    font-size: 20px !important;
-                    font-weight: 700 !important;
-                    margin: 0 !important;
-                  `;
-                }
-              }
-
-              const content = details.querySelector('.detail-content');
-              if (content) {
-                content.style.cssText = `
-                  display: block !important;
-                  visibility: visible !important;
-                  opacity: 1 !important;
-                  padding: 20px !important;
-                  max-height: calc(80vh - 140px) !important;
-                  overflow-y: auto !important;
-                  background: transparent !important;
-                  z-index: 1 !important;
-                `;
-
-                // Force all rows and their children to be visible
-                const rows = content.querySelectorAll('.detail-row');
-                rows.forEach(row => {
-                  row.style.cssText = `
-                    display: flex !important;
-                    visibility: visible !important;
-                    opacity: 1 !important;
-                    gap: 12px !important;
-                    margin-bottom: 16px !important;
-                    background: rgba(255, 255, 255, 0.08) !important;
-                    padding: 14px !important;
-                    border-radius: 12px !important;
-                    border: 1px solid rgba(212, 175, 55, 0.2) !important;
-                  `;
-
-                  // Force icons, strong, and p elements visible
-                  const icon = row.querySelector('.detail-icon');
-                  if (icon) {
-                    icon.style.cssText = `
-                      display: block !important;
-                      visibility: visible !important;
-                      opacity: 1 !important;
-                      font-size: 26px !important;
-                    `;
-                  }
-
-                  const strong = row.querySelector('strong');
-                  if (strong) {
-                    strong.style.cssText = `
-                      display: block !important;
-                      visibility: visible !important;
-                      opacity: 1 !important;
-                      color: #FFD700 !important;
-                      font-size: 15px !important;
-                      font-weight: 700 !important;
-                    `;
-                  }
-
-                  const p = row.querySelector('p');
-                  if (p) {
-                    p.style.cssText = `
-                      display: block !important;
-                      visibility: visible !important;
-                      opacity: 1 !important;
-                      color: #FFFFFF !important;
-                      font-size: 13px !important;
-                      line-height: 1.6 !important;
-                    `;
-                  }
-                });
-              }
-
-              console.log('[MOBILE TRIANGLE] Forced inline styles on modal container + all children');
-
-              // Create close button with inline styles
+              // Create close button
               const closeBtn = document.createElement('button');
               closeBtn.className = 'power-modal-close';
               closeBtn.innerHTML = '×';
@@ -654,9 +575,7 @@
                 box-shadow: 0 4px 16px rgba(255, 215, 0, 0.6) !important;
                 cursor: pointer !important;
               `;
-              details.appendChild(closeBtn);
-
-              console.log('[MOBILE TRIANGLE] Close button created and styled');
+              modalContainer.appendChild(closeBtn);
 
               // Close button click
               closeBtn.addEventListener('click', function(e) {
@@ -665,29 +584,16 @@
                 closeAllModals();
               });
 
-              // NOW activate backdrop and lock body AFTER everything is styled and ready
-              requestAnimationFrame(() => {
-                backdrop.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                console.log('[MOBILE TRIANGLE] Backdrop activated after modal rendered');
+              // Show the modal container
+              modalContainer.style.display = 'block';
+              modalContainer.style.opacity = '1';
+              modalContainer.style.pointerEvents = 'auto';
 
-                // Log computed styles
-                setTimeout(() => {
-                  const computedStyles = window.getComputedStyle(details);
-                  console.log('[MOBILE TRIANGLE] Modal computed styles:', {
-                    display: computedStyles.display,
-                    visibility: computedStyles.visibility,
-                    opacity: computedStyles.opacity,
-                    zIndex: computedStyles.zIndex
-                  });
-                }, 50);
+              // Activate backdrop
+              backdrop.classList.add('active');
+              document.body.style.overflow = 'hidden';
 
-                // Clear the opening flag after a short delay to allow backdrop clicks
-                setTimeout(() => {
-                  isOpening = false;
-                  console.log('[MOBILE TRIANGLE] Opening flag cleared, backdrop clickable now');
-                }, 300);
-              });
+              console.log('[MOBILE TRIANGLE] Modal opened with cloned content in separate container');
             }
           });
         }
@@ -696,22 +602,13 @@
       // Backdrop click to close
       backdrop.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('[MOBILE TRIANGLE] Backdrop clicked, isOpening:', isOpening);
-
-        // Only close if not currently opening a modal
-        if (!isOpening) {
-          closeAllModals();
-        }
+        console.log('[MOBILE TRIANGLE] Backdrop clicked');
+        closeAllModals();
       });
 
       // Prevent modal content clicks from closing
-      powerPoints.forEach(point => {
-        const details = point.querySelector('.power-details');
-        if (details) {
-          details.addEventListener('click', function(e) {
-            e.stopPropagation();
-          });
-        }
+      modalContainer.addEventListener('click', function(e) {
+        e.stopPropagation();
       });
     }
   }
