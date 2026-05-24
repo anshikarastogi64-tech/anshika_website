@@ -1980,7 +1980,7 @@ body::before {
 
   /* Designer Section */
   #meet-designer {
-    padding: 40px 20px !important;
+    padding: 40px 0 !important;
     overflow-x: hidden !important;
     width: 100vw !important;
     max-width: 100vw !important;
@@ -1995,10 +1995,10 @@ body::before {
   .designer-reveal {
     grid-template-columns: 1fr !important;
     gap: 30px !important;
-    max-width: 100vw !important;
+    max-width: 100% !important;
     padding: 0 20px !important;
-    margin: 0 !important;
-    width: 100vw !important;
+    margin: 0 auto !important;
+    width: 100% !important;
     box-sizing: border-box !important;
   }
 
