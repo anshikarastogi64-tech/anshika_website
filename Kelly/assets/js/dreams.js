@@ -475,10 +475,10 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 10000 !important;
-        width: calc(100vw - 30px) !important;
-        max-width: 400px !important;
-        max-height: 80vh !important;
-        border-radius: 20px !important;
+        width: calc(100vw - 60px) !important;
+        max-width: 360px !important;
+        max-height: 75vh !important;
+        border-radius: 16px !important;
         border: 2px solid rgba(212, 175, 55, 0.6) !important;
         overflow: visible !important;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
