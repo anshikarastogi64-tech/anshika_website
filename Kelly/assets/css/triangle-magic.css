@@ -1009,25 +1009,28 @@
     opacity: 1 !important;
   }
 
-  /* Close button - Fixed at top right */
+  /* Close button - Centered on top edge of modal, much smaller */
   .power-modal-close {
     position: absolute !important;
-    top: 20px !important;
-    right: 20px !important;
-    width: 44px !important;
-    height: 44px !important;
+    top: -12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 24px !important;
+    height: 24px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
-    border: none !important;
+    border: 2px solid rgba(212, 175, 55, 0.8) !important;
     border-radius: 50% !important;
     color: #000 !important;
-    font-size: 32px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     line-height: 1 !important;
     z-index: 10001 !important;
-    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.6) !important;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.6) !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
   }
@@ -1100,5 +1103,27 @@ svg line.line-top {
     transform: none !important;
     background: rgba(0, 0, 0, 0.95) !important;
     border-color: #D4AF37 !important;
+  }
+}
+
+/* DESKTOP HOVER FORCE - Highest priority */
+@media (min-width: 769px) {
+  #magic-triangle .power-point:hover .power-details,
+  #magic-triangle .point-top:hover .power-details,
+  #magic-triangle .point-left:hover .power-details,
+  #magic-triangle .point-right:hover .power-details {
+    max-height: 600px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 200 !important;
+  }
+
+  #magic-triangle .point-top:hover .power-details {
+    transform: translateX(-50%) translateY(0) !important;
+  }
+
+  #magic-triangle .point-left:hover .power-details,
+  #magic-triangle .point-right:hover .power-details {
+    transform: translateX(-50%) translateY(0) !important;
   }
 }
