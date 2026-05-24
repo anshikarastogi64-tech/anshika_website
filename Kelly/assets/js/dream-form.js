@@ -17,7 +17,7 @@
     adminEmail: 'designersvisionstudio@gmail.com',
     adminMobile: '919557058902', // Admin WhatsApp number (with country code, no +)
     adminWhatsApp: '919557058902',
-    emailEndpoint: 'forms/dream-contact.php' // Your existing PHP email handler (relative to index.html)
+    emailEndpoint: '/Kelly/forms/dream-contact' // Node.js API endpoint
   };
 
   // Elements
@@ -122,16 +122,11 @@
     }
   });
 
-  // Send to admin email using your existing PHP backend
+  // Send to admin email using Node.js backend
   async function sendToAdmin(data) {
-    // Build URL relative to current page
-    const currentPath = window.location.pathname;
-    const directory = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-    const emailUrl = directory + CONFIG.emailEndpoint;
+    console.log('Sending email to:', CONFIG.emailEndpoint);
 
-    console.log('Sending email to:', window.location.origin + emailUrl);
-
-    const response = await fetch(emailUrl, {
+    const response = await fetch(CONFIG.emailEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
