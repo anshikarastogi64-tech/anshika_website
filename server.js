@@ -167,12 +167,8 @@ app.get('/recording/:slug', (req, res) => {
   });
 });
 
-app.get('/', async (req, res) => {
-  const [hero, footerName] = await Promise.all([
-    getBlocksForHome(),
-    getBlock('global', 'footer', 'owner_name', 'Anshika Rastogi'),
-  ]);
-  res.render('index', { hero, footerName });
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'Kelly', 'index.html'));
 });
 
 app.get('/about', (req, res) => res.redirect(301, '/about-new'));

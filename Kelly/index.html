@@ -2,151 +2,1136 @@
 <html lang="en">
 
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-CP36RKRQC2"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-CP36RKRQC2');
-</script>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3675353381196861"
-     crossorigin="anonymous"></script>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
-  <title>Anshika Rastogi - Interior Desiginer | Hyderabad |</title>
-  <meta content="Step into interior design with Anshika, crafting personalized spaces reflecting unique tastes. Meticulous attention to detail meets excellence, offering bespoke solutions for homes and businesses. Drawing inspiration from trends, Anshika creates stunning yet functional interiors, collaborating closely with clients. Transform your space with Anshika's personalized touch. Contact now to begin your design journey!" name="description">
-  <meta content="Interior Desiginer, Interior Desiginer in Hyderabad, bespoke interior design, End to End Interior Designing, Interior decorator, Home decor
-  Residential design, Commercial design, Space planning, Interior styling, Furniture selection, Color schemes, Room transformation
-, Design consultation, Customized interiors, Modern interiors, Contemporary design, Luxury interiors, Eco-friendly design, Sustainable interiors, Renovation services, Hyderabad interiors, Interior designers in Hyderabad, Hyderabad home decor, Hyderabad residential design, Hyderabad interior styling, Bespoke Hyderabad interiors, Hyderabad interior renovation, Hyderabad space planning, Modern interiors Hyderabad, Contemporary design Hyderabad, Hyderabad luxury interiors, Sustainable interiors Hyderabad, Eco-friendly design Hyderabad, Hyderabad interior consultant, Hyderabad interior makeover, Hyderabad interior concepts, Hyderabad interior solutions, Hyderabad interior trends  ",  name="keywords">
-<!-- Google / Search Engine Tags -->
-<meta itemprop="name" content="Anshika Rastogi - Interior Desiginer | Hyderabad | Bark Professional | BNI">
-<meta itemprop="description" content="Best Interior Designer in Hyderabad | Transforming spaces into personalized havens of style and comfort. Discover innovative interior design solutions tailored to your taste.">
-<meta itemprop="image" content=""> 
-
-<!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+  <title>Anshika Rastogi - Building Dreams Into Reality</title>
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Lottie for animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+  <!-- Bootstrap Icons -->
   <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/dreams.css?v=5" rel="stylesheet">
+  <link href="assets/css/triangle-magic.css?v=5" rel="stylesheet">
 
-  <!-- =======================================================
-  * Template Name: Kelly
-  * Template URL: https://bootstrapmade.com/kelly-free-bootstrap-cv-resume-html-template/
-  * Updated: Mar 17 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+  <style>
+    /* Force uniform sizing for credentials and tags */
+    .expertise-tags-final span,
+    .expertise-tags-final .tag {
+      font-size: 15px !important;
+      padding: 12px 28px !important;
+      transform: scale(1) !important;
+      animation: none !important;
+      min-height: 40px !important;
+    }
+
+    .magic-badges {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: none !important;
+      overflow-x: auto !important;
+    }
+
+    .magic-badges .magic-badge {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: scale(1) !important;
+      animation: none !important;
+    }
+
+    .magic-badges .magic-badge span {
+      font-size: 17px !important;
+      opacity: 1 !important;
+    }
+
+    .magic-badges .magic-badge i {
+      font-size: 32px !important;
+      opacity: 1 !important;
+    }
+
+    /* Mobile: allow wrapping only on very small screens */
+    @media (max-width: 768px) {
+      .magic-badges {
+        flex-wrap: wrap !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- ======= Header ======= -->
-  <header id="header" class="fixed-top">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
+  <!-- Paintbrush Cursor -->
+  <canvas id="brush-canvas"></canvas>
+  <div id="brush-cursor"></div>
 
-      <h1 class="logo me-auto me-lg-0"><a href="index.html">Anshika</a></h1>
-      
-      <!-- Uncomment below if you prefer to use an image logo -->
-      <!-- <a href="index.html" class="logo"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
+  <!-- Creative Navigation Menu -->
+  <div id="dream-menu-trigger" class="menu-trigger">
+    <div class="palette-icon">
+      <div class="palette-dot" style="background: #FF6B6B;"></div>
+      <div class="palette-dot" style="background: #4ECDC4;"></div>
+      <div class="palette-dot" style="background: #FFD93D;"></div>
+      <div class="palette-dot" style="background: #6C5CE7;"></div>
+    </div>
+    <span class="menu-label">Menu</span>
+  </div>
 
-      <nav id="navbar" class="navbar order-last order-lg-0">
-        <ul>
-          <li><a class="active" href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-           <li><a href="experience.html">Experience</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="portfolio.html">Portfolio</a></li>
-          
-          <li><a href="contact.html">Contact</a></li>
-          <li><a href="womens-day.php">Women's Day</a></li>
-          <li><a href="https://anshikarastogi.blogspot.com/" target="_blank">Blog</a></li>
-        </ul>
-        <i class="bi bi-list mobile-nav-toggle"></i>
-      </nav><!-- .navbar -->
+  <div id="dream-menu-overlay" class="menu-overlay">
+    <div class="menu-bg-gradient"></div>
+    <div class="menu-paint-strokes">
+      <div class="paint-stroke stroke-1"></div>
+      <div class="paint-stroke stroke-2"></div>
+      <div class="paint-stroke stroke-3"></div>
+    </div>
 
-      <div class="header-social-links">
-        <!--<a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
-        <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>-->
-        <a href="https://www.instagram.com/anshikarastogi07/" target="_blank" class="instagram"><i class="bi bi-instagram"></i></a>
-        <a href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/" target="_blank" class="linkedin"><i class="bi bi-linkedin"></i></i></a>
-        <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank" class="linkedin"><i class="bi bi-whatsapp"></i></i></a>
-        <a href="tel:+919557058902" target="_blank" class="linkedin"><i class="bi bi-telephone"></i></i></a>
+    <button id="menu-close" class="menu-close">
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="menu-content">
+      <nav class="dream-nav">
+        <a href="/" class="nav-link active">
+          <span class="link-icon">🏠</span>
+          <span class="link-text">Home</span>
+          <span class="link-sketch"></span>
+        </a>
+        <a href="/portfolio" class="nav-link">
+          <span class="link-icon">🏛️</span>
+          <span class="link-text">Portfolio</span>
+          <span class="link-sketch"></span>
+        </a>
+        <a href="/testimonials" class="nav-link">
+          <span class="link-icon">💖</span>
+          <span class="link-text">Testimonials</span>
+          <span class="link-sketch"></span>
+        </a>
+        <a href="/portal/login" class="nav-link">
+          <span class="link-icon">💻</span>
+          <span class="link-text">Client Portal</span>
+          <span class="link-sketch"></span>
+        </a>
+        <a href="https://anshikarastogi.blogspot.com/" target="_blank" class="nav-link">
+          <span class="link-icon">📝</span>
+          <span class="link-text">Blog</span>
+          <span class="link-sketch"></span>
+        </a>
+        <a href="/contact" class="nav-link">
+          <span class="link-icon">💌</span>
+          <span class="link-text">Contact</span>
+          <span class="link-sketch"></span>
+        </a>
+      </nav>
+
+      <div class="menu-footer">
+        <p class="menu-tagline">Let's build your dream together</p>
+        <div class="menu-social">
+          <a href="https://www.instagram.com/anshikarastogi07/" target="_blank" class="menu-social-link">
+            <i class="bi bi-instagram"></i>
+          </a>
+          <a href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/" target="_blank" class="menu-social-link">
+            <i class="bi bi-linkedin"></i>
+          </a>
+          <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank" class="menu-social-link">
+            <i class="bi bi-whatsapp"></i>
+          </a>
+          <a href="tel:+919557058902" class="menu-social-link">
+            <i class="bi bi-telephone"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Opening Scene: "I Build Dreams" -->
+  <section id="opening" class="full-screen" style="position: relative; overflow: hidden;">
+    <div class="dream-cloud cloud-1"></div>
+    <div class="dream-cloud cloud-2"></div>
+    <div class="dream-cloud cloud-3"></div>
+
+    <!-- Magical floating stars -->
+    <div style="position: absolute; top: 10%; left: 10%; font-size: 30px; animation: floatMagic 3s ease-in-out infinite; opacity: 0.6;">✨</div>
+    <div style="position: absolute; top: 20%; right: 15%; font-size: 25px; animation: floatMagic 4s ease-in-out infinite 1s; opacity: 0.6;">⭐</div>
+    <div style="position: absolute; bottom: 30%; left: 15%; font-size: 35px; animation: floatMagic 5s ease-in-out infinite 2s; opacity: 0.6;">💫</div>
+    <div style="position: absolute; bottom: 20%; right: 20%; font-size: 28px; animation: floatMagic 3.5s ease-in-out infinite 1.5s; opacity: 0.6;">🌟</div>
+
+    <div class="opening-content">
+      <h1 class="dream-title">
+        <span class="sketch-line">I Don't Just Design Homes</span>
+        <br>
+        <span class="sketch-line delay-1">I Build</span>
+        <span class="sketch-line delay-2 highlight" style="text-shadow: 0 0 30px rgba(212, 175, 55, 0.5), 0 0 60px rgba(212, 175, 55, 0.3);"> Dreams</span>
+      </h1>
+      <div class="subtitle-handwritten">— Anshika Rastogi</div>
+
+      <div class="scroll-dream" style="box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);">
+        <div class="dream-bubble"></div>
+        <span>Begin the journey</span>
+      </div>
+    </div>
+
+    <!-- Floating sketch elements -->
+    <div class="sketch-float sketch-house"></div>
+    <div class="sketch-float sketch-compass"></div>
+    <div class="sketch-float sketch-star"></div>
+  </section>
+
+  <!-- Story 1: The Dream Begins - Enhanced -->
+  <section id="dream-begins" class="story-section" style="background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); padding: 100px 20px; position: relative; overflow: hidden;">
+
+    <!-- Floating decorative elements -->
+    <div style="position: absolute; top: 10%; left: 5%; font-size: 80px; opacity: 0.1; animation: float 6s ease-in-out infinite;">✨</div>
+    <div style="position: absolute; bottom: 15%; right: 8%; font-size: 60px; opacity: 0.1; animation: float 8s ease-in-out infinite 2s;">🏠</div>
+    <div style="position: absolute; top: 40%; right: 15%; font-size: 50px; opacity: 0.1; animation: float 7s ease-in-out infinite 1s;">💡</div>
+
+    <div class="story-container" style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+
+      <!-- Left: Inspiring Message -->
+      <div class="story-left">
+        <div style="background: white; padding: 50px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); position: relative;">
+          <div style="position: absolute; top: -20px; left: 40px; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%); color: white; padding: 12px 30px; border-radius: 25px; font-weight: 600; font-size: 14px; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);">
+            ✨ Where Dreams Begin
+          </div>
+
+          <h2 style="font-family: 'Playfair Display', serif; font-size: 42px; color: #2C2C2C; margin: 30px 0 25px; line-height: 1.3;">
+            Every Dream Starts With a <span style="color: #D4AF37; position: relative; display: inline-block;">Vision
+              <svg style="position: absolute; bottom: -10px; left: 0; width: 100%; height: 15px;" viewBox="0 0 200 15">
+                <path d="M 0 10 Q 50 5, 100 10 T 200 10" stroke="#D4AF37" stroke-width="3" fill="none" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </h2>
+
+          <p style="font-size: 18px; line-height: 1.8; color: #555; margin-bottom: 20px;">
+            You close your eyes and see it—the home you've always wanted. The colors, the warmth, the feeling of <em>belonging</em>.
+          </p>
+
+          <p style="font-size: 18px; line-height: 1.8; color: #555; margin-bottom: 20px;">
+            But turning that vision into reality? That's where the magic happens.
+          </p>
+
+          <div style="background: rgba(212, 175, 55, 0.1); border-left: 4px solid #D4AF37; padding: 20px 25px; border-radius: 10px; margin-top: 30px;">
+            <p style="font-style: italic; font-size: 17px; color: #2C2C2C; margin: 0; line-height: 1.6;">
+              <strong style="color: #D4AF37;">"My role is simple:"</strong> I take your dreams—no matter how wild, how specific—and transform them into spaces that breathe life, joy, and harmony into your everyday.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; display: flex; gap: 15px;">
+            <div style="flex: 1; text-align: center; padding: 20px; background: rgba(212, 175, 55, 0.05); border-radius: 15px;">
+              <div style="font-size: 36px; color: #D4AF37; font-weight: 700;">300+</div>
+              <div style="font-size: 14px; color: #666; margin-top: 5px;">Dreams Realized</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 20px; background: rgba(212, 175, 55, 0.05); border-radius: 15px;">
+              <div style="font-size: 36px; color: #D4AF37; font-weight: 700;">7+</div>
+              <div style="font-size: 14px; color: #666; margin-top: 5px;">Years Experience</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 20px; background: rgba(212, 175, 55, 0.05); border-radius: 15px;">
+              <div style="font-size: 36px; color: #D4AF37; font-weight: 700;">100%</div>
+              <div style="font-size: 14px; color: #666; margin-top: 5px;">Vastu Compliant</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Visual Transformation -->
+      <div class="story-right">
+        <div style="position: relative;">
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #2C2C2C; text-align: center; margin-bottom: 40px;">
+            From Vision to Reality
+          </h3>
+
+          <!-- Transformation Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+            <!-- Before/Concept -->
+            <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: transform 0.3s;">
+              <img src="assets/img/services/File 1.jpeg" alt="Dream Concept" style="width: 100%; height: 280px; object-fit: cover;">
+              <div style="position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.95); padding: 8px 20px; border-radius: 20px; font-weight: 600; color: #2C2C2C; font-size: 14px;">
+                💭 Your Vision
+              </div>
+            </div>
+
+            <!-- After/Reality -->
+            <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: transform 0.3s;">
+              <img src="assets/img/services/File 4.jpeg" alt="Dream Reality" style="width: 100%; height: 280px; object-fit: cover;">
+              <div style="position: absolute; top: 15px; left: 15px; background: rgba(212, 175, 55, 0.95); padding: 8px 20px; border-radius: 20px; font-weight: 600; color: white; font-size: 14px;">
+                ✨ Your Reality
+              </div>
+            </div>
+
+            <!-- Design Detail 1 -->
+            <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+              <img src="assets/img/services/File 9.jpg" alt="Detailed Design" style="width: 100%; height: 280px; object-fit: cover;">
+              <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 15px; border-radius: 15px; color: white;">
+                <div style="font-weight: 600; margin-bottom: 5px;">Every Detail Matters</div>
+                <div style="font-size: 13px; opacity: 0.9;">Precision in every corner</div>
+              </div>
+            </div>
+
+            <!-- Design Detail 2 -->
+            <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+              <img src="assets/img/services/File 10.jpg" alt="Luxury Finish" style="width: 100%; height: 280px; object-fit: cover;">
+              <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 15px; border-radius: 15px; color: white;">
+                <div style="font-weight: 600; margin-bottom: 5px;">Luxury Execution</div>
+                <div style="font-size: 13px; opacity: 0.9;">Premium quality assured</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow connector -->
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); z-index: 10;">
+            <span style="font-size: 32px; color: #D4AF37;">→</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+          <a href="/contact" style="display: inline-block; padding: 18px 45px; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%); color: white; text-decoration: none; border-radius: 30px; font-weight: 600; font-size: 18px; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); transition: all 0.3s;">
+            Start Your Dream Journey →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 2: Meet Anshika - Watercolor Reveal -->
+  <section id="meet-designer" class="story-section watercolor-section">
+    <div class="watercolor-splash splash-1"></div>
+    <div class="watercolor-splash splash-2"></div>
+    <div class="watercolor-splash splash-3"></div>
+
+    <div class="designer-reveal">
+      <div class="designer-image-container">
+        <div class="polaroid-frame">
+          <img src="assets/img/profile.jpg" alt="Anshika" class="designer-photo" onerror="this.src='assets/img/me.png'">
+          <div class="polaroid-text">Designer • Dreamer • Creator</div>
+        </div>
+
+        <!-- Doodles around polaroid -->
+        <div class="doodle doodle-heart">♥</div>
+        <div class="doodle doodle-star">★</div>
+        <div class="doodle doodle-arrow">→</div>
+      </div>
+
+      <div class="designer-story">
+        <h2 class="handwritten-heading" style="color: #2C2C2C; opacity: 1 !important;">Hi, I'm Anshika</h2>
+        <p class="story-text" style="font-size: 18px; line-height: 1.8; margin-bottom: 20px; color: #2C2C2C; opacity: 1 !important;">
+          <strong>Award-winning Interior Designer</strong> with a rare gift—I don't just design spaces,
+          I <span class="highlight-marker">listen to your story</span>, understand your family's unique energy,
+          and transform your dreams into living, breathing reality.
+        </p>
+        <p class="story-text" style="font-size: 17px; line-height: 1.8; margin-bottom: 20px; color: #2C2C2C; opacity: 1 !important;">
+          With over 7 years of expertise and a Master's degree from IIFT, I've mastered the art of blending
+          <span class="underline-magic">luxury interior design</span> with
+          <span class="underline-magic">100% Vastu compliance</span> and
+          <span class="underline-magic">astrological alignment</span>—creating homes that don't just look
+          extraordinary, but actively support your family's success, health, and happiness.
+        </p>
+        <p class="story-text" style="font-size: 17px; line-height: 1.8; margin-bottom: 25px; color: #2C2C2C; opacity: 1 !important;">
+          <em style="color: #D4AF37; font-weight: 500;">
+            "I sketch dreams on paper, infuse them with ancient wisdom, and watch them come alive
+            in spaces that feel like they were always meant to be yours."
+          </em>
+        </p>
+        <p class="story-text" style="font-size: 16px; line-height: 1.7; color: #2C2C2C; opacity: 1 !important;">
+          Every project begins with a conversation—I listen deeply to understand not just what you want,
+          but who you are. Your profession, your family's birth charts, your lifestyle, your aspirations.
+          Then I translate that into spaces where every corner, every color, every placement has purpose
+          and meaning. This is design that transforms lives.
+        </p>
+
+        <div class="credentials-row" style="display: grid !important; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important; gap: 25px !important; background: rgba(255, 255, 255, 0.9) !important; border: 2px solid #D4AF37 !important; border-radius: 20px !important; padding: 30px !important; margin: 30px 0 !important; opacity: 1 !important; visibility: visible !important; box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2) !important;">
+          <div class="credential-item" style="display: flex !important; align-items: center !important; gap: 15px !important; opacity: 1 !important;">
+            <div class="credential-icon" style="font-size: 40px; flex-shrink: 0;">🎓</div>
+            <div class="credential-info" style="display: flex; flex-direction: column; gap: 5px;">
+              <strong style="font-size: 16px; font-weight: 600; color: #2C2C2C;">Master in Design</strong>
+              <span style="font-size: 14px; color: #666;">IIFT</span>
+            </div>
+          </div>
+          <div class="credential-item" style="display: flex !important; align-items: center !important; gap: 15px !important; opacity: 1 !important;">
+            <div class="credential-icon" style="font-size: 40px; flex-shrink: 0;">💼</div>
+            <div class="credential-info" style="display: flex; flex-direction: column; gap: 5px;">
+              <strong style="font-size: 16px; font-weight: 600; color: #2C2C2C;">7+ Years Experience</strong>
+              <span style="font-size: 14px; color: #666;">Residential & Commercial</span>
+            </div>
+          </div>
+          <div class="credential-item" style="display: flex !important; align-items: center !important; gap: 15px !important; opacity: 1 !important;">
+            <div class="credential-icon" style="font-size: 40px; flex-shrink: 0;">🌏</div>
+            <div class="credential-info" style="display: flex; flex-direction: column; gap: 5px;">
+              <strong style="font-size: 16px; font-weight: 600; color: #2C2C2C;">Based in Hyderabad</strong>
+              <span style="font-size: 14px; color: #666;">Working Globally</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="recognition-banner" style="display: flex !important; align-items: center !important; gap: 15px !important; padding: 20px 30px !important; margin: 30px 0 !important; background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(255, 165, 0, 0.15) 100%) !important; border-left: 4px solid #D4AF37 !important; border-radius: 10px !important; opacity: 1 !important; visibility: visible !important;">
+          <div style="font-size: 40px; flex-shrink: 0;">🏆</div>
+          <div>
+            <strong style="display: block; font-size: 18px; color: #D4AF37; margin-bottom: 5px; font-weight: 600;">Award-Winning Excellence</strong>
+            <span style="font-size: 15px; color: #2C2C2C; line-height: 1.6;">
+              Recognized for innovative design solutions that harmonize luxury aesthetics with Vastu science.
+              Featured in multiple design publications and trusted by 300+ families across India.
+            </span>
+          </div>
+        </div>
+
+        <div class="magic-badges" style="display: flex !important; gap: 20px !important; margin-top: 40px !important; flex-wrap: nowrap !important; opacity: 1 !important; visibility: visible !important; justify-content: flex-start !important;">
+          <div class="magic-badge" style="display: flex !important; align-items: center !important; gap: 15px !important; padding: 20px 30px !important; background: rgba(255, 255, 255, 0.8) !important; border-radius: 50px !important; box-shadow: 0 5px 20px rgba(0,0,0,0.1) !important; opacity: 1 !important; visibility: visible !important;">
+            <i class="bi bi-palette-fill" style="font-size: 32px !important; color: #D4AF37 !important; flex-shrink: 0 !important;"></i>
+            <span style="font-size: 17px !important; font-weight: 500 !important; color: #2C2C2C !important; white-space: nowrap !important;">Interior Designer</span>
+          </div>
+          <div class="magic-badge" style="display: flex !important; align-items: center !important; gap: 15px !important; padding: 20px 30px !important; background: rgba(255, 255, 255, 0.8) !important; border-radius: 50px !important; box-shadow: 0 5px 20px rgba(0,0,0,0.1) !important; opacity: 1 !important; visibility: visible !important;">
+            <i class="bi bi-compass-fill" style="font-size: 32px !important; color: #D4AF37 !important; flex-shrink: 0 !important;"></i>
+            <span style="font-size: 17px !important; font-weight: 500 !important; color: #2C2C2C !important; white-space: nowrap !important;">Vastu Expert</span>
+          </div>
+          <div class="magic-badge" style="display: flex !important; align-items: center !important; gap: 15px !important; padding: 20px 30px !important; background: rgba(255, 255, 255, 0.8) !important; border-radius: 50px !important; box-shadow: 0 5px 20px rgba(0,0,0,0.1) !important; opacity: 1 !important; visibility: visible !important;">
+            <i class="bi bi-stars" style="font-size: 32px !important; color: #D4AF37 !important; flex-shrink: 0 !important;"></i>
+            <span style="font-size: 17px !important; font-weight: 500 !important; color: #2C2C2C !important; white-space: nowrap !important;">Astro Consultant</span>
+          </div>
+        </div>
+
+        <div class="specialization-header" style="margin-top: 35px; margin-bottom: 15px;">
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 22px; color: #2C2C2C; font-weight: 600; margin-bottom: 8px;">
+            My Specializations
+          </h3>
+          <p style="font-size: 15px; color: #666; line-height: 1.6;">
+            Technical expertise meets artistic vision
+          </p>
+        </div>
+
+        <div class="expertise-tags-final" style="display: flex !important; background: rgba(255, 248, 231, 0.6) !important; border-radius: 15px !important; padding: 20px !important; margin: 0 0 30px 0 !important; flex-wrap: wrap !important; gap: 15px !important; opacity: 1 !important; visibility: visible !important; transform: none !important; animation: none !important;">
+          <span style="display: inline-block !important; padding: 12px 28px !important; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%) !important; color: #fff !important; border-radius: 25px !important; font-size: 15px !important; font-weight: 500 !important; box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3) !important; opacity: 1 !important; visibility: visible !important; white-space: nowrap !important; transform: scale(1) !important; animation: none !important; min-height: 40px !important; line-height: 1.2 !important;">Sketch UP</span>
+          <span style="display: inline-block !important; padding: 12px 28px !important; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%) !important; color: #fff !important; border-radius: 25px !important; font-size: 15px !important; font-weight: 500 !important; box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3) !important; opacity: 1 !important; visibility: visible !important; white-space: nowrap !important; transform: scale(1) !important; animation: none !important; min-height: 40px !important; line-height: 1.2 !important;">AutoCAD</span>
+          <span style="display: inline-block !important; padding: 12px 28px !important; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%) !important; color: #fff !important; border-radius: 25px !important; font-size: 15px !important; font-weight: 500 !important; box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3) !important; opacity: 1 !important; visibility: visible !important; white-space: nowrap !important; transform: scale(1) !important; animation: none !important; min-height: 40px !important; line-height: 1.2 !important;">Photoshop</span>
+          <span style="display: inline-block !important; padding: 12px 28px !important; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%) !important; color: #fff !important; border-radius: 25px !important; font-size: 15px !important; font-weight: 500 !important; box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3) !important; opacity: 1 !important; visibility: visible !important; white-space: nowrap !important; transform: scale(1) !important; animation: none !important; min-height: 40px !important; line-height: 1.2 !important;">Space Planning</span>
+          <span style="display: inline-block !important; padding: 12px 28px !important; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%) !important; color: #fff !important; border-radius: 25px !important; font-size: 15px !important; font-weight: 500 !important; box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3) !important; opacity: 1 !important; visibility: visible !important; white-space: nowrap !important; transform: scale(1) !important; animation: none !important; min-height: 40px !important; line-height: 1.2 !important;">Project Management</span>
+        </div>
+
+        <div class="professional-statement" style="margin-top: 35px; padding: 25px; background: rgba(255, 255, 255, 0.5); border-radius: 15px; border-left: 4px solid #D4AF37;">
+          <p style="font-size: 16px; line-height: 1.8; color: #2C2C2C; font-style: italic; margin: 0;">
+            <strong style="color: #D4AF37; font-style: normal;">"My Promise to You:"</strong>
+            I will listen to your dreams with my heart, design them with my expertise, align them with cosmic wisdom,
+            and deliver them with unwavering commitment to excellence. Your home will be more than beautiful—it will be
+            a sanctuary that nurtures your family's growth, prosperity, and joy for generations to come.
+          </p>
+          <p style="margin-top: 15px; font-size: 15px; color: #666; text-align: right;">
+            — Anshika Rastogi, Master Designer
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 3: The Magic Triangle -->
+  <section id="magic-triangle" class="story-section dark-section">
+    <h2 class="section-title-center glow-text">The Three Powers I Channel</h2>
+    <p class="section-subtitle-center">Hover over each power to discover the magic</p>
+
+    <div class="triangle-container">
+      <!-- Animated Background Elements -->
+      <div class="triangle-bg-elements">
+        <div class="floating-symbol symbol-1">✨</div>
+        <div class="floating-symbol symbol-2">🏠</div>
+        <div class="floating-symbol symbol-3">⭐</div>
+        <div class="floating-symbol symbol-4">🧭</div>
+      </div>
+
+      <!-- Main Triangle SVG -->
+      <svg class="magic-triangle-svg" viewBox="0 0 600 600">
+        <defs>
+          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- Triangle outline with particles -->
+        <path class="triangle-path" d="M 300 80 L 520 480 L 80 480 Z"
+              stroke="url(#goldGradient)" stroke-width="4" fill="none" filter="url(#glow)"/>
+
+        <!-- Connecting lines from center -->
+        <line x1="300" y1="300" x2="300" y2="80" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.6" style="stroke-dasharray: none; stroke-dashoffset: 0;"/>
+        <line class="center-line line-left" x1="300" y1="300" x2="80" y2="480" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.6"/>
+        <line class="center-line line-right" x1="300" y1="300" x2="520" y2="480" stroke="url(#goldGradient)" stroke-width="2.5" opacity="0.6"/>
+
+        <!-- Center circle with rotating ring -->
+        <circle cx="300" cy="300" r="45" fill="none" stroke="url(#goldGradient)" stroke-width="2" class="center-ring" opacity="0.6"/>
+        <circle cx="300" cy="300" r="40" fill="none" stroke="url(#goldGradient)" stroke-width="1" opacity="0.3"/>
+
+        <!-- Orbiting particles -->
+        <circle class="orbit-particle particle-1" r="5" fill="#FFD700">
+          <animateMotion dur="4s" repeatCount="indefinite">
+            <mpath href="#orbit-path"/>
+          </animateMotion>
+        </circle>
+        <circle class="orbit-particle particle-2" r="4" fill="#FFA500">
+          <animateMotion dur="4s" repeatCount="indefinite" begin="1.3s">
+            <mpath href="#orbit-path"/>
+          </animateMotion>
+        </circle>
+        <circle class="orbit-particle particle-3" r="4" fill="#FFD700">
+          <animateMotion dur="4s" repeatCount="indefinite" begin="2.6s">
+            <mpath href="#orbit-path"/>
+          </animateMotion>
+        </circle>
+
+        <path id="orbit-path" d="M 300 250 A 50 50 0 1 1 299 250 Z" fill="none"/>
+      </svg>
+
+      <!-- Power Point 1: Luxury Design (TOP) -->
+      <div class="power-point point-top" data-power="design">
+        <div class="power-compact">
+          <div class="power-icon-svg">
+            <svg viewBox="0 0 100 100" width="60" height="60">
+              <ellipse cx="50" cy="55" rx="30" ry="35" fill="none" stroke="#D4AF37" stroke-width="3"/>
+              <circle cx="38" cy="38" r="5" fill="#FF6B6B"/>
+              <circle cx="55" cy="33" r="5" fill="#4ECDC4"/>
+              <circle cx="62" cy="50" r="5" fill="#FFD93D"/>
+              <circle cx="50" cy="68" r="5" fill="#6C5CE7"/>
+              <line x1="25" y1="25" x2="38" y2="38" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Luxury Design</h3>
+          <p class="power-tagline">Bespoke Interiors</p>
+        </div>
+
+        <div class="power-details">
+          <div class="detail-header">
+            <h4>Interior Design Excellence</h4>
+            <span class="detail-badge">300+ Projects</span>
+          </div>
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-icon">✏️</span>
+              <div>
+                <strong>Sketch to Reality</strong>
+                <p>Hand-drawn concepts using AutoCAD & SketchUp</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">📐</span>
+              <div>
+                <strong>Space Planning</strong>
+                <p>Optimized layouts for functionality & flow</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">🎨</span>
+              <div>
+                <strong>Color Psychology</strong>
+                <p>Palettes that evoke emotion & energy</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">🪑</span>
+              <div>
+                <strong>Curated Selection</strong>
+                <p>Premium furniture & material sourcing</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Power Point 2: Vastu Science (BOTTOM LEFT) -->
+      <div class="power-point point-left" data-power="vastu">
+        <div class="power-compact">
+          <div class="power-icon-svg">
+            <svg viewBox="0 0 100 100" width="60" height="60">
+              <circle cx="50" cy="50" r="35" fill="none" stroke="#D4AF37" stroke-width="3"/>
+              <circle cx="50" cy="50" r="22" fill="none" stroke="#D4AF37" stroke-width="2"/>
+              <line x1="50" y1="15" x2="50" y2="28" stroke="#D4AF37" stroke-width="2.5"/>
+              <line x1="50" y1="72" x2="50" y2="85" stroke="#D4AF37" stroke-width="2.5"/>
+              <line x1="15" y1="50" x2="28" y2="50" stroke="#D4AF37" stroke-width="2.5"/>
+              <line x1="72" y1="50" x2="85" y2="50" stroke="#D4AF37" stroke-width="2.5"/>
+              <circle cx="50" cy="50" r="8" fill="#D4AF37"/>
+            </svg>
+          </div>
+          <h3>Vastu Science</h3>
+          <p class="power-tagline">100% Compliant</p>
+        </div>
+
+        <div class="power-details">
+          <div class="detail-header">
+            <h4>Ancient Wisdom Applied</h4>
+            <span class="detail-badge">5 Elements</span>
+          </div>
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-icon">🧭</span>
+              <div>
+                <strong>Directional Energy</strong>
+                <p>Perfect alignment with North, South, East, West</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">⚖️</span>
+              <div>
+                <strong>Panchamahabhuta</strong>
+                <p>Balance of Earth, Water, Fire, Air, Space</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">🌊</span>
+              <div>
+                <strong>Energy Flow</strong>
+                <p>Optimized pathways for positive vibrations</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">🏠</span>
+              <div>
+                <strong>Sacred Geometry</strong>
+                <p>Proportions based on ancient texts</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Power Point 3: Astro Alignment (BOTTOM RIGHT) -->
+      <div class="power-point point-right" data-power="astro">
+        <div class="power-compact">
+          <div class="power-icon-svg">
+            <svg viewBox="0 0 100 100" width="60" height="60">
+              <circle cx="50" cy="50" r="35" fill="none" stroke="#D4AF37" stroke-width="3"/>
+              <line x1="50" y1="15" x2="50" y2="20" stroke="#D4AF37" stroke-width="2"/>
+              <line x1="75" y1="25" x2="71" y2="29" stroke="#D4AF37" stroke-width="1.5"/>
+              <line x1="85" y1="50" x2="80" y2="50" stroke="#D4AF37" stroke-width="2"/>
+              <line x1="75" y1="75" x2="71" y2="71" stroke="#D4AF37" stroke-width="1.5"/>
+              <line x1="50" y1="85" x2="50" y2="80" stroke="#D4AF37" stroke-width="2"/>
+              <line x1="25" y1="75" x2="29" y2="71" stroke="#D4AF37" stroke-width="1.5"/>
+              <line x1="15" y1="50" x2="20" y2="50" stroke="#D4AF37" stroke-width="2"/>
+              <line x1="25" y1="25" x2="29" y2="29" stroke="#D4AF37" stroke-width="1.5"/>
+              <path d="M 50 38 L 52 44 L 58 44 L 53 48 L 55 54 L 50 50 L 45 54 L 47 48 L 42 44 L 48 44 Z" fill="#D4AF37"/>
+              <circle cx="38" cy="38" r="2.5" fill="#FFD700"/>
+              <circle cx="62" cy="38" r="2" fill="#87CEEB"/>
+              <circle cx="62" cy="62" r="1.5" fill="#FF69B4"/>
+            </svg>
+          </div>
+          <h3>Astro Alignment</h3>
+          <p class="power-tagline">Cosmic Design</p>
+        </div>
+
+        <div class="power-details">
+          <div class="detail-header">
+            <h4>Celestial Harmony</h4>
+            <span class="detail-badge">12 Zodiac Signs</span>
+          </div>
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-icon">♈</span>
+              <div>
+                <strong>Birth Chart Reading</strong>
+                <p>Personalized analysis for each family member</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">🌙</span>
+              <div>
+                <strong>Planetary Positions</strong>
+                <p>9 planets influencing room placement</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">⭐</span>
+              <div>
+                <strong>Profession Optimization</strong>
+                <p>Career-boosting directional alignment</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <span class="detail-icon">🔮</span>
+              <div>
+                <strong>Auspicious Timing</strong>
+                <p>Best moments for key decisions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Clickable Area -->
+      <div class="triangle-center-clickable" id="triangleCenterClick"></div>
+
+      <!-- Top line overlay (visible above box) -->
+      <svg viewBox="0 0 600 600" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; height: 90%; z-index: 15; pointer-events: none;">
+        <defs>
+          <linearGradient id="goldTop" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <!-- Full line from center to top vertex with same animation -->
+        <line class="center-line line-top" x1="300" y1="300" x2="300" y2="80" stroke="url(#goldTop)" stroke-width="2.5" opacity="0.6"/>
+      </svg>
+
+      <!-- Center Label (Hidden by default, shows on click) -->
+      <div class="triangle-center-label" id="triangleCenterLabel">
+        <div class="center-label-content">
+          <h4>✨ The Perfect Synergy ✨</h4>
+          <p>Where luxury design, Vastu science, and astrological wisdom unite to create spaces that transform lives</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 4: What I Create - Services Showcase -->
+  <section id="what-i-create" class="story-section services-showcase" style="background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%); padding: 80px 20px; position: relative;">
+    <h2 class="section-title-center handwritten-big" style="color: #D4AF37;">What I Create</h2>
+    <p class="section-subtitle-center" style="font-size: 18px; color: rgba(255,255,255,0.8); margin-bottom: 40px;">Interior design solutions—residential to commercial</p>
+
+    <!-- Category Quick Links -->
+    <div class="services-categories" style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 40px;">
+      <button type="button" class="cat-btn-dream active" data-category="all" style="padding: 12px 30px; background: rgba(212, 175, 55, 0.2); border: 2px solid #D4AF37; border-radius: 25px; color: #D4AF37; font-weight: 600; cursor: pointer; transition: all 0.3s;">All</button>
+      <button type="button" class="cat-btn-dream" data-category="commercial" style="padding: 12px 30px; background: rgba(255,255,255,0.1); border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 25px; color: rgba(255,255,255,0.8); font-weight: 600; cursor: pointer; transition: all 0.3s;">Commercial</button>
+      <button type="button" class="cat-btn-dream" data-category="residential" style="padding: 12px 30px; background: rgba(255,255,255,0.1); border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 25px; color: rgba(255,255,255,0.8); font-weight: 600; cursor: pointer; transition: all 0.3s;">Residential</button>
+      <button type="button" class="cat-btn-dream" data-category="hospitality" style="padding: 12px 30px; background: rgba(255,255,255,0.1); border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 25px; color: rgba(255,255,255,0.8); font-weight: 600; cursor: pointer; transition: all 0.3s;">Hospitality</button>
+      <button type="button" class="cat-btn-dream" data-category="more" style="padding: 12px 30px; background: rgba(255,255,255,0.1); border: 2px solid rgba(212, 175, 55, 0.3); border-radius: 25px; color: rgba(255,255,255,0.8); font-weight: 600; cursor: pointer; transition: all 0.3s;">More</button>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="services-dream-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+
+      <!-- Commercial Interior -->
+      <div class="service-dream-card" data-category="commercial" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 10.jpg" alt="Commercial Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Commercial Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Workspaces for productivity & brand identity</p>
+      </div>
+
+      <!-- Hospitality Interior -->
+      <div class="service-dream-card" data-category="hospitality" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 18.jpg" alt="Hospitality Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Hospitality Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Inviting atmospheres for hotels & spaces</p>
+      </div>
+
+      <!-- Sustainable Interior -->
+      <div class="service-dream-card" data-category="more" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 19.jpg" alt="Sustainable Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Sustainable Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Eco-friendly designs & materials</p>
+      </div>
+
+      <!-- Residential Interior -->
+      <div class="service-dream-card" data-category="residential" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 4.jpeg" alt="Residential Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Residential Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Personalized haven of comfort</p>
+      </div>
+
+      <!-- Loose Furniture -->
+      <div class="service-dream-card" data-category="more" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 6.jpg" alt="Loose Furniture" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Loose Furniture</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Curated furniture for your space</p>
+      </div>
+
+      <!-- Cafes Interior -->
+      <div class="service-dream-card" data-category="hospitality" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 2.jpg" alt="Cafes Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Cafes Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Cozy café environments</p>
+      </div>
+
+      <!-- Office Interior -->
+      <div class="service-dream-card" data-category="commercial" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 11.jpeg" alt="Office Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Office Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Spaces for creativity & efficiency</p>
+      </div>
+
+      <!-- Villa Interior -->
+      <div class="service-dream-card" data-category="residential" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 1.jpeg" alt="Villa Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Villa Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Luxurious bespoke solutions</p>
+      </div>
+
+      <!-- Hotel Interior -->
+      <div class="service-dream-card" data-category="hospitality" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 15.jpg" alt="Hotel Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Hotel Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Sophisticated hotel spaces</p>
+      </div>
+
+      <!-- Showrooms Interior -->
+      <div class="service-dream-card" data-category="commercial" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 8.jpg" alt="Showrooms Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Showrooms Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Impactful product displays</p>
+      </div>
+
+      <!-- Modular Kitchens -->
+      <div class="service-dream-card" data-category="residential" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 9.jpg" alt="Modular Kitchens" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Modular Kitchens</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Stylish kitchens for your lifestyle</p>
+      </div>
+
+      <!-- Restaurant Interior -->
+      <div class="service-dream-card" data-category="hospitality" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 16.jpg" alt="Restaurant Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Restaurant Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Memorable dining experiences</p>
+      </div>
+
+      <!-- Renovations -->
+      <div class="service-dream-card" data-category="more" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 17.jpeg" alt="Renovations" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Renovations</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Expert renovation solutions</p>
+      </div>
+
+      <!-- Retail Interior -->
+      <div class="service-dream-card" data-category="commercial" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 8.jpg" alt="Retail Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Retail Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Strategic retail space design</p>
+      </div>
+
+      <!-- Apartment Interior -->
+      <div class="service-dream-card" data-category="residential" style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); transition: all 0.3s;">
+        <div class="service-dream-img" style="position: relative;">
+          <img src="assets/img/services/File 4.jpeg" alt="Apartment Interior" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+          <div class="service-dream-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.7); opacity: 0; transition: all 0.3s; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+            <a href="/contact" style="color: #D4AF37; font-size: 40px; text-decoration: none;">→</a>
+          </div>
+        </div>
+        <h4 style="font-family: 'Playfair Display', serif; color: #D4AF37; margin: 15px 0 8px; font-size: 22px;">Apartment Interior</h4>
+        <p style="color: rgba(255,255,255,0.9); font-size: 15px; margin: 0;">Smart solutions for urban living</p>
       </div>
 
     </div>
 
-  </header><!-- End Header -->
+    <div class="gallery-cta" style="text-align: center; margin-top: 50px;">
+      <a href="/services" class="btn-dream-primary" style="display: inline-block; padding: 18px 45px; background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%); color: #fff; text-decoration: none; border-radius: 30px; font-size: 18px; font-weight: 600; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); transition: all 0.3s;">
+        <span>View All Services</span>
+      </a>
+    </div>
+  </section>
 
-  <!-- ======= Hero Section ======= -->
-  <section id="hero" class="d-flex align-items-center">
-    
-    <div class="container d-flex flex-column align-items-center" data-aos="zoom-in" data-aos-delay="100">
-      <a style="color:green; font-size: 40px;"><b>Hi, I am</b></a>
-      <h1>Anshika Rastogi</h1>
-      <h2>A professional <span><b>Interior Designer</b></span> and <span><b>Interior Consultant</b></span> from India</h2>
-      <h2>A creative <span style="font-family:Verdana, Geneva, Tahoma, sans-serif;"><b>Artist</b></span>, Love to paint my thoughts on Canvas and Walls </h2>
-      <h2>A beautiful <span><b>Classical Dancer</b></span></h2>
-      <h2></h2>
-      <a href="about.html" class="btn-about">About Me</a>
-      <br><br>
-      <div class="row">
-        <div class="column">
-          <a href="https://bni-secunderabad.in/en-IN/memberdetails?encryptedMemberId=vBkpqJRWhMsZCygaZ29hew%3D%3D&name=Anshika+Rastogi?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget?utm_medium=referral&utm_source=en-IN&utm_campaign=seller-pro-widget&utm_content=seller-pro-widget" class="logo"><img src="assets/img/bni.png" alt="" class="img-fluid", width="160" ></a>
-          </div>
-          <div class="column">
-            <a href='https://www.bark.com/en/in/company/anshika-rastogi/QlQ9N/' target='_blank' class='bark-widget' data-type='pro' data-id='QlQ9N' data-image='small-gold' data-version='3.0'>Anshika Rastogi</a><script type='text/javascript' src='https://d3a1eo0ozlzntn.cloudfront.net/assets/js/frontend-v2/widgets-v2.24a197bed6.v2.js' defer></script>
-          </div>
-      </div>
-     </div>
-  </section><!-- End Hero -->
+  <!-- Trust & Transparency Section - Compact Version -->
+  <section id="trust-transparency" class="story-section" style="background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%); padding: 60px 20px; position: relative; overflow: hidden;">
 
-  <!-- ======= Footer ======= -->
-  <footer id="footer">
-    <div class="container">
-      <div class="copyright">
-        &copy; Copyright <strong><span>Anshika Rastogi</span></strong>. All Rights Reserved
+    <div style="max-width: 1200px; margin: 0 auto;">
+
+      <!-- Compact Header -->
+      <div style="text-align: center; margin-bottom: 50px;">
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 42px; color: #2C2C2C; margin: 0 0 15px 0; line-height: 1.2;">
+          <span style="background: linear-gradient(135deg, #D4AF37 0%, #FFA500 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">100% Transparency</span> at Every Step
+        </h2>
+        <p style="font-size: 18px; color: #666; max-width: 650px; margin: 0 auto;">
+          Live portal tracking • 24/7 CCTV monitoring • 100+ professionals
+        </p>
       </div>
-      <div class="credits">
-        <!-- All the links in the footer should remain intact. -->
-        <!-- You can delete the links only if you purchased the pro version. -->
-        <!-- Licensing information: https://bootstrapmade.com/license/ -->
-        <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/kelly-free-bootstrap-cv-resume-html-template/ -->
-         <!--Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>-->
-         <a href="sitemap.xml" target="_blank">Sitemap</a>
+
+      <!-- Compact Three Column Layout -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px;">
+
+        <!-- Portal -->
+        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 20px; padding: 30px; text-align: center; position: relative;">
+          <div style="width: 70px; height: 70px; background: radial-gradient(circle, rgba(212, 175, 55, 0.3), transparent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px;">💻</div>
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 24px; color: #D4AF37; margin-bottom: 15px;">Your Portal</h3>
+          <div style="text-align: left; display: grid; gap: 10px;">
+            <div style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.4;">📊 Live project updates</div>
+            <div style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.4;">💰 Transparent billing</div>
+            <div style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.4;">✅ Instant approvals</div>
+          </div>
+          <div style="position: absolute; top: -10px; right: -10px; background: #4CAF50; color: white; padding: 6px 15px; border-radius: 15px; font-size: 11px; font-weight: 600;">● LIVE</div>
+        </div>
+
+        <!-- CCTV -->
+        <div style="background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 2px solid rgba(212, 175, 55, 0.2); position: relative;">
+          <div style="width: 70px; height: 70px; border: 3px dashed rgba(212, 175, 55, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: rotateRing 10s linear infinite;">
+            <div style="width: 50px; height: 50px; background: radial-gradient(circle, #D4AF37, #FFA500); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px;">👁️</div>
+          </div>
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 24px; color: #2C2C2C; margin-bottom: 12px;">24/7 Watch</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #f8f8f8; padding: 12px; border-radius: 8px; font-size: 11px;">
+              <div style="font-size: 24px; margin-bottom: 5px;">📹</div>
+              <div style="font-weight: 600; color: #2C2C2C;">Multi-Angle</div>
+            </div>
+            <div style="background: #f8f8f8; padding: 12px; border-radius: 8px; font-size: 11px;">
+              <div style="font-size: 24px; margin-bottom: 5px;">🎬</div>
+              <div style="font-weight: 600; color: #2C2C2C;">Recordings</div>
+            </div>
+            <div style="background: #f8f8f8; padding: 12px; border-radius: 8px; font-size: 11px;">
+              <div style="font-size: 24px; margin-bottom: 5px;">🔍</div>
+              <div style="font-weight: 600; color: #2C2C2C;">Quality</div>
+            </div>
+            <div style="background: #f8f8f8; padding: 12px; border-radius: 8px; font-size: 11px;">
+              <div style="font-size: 24px; margin-bottom: 5px;">🛡️</div>
+              <div style="font-weight: 600; color: #2C2C2C;">Safety</div>
+            </div>
+          </div>
+          <div style="position: absolute; top: -10px; left: -10px; background: #ff3b3b; color: white; padding: 6px 15px; border-radius: 15px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+            <span style="width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 2s ease-in-out infinite;"></span>REC
+          </div>
+        </div>
+
+        <!-- Team -->
+        <div style="background: linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%); border-radius: 20px; padding: 30px; text-align: center;">
+          <div style="font-size: 50px; margin-bottom: 15px;">👥</div>
+          <h3 style="font-family: 'Playfair Display', serif; font-size: 24px; color: #D4AF37; margin-bottom: 15px;">100+ Team</h3>
+          <div style="text-align: left; display: grid; gap: 10px;">
+            <div style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.4;">🎯 Project leaders</div>
+            <div style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.4;">🔨 Master craftsmen</div>
+            <div style="color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.4;">✨ Quality experts</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Banner -->
+      <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 165, 0, 0.1)); padding: 30px 40px; border-radius: 20px; text-align: center; border: 2px solid rgba(212, 175, 55, 0.3);">
+        <p style="font-size: 18px; color: #2C2C2C; margin-bottom: 20px; line-height: 1.6;">
+          <strong style="color: #D4AF37;">Your dream deserves complete transparency.</strong> Every rupee tracked, every moment monitored, every detail managed by our 100+ professionals through your personal portal.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+          <div style="text-align: center;">
+            <div style="font-size: 32px; color: #D4AF37; font-weight: 700;">100+</div>
+            <div style="font-size: 12px; color: #666;">Professionals</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 32px; color: #D4AF37; font-weight: 700;">24/7</div>
+            <div style="font-size: 12px; color: #666;">Monitoring</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 32px; color: #D4AF37; font-weight: 700;">100%</div>
+            <div style="font-size: 12px; color: #666;">Transparent</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Story 5: The Secret Sauce -->
+  <section id="secret-sauce" class="story-section light-section">
+    <div class="secret-container">
+      <div class="secret-badge">The Anshika Difference</div>
+
+      <h2 class="secret-title">
+        I don't just place furniture.<br>
+        I align your space with <span class="rainbow-text">your destiny</span>.
+      </h2>
+
+      <div class="secret-features">
+        <div class="feature-card">
+          <div class="feature-emoji">🏡</div>
+          <h3>Profession-Based Design</h3>
+          <p>Your home office faces the direction that boosts YOUR career specifically</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">⭐</div>
+          <h3>Birth Chart Integration</h3>
+          <p>Each family member gets a room aligned with their astrological energies</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">🧭</div>
+          <h3>100% Vastu Compliant</h3>
+          <p>Not just "Vastu-inspired"—fully compliant for maximum harmony</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">💎</div>
+          <h3>End-to-End Luxury</h3>
+          <p>From concept to installation, every detail perfected</p>
+        </div>
       </div>
     </div>
-  </footer><!-- End  Footer -->
+  </section>
 
-  <div id="preloader"></div>
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+  <!-- Story 6: Process Timeline -->
+  <section id="process" class="story-section timeline-section">
+    <h2 class="section-title-center">How Your Dream Becomes Reality</h2>
 
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
-  <script src="assets/vendor/aos/aos.js"></script>
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-  <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
+    <div class="timeline-path">
+      <div class="timeline-step" data-step="1">
+        <div class="step-bubble">
+          <span class="step-number">1</span>
+        </div>
+        <div class="step-content">
+          <h3>We Dream Together</h3>
+          <p>I listen to your story, understand your family, analyze birth charts & professions</p>
+        </div>
+      </div>
 
-  <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
+      <div class="timeline-connector"></div>
+
+      <div class="timeline-step" data-step="2">
+        <div class="step-bubble">
+          <span class="step-number">2</span>
+        </div>
+        <div class="step-content">
+          <h3>I Sketch Your Vision</h3>
+          <p>Creating Vastu-aligned floor plans with profession-optimized room placements</p>
+        </div>
+      </div>
+
+      <div class="timeline-connector"></div>
+
+      <div class="timeline-step" data-step="3">
+        <div class="step-bubble">
+          <span class="step-number">3</span>
+        </div>
+        <div class="step-content">
+          <h3>We Paint It Real</h3>
+          <p>3D visualizations, mood boards, material selection—bringing color to the dream</p>
+        </div>
+      </div>
+
+      <div class="timeline-connector"></div>
+
+      <div class="timeline-step" data-step="4">
+        <div class="step-bubble">
+          <span class="step-number">4</span>
+        </div>
+        <div class="step-content">
+          <h3>You Live The Dream</h3>
+          <p>Flawless execution, quality checks, final styling—your dream home, ready</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final: Call to Dream -->
+  <section id="final-dream" class="story-section dream-cta-section">
+    <div class="stars-background"></div>
+
+    <div class="final-content">
+      <h2 class="final-title">
+        <span class="handwritten-massive">Ready to</span><br>
+        <span class="handwritten-massive highlight">Build Your Dream?</span>
+      </h2>
+
+      <p class="final-text">
+        Let's create a space that looks stunning, feels right, and supports your family's success.
+      </p>
+
+      <div class="final-buttons">
+        <a href="/contact" class="btn-dream-primary">
+          <span>Start My Journey</span>
+          <div class="btn-sparkles">✨</div>
+        </a>
+
+        <a href="/portfolio" class="btn-dream-secondary">
+          <span>See Dream Homes</span>
+        </a>
+      </div>
+
+      <div class="final-social">
+        <a href="https://www.instagram.com/anshikarastogi07/" target="_blank" class="social-bubble">
+          <i class="bi bi-instagram"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/" target="_blank" class="social-bubble">
+          <i class="bi bi-linkedin"></i>
+        </a>
+        <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank" class="social-bubble">
+          <i class="bi bi-whatsapp"></i>
+        </a>
+        <a href="tel:+919557058902" class="social-bubble">
+          <i class="bi bi-telephone"></i>
+        </a>
+      </div>
+
+      <div class="signature">
+        <p>With love & creativity,</p>
+        <p class="signature-name">Anshika ✨</p>
+      </div>
+    </div>
+  </section>
+
+  <script src="assets/js/dreams.js?v=5"></script>
 
 </body>
 
