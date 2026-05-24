@@ -529,6 +529,7 @@
                 border: 2px solid rgba(212, 175, 55, 0.6) !important;
                 overflow: visible !important;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
+                transition: none !important;
               `;
 
               // Log computed styles
@@ -542,14 +543,34 @@
                 });
               }, 100);
 
-              // Create close button
+              // Create close button with inline styles
               const closeBtn = document.createElement('button');
               closeBtn.className = 'power-modal-close';
               closeBtn.innerHTML = '×';
               closeBtn.setAttribute('aria-label', 'Close modal');
+              closeBtn.style.cssText = `
+                position: absolute !important;
+                top: 20px !important;
+                right: 20px !important;
+                width: 44px !important;
+                height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+                border: none !important;
+                border-radius: 50% !important;
+                color: #000 !important;
+                font-size: 32px !important;
+                font-weight: 700 !important;
+                line-height: 1 !important;
+                z-index: 10001 !important;
+                box-shadow: 0 4px 16px rgba(255, 215, 0, 0.6) !important;
+                cursor: pointer !important;
+              `;
               details.appendChild(closeBtn);
 
-              console.log('[MOBILE TRIANGLE] Close button created');
+              console.log('[MOBILE TRIANGLE] Close button created and styled');
 
               // Close button click
               closeBtn.addEventListener('click', function(e) {
