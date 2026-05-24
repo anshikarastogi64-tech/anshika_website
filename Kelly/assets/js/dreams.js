@@ -454,8 +454,11 @@
       }
     });
 
-    // Mobile: Click to open modal with backdrop
-    if (window.innerWidth <= 768) {
+    // Mobile: Click to open modal with backdrop (only on touch devices OR narrow screens)
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const isMobileWidth = window.innerWidth <= 768;
+
+    if (isMobileWidth && isTouchDevice) {
       const powerPoints = document.querySelectorAll('.power-point');
       const triangleContainer = document.querySelector('.triangle-container');
 

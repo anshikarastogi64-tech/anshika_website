@@ -1108,22 +1108,30 @@ svg line.line-top {
 
 /* DESKTOP HOVER FORCE - Highest priority */
 @media (min-width: 769px) {
-  #magic-triangle .power-point:hover .power-details,
-  #magic-triangle .point-top:hover .power-details,
-  #magic-triangle .point-left:hover .power-details,
-  #magic-triangle .point-right:hover .power-details {
+  section#magic-triangle .power-point:hover .power-details,
+  section#magic-triangle .point-top:hover .power-details,
+  section#magic-triangle .point-left:hover .power-details,
+  section#magic-triangle .point-right:hover .power-details {
+    display: block !important;
     max-height: 600px !important;
     opacity: 1 !important;
+    visibility: visible !important;
     pointer-events: auto !important;
     z-index: 200 !important;
   }
 
-  #magic-triangle .point-top:hover .power-details {
+  section#magic-triangle .point-top:hover .power-details {
     transform: translateX(-50%) translateY(0) !important;
   }
 
-  #magic-triangle .point-left:hover .power-details,
-  #magic-triangle .point-right:hover .power-details {
+  section#magic-triangle .point-left:hover .power-details,
+  section#magic-triangle .point-right:hover .power-details {
     transform: translateX(-50%) translateY(0) !important;
+  }
+
+  section#magic-triangle .power-point:hover,
+  section#magic-triangle .point-left:hover,
+  section#magic-triangle .point-right:hover {
+    z-index: 150 !important;
   }
 }
