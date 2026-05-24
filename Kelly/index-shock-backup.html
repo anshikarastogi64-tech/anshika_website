@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Anshika Rastogi - Where Art Meets Architecture</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP + Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/SplitText.min.js"></script>
+
+  <!-- Three.js for particles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Bootstrap Icons -->
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --gold: #D4AF37;
+      --black: #000000;
+      --white: #FFFFFF;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #000;
+      color: #fff;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* MAGNETIC CURSOR */
+    #cursor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999999;
+      mix-blend-mode: difference;
+      transition: all 0.15s ease;
+    }
+
+    #cursor-blur {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      background: var(--gold);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999998;
+      opacity: 0.3;
+      filter: blur(20px);
+      transition: all 0.2s ease;
+    }
+
+    #cursor.hover {
+      width: 60px;
+      height: 60px;
+      background: rgba(212, 175, 55, 0.2);
+    }
+
+    /* CANVAS PARTICLES */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* LOADING SCREEN - CINEMA STYLE */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    #loading-screen.hide {
+      animation: loadingOut 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    }
+
+    @keyframes loadingOut {
+      to {
+        clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+        opacity: 0;
+      }
+    }
+
+    .loading-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 120px;
+      font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 20px;
+      margin-bottom: 40px;
+    }
+
+    .loading-bar {
+      width: 400px;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loading-progress {
+      position: absolute;
+      height: 100%;
+      width: 0;
+      background: var(--gold);
+      animation: loadProgress 2s ease-in-out forwards;
+    }
+
+    @keyframes loadProgress {
+      to { width: 100%; }
+    }
+
+    /* HEADER - MINIMAL */
+    #header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      padding: 40px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      mix-blend-mode: difference;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      color: #fff;
+    }
+
+    .menu-btn {
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: #fff;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    /* SECTION 1: HERO - FULL SCREEN VIDEO */
+    .section-hero {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #hero-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      filter: brightness(0.4);
+    }
+
+    .hero-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 140px;
+      font-weight: 300;
+      line-height: 1.1;
+      color: #fff;
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+
+    .hero-title .word {
+      display: inline-block;
+      overflow: hidden;
+    }
+
+    .hero-title .char {
+      display: inline-block;
+      transform: translateY(200px);
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      opacity: 0;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+      margin: 20px auto 0;
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { transform: translateY(0); opacity: 1; }
+      50% { transform: translateY(20px); opacity: 0.3; }
+    }
+
+    /* SECTION 2: SPLIT SCREEN REVEAL */
+    .section-split {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .split-left, .split-right {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .split-left {
+      left: 0;
+      background: url('assets/img/hero-bg.jpg') center/cover;
+    }
+
+    .split-right {
+      right: 0;
+      background: url('assets/img/about.jpg') center/cover;
+    }
+
+    .split-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+    }
+
+    .split-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      width: 80%;
+    }
+
+    .split-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 80px;
+      font-weight: 300;
+      color: #fff;
+      margin-bottom: 30px;
+    }
+
+    .split-text {
+      font-size: 20px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* SECTION 3: PROFILE REVEAL */
+    .section-profile {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .profile-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      max-width: 1400px;
+      padding: 0 60px;
+    }
+
+    .profile-image-wrapper {
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+
+    .profile-image {
+      width: 100%;
+      height: 700px;
+      object-fit: cover;
+      transform: scale(1.3);
+    }
+
+    .profile-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .profile-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 80px;
+      font-weight: 300;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    .profile-title {
+      font-size: 16px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 40px;
+    }
+
+    .profile-bio {
+      font-size: 20px;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 40px;
+    }
+
+    .profile-badges {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 15px 30px;
+      border: 1px solid var(--gold);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      transition: all 0.4s ease;
+    }
+
+    .badge:hover {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* SECTION 4: SERVICES CAROUSEL */
+    .section-services {
+      position: relative;
+      width: 100vw;
+      min-height: 100vh;
+      background: #000;
+      padding: 150px 0;
+    }
+
+    .services-header {
+      text-align: center;
+      margin-bottom: 100px;
+    }
+
+    .services-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 100px;
+      font-weight: 300;
+      color: #fff;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .service-item {
+      position: relative;
+      height: 600px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .service-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    .service-item:hover .service-bg {
+      transform: scale(1.1);
+    }
+
+    .service-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.9));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 60px;
+    }
+
+    .service-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 100px;
+      font-weight: 300;
+      color: var(--gold);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+
+    .service-name {
+      font-size: 32px;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 15px;
+    }
+
+    .service-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.6;
+    }
+
+    /* SECTION 5: SIGNATURE APPROACH */
+    .section-signature {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .signature-content {
+      text-align: center;
+      max-width: 1000px;
+      padding: 0 60px;
+    }
+
+    .signature-badge {
+      display: inline-block;
+      padding: 15px 40px;
+      border: 2px solid #000;
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #000;
+      margin-bottom: 60px;
+    }
+
+    .signature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 100px;
+      font-weight: 300;
+      color: #000;
+      line-height: 1.2;
+      margin-bottom: 40px;
+    }
+
+    .signature-text {
+      font-size: 24px;
+      line-height: 1.8;
+      color: rgba(0,0,0,0.8);
+    }
+
+    /* SECTION 6: FINAL CTA */
+    .section-cta {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cta-content {
+      text-align: center;
+    }
+
+    .cta-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 120px;
+      font-weight: 300;
+      color: #fff;
+      margin-bottom: 60px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      padding: 25px 80px;
+      border: 2px solid var(--gold);
+      font-size: 14px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-decoration: none;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gold);
+      transition: left 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+      z-index: -1;
+    }
+
+    .cta-btn:hover::before {
+      left: 0;
+    }
+
+    .cta-btn:hover {
+      color: #000;
+    }
+
+    .social-links {
+      margin-top: 80px;
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+    }
+
+    .social-links a {
+      color: rgba(255,255,255,0.6);
+      font-size: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .social-links a:hover {
+      color: var(--gold);
+      transform: translateY(-5px);
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      body { cursor: auto; }
+      #cursor, #cursor-blur { display: none; }
+
+      .hero-title { font-size: 60px; }
+      .split-title { font-size: 50px; }
+      .profile-name { font-size: 50px; }
+      .services-title { font-size: 60px; }
+      .signature-title { font-size: 60px; }
+      .cta-title { font-size: 60px; }
+
+      .profile-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .split-left, .split-right {
+        width: 100%;
+      }
+
+      .split-right {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- MAGNETIC CURSOR -->
+  <div id="cursor"></div>
+  <div id="cursor-blur"></div>
+
+  <!-- PARTICLES CANVAS -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="loading-logo">ANSHIKA</div>
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="logo">AR</div>
+    <div class="menu-btn">MENU</div>
+  </div>
+
+  <!-- SECTION 1: HERO -->
+  <section class="section-hero">
+    <video id="hero-video" autoplay muted loop playsinline>
+      <source src="https://assets.mixkit.co/videos/preview/mixkit-luxury-home-interior-26133-large.mp4" type="video/mp4">
+    </video>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <div class="word"><span class="char">W</span><span class="char">H</span><span class="char">E</span><span class="char">R</span><span class="char">E</span></div>
+        <div class="word"><span class="char">A</span><span class="char">R</span><span class="char">T</span></div>
+        <br>
+        <div class="word"><span class="char">M</span><span class="char">E</span><span class="char">E</span><span class="char">T</span><span class="char">S</span></div>
+        <br>
+        <div class="word"><span class="char">A</span><span class="char">R</span><span class="char">C</span><span class="char">H</span><span class="char">I</span><span class="char">T</span><span class="char">E</span><span class="char">C</span><span class="char">T</span><span class="char">U</span><span class="char">R</span><span class="char">E</span></div>
+      </h1>
+      <p class="hero-subtitle">Interior Design • Vastu • Astrology</p>
+    </div>
+    <div class="scroll-indicator">
+      <div>Scroll to explore</div>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: SPLIT SCREEN -->
+  <section class="section-split">
+    <div class="split-left">
+      <div class="split-overlay"></div>
+    </div>
+    <div class="split-right">
+      <div class="split-overlay"></div>
+    </div>
+    <div class="split-content">
+      <h2 class="split-title">Spaces That Tell Stories</h2>
+      <p class="split-text">
+        Every room, every corner, every detail—designed to reflect your essence.<br>
+        Blending contemporary luxury with ancient Vastu wisdom.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 3: PROFILE -->
+  <section class="section-profile">
+    <div class="profile-container">
+      <div class="profile-image-wrapper">
+        <img src="assets/img/profile.jpg" alt="Anshika Rastogi" class="profile-image" onerror="this.src='assets/img/me.png'">
+      </div>
+      <div class="profile-text">
+        <h2 class="profile-name">Anshika<br>Rastogi</h2>
+        <p class="profile-title">Principal Designer</p>
+        <p class="profile-bio">
+          With a rare blend of artistic vision and scientific precision, I create interiors
+          that don't just look extraordinary—they feel right. Every space is aligned with
+          Vastu principles and your unique astrological blueprint.
+        </p>
+        <div class="profile-badges">
+          <div class="badge">Luxury Interiors</div>
+          <div class="badge">Vastu Expert</div>
+          <div class="badge">Astro Consultant</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: SERVICES -->
+  <section class="section-services">
+    <div class="services-header">
+      <h2 class="services-title">What We Create</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-item">
+        <div class="service-bg" style="background-image: url('assets/img/hero-bg.jpg');"></div>
+        <div class="service-overlay">
+          <div class="service-number">01</div>
+          <h3 class="service-name">Residential Luxury</h3>
+          <p class="service-desc">Bespoke homes where every detail reflects your lifestyle and aspirations.</p>
+        </div>
+      </div>
+      <div class="service-item">
+        <div class="service-bg" style="background-image: url('assets/img/about.jpg');"></div>
+        <div class="service-overlay">
+          <div class="service-number">02</div>
+          <h3 class="service-name">Commercial Spaces</h3>
+          <p class="service-desc">Offices and retail environments that inspire and elevate your brand.</p>
+        </div>
+      </div>
+      <div class="service-item">
+        <div class="service-bg" style="background-image: url('assets/img/hero-bg.jpg');"></div>
+        <div class="service-overlay">
+          <div class="service-number">03</div>
+          <h3 class="service-name">Vastu & Astro Design</h3>
+          <p class="service-desc">100% compliant designs aligned with cosmic energies and your birth chart.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: SIGNATURE -->
+  <section class="section-signature">
+    <div class="signature-content">
+      <div class="signature-badge">Our Signature</div>
+      <h2 class="signature-title">Every space designed for<br>your profession, your destiny</h2>
+      <p class="signature-text">
+        I'm one of the few designers who seamlessly blend luxury with ancient sciences—
+        ensuring your home supports your success, health, and happiness.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 6: CTA -->
+  <section class="section-cta">
+    <div class="cta-content">
+      <h2 class="cta-title">Let's Create<br>Something<br>Extraordinary</h2>
+      <a href="contact.html" class="cta-btn">Start Your Journey</a>
+      <div class="social-links">
+        <a href="https://www.instagram.com/anshikarastogi07/" target="_blank"><i class="bi bi-instagram"></i></a>
+        <a href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/" target="_blank"><i class="bi bi-linkedin"></i></a>
+        <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank"><i class="bi bi-whatsapp"></i></a>
+        <a href="tel:+919557058902"><i class="bi bi-telephone"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <script src="assets/js/shock.js"></script>
+
+</body>
+
+</html>

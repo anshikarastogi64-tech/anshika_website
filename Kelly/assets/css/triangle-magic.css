@@ -536,8 +536,8 @@
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 240px !important;
-    height: 240px !important;
+    width: 280px !important;
+    height: 280px !important;
     z-index: 2 !important;
     pointer-events: none !important;
     opacity: 1 !important;
@@ -548,15 +548,43 @@
   .magic-triangle-svg * {
     animation: none !important;
     animation-play-state: paused !important;
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
   }
 
-  /* Hide decorative elements */
+  /* Show the triangle lines fully */
+  .magic-triangle-svg .triangle-path,
+  .magic-triangle-svg .center-line,
+  .magic-triangle-svg line,
+  .magic-triangle-svg circle {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Hide decorative elements BUT KEEP GLOBE */
   .triangle-bg-elements,
   .floating-symbol,
-  .triangle-center-clickable,
   .triangle-center-label {
     display: none !important;
     visibility: hidden !important;
+  }
+
+  /* SHOW the center globe on mobile */
+  .triangle-center-clickable {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 70px !important;
+    height: 70px !important;
+    z-index: 25 !important;
+  }
+
+  .triangle-center-clickable::after {
+    font-size: 35px !important;
   }
 
   /* ========================================
@@ -684,17 +712,17 @@
 
   /* Header */
   .power-point .detail-header {
-    padding: 14px 12px !important;
-    background: rgba(255, 215, 0, 0.12) !important;
+    padding: 16px 14px !important;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
     border-radius: 18px 18px 0 0 !important;
-    border-bottom: 2px solid rgba(255, 215, 0, 0.3) !important;
+    border-bottom: 2px solid #D4AF37 !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
   }
 
   .power-point .detail-header h4 {
-    font-size: 15px !important;
+    font-size: 17px !important;
     margin: 0 !important;
     padding-right: 6px !important;
     color: #FFD700 !important;
@@ -703,8 +731,8 @@
   }
 
   .power-point .detail-badge {
-    font-size: 9px !important;
-    padding: 4px 8px !important;
+    font-size: 10px !important;
+    padding: 5px 10px !important;
     background: #FFD700 !important;
     border-radius: 10px !important;
     color: #000 !important;
@@ -713,17 +741,21 @@
 
   /* Content */
   .power-point .detail-content {
-    padding: 14px 12px 16px 12px !important;
-    max-height: calc(70vh - 65px) !important;
+    padding: 16px 14px 18px 14px !important;
+    max-height: calc(70vh - 70px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
   }
 
   .power-point .detail-row {
     display: flex !important;
-    gap: 8px !important;
-    margin-bottom: 11px !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
     align-items: flex-start !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 10px !important;
+    border-radius: 10px !important;
   }
 
   .power-point .detail-row:last-child {
@@ -731,8 +763,8 @@
   }
 
   .power-point .detail-icon {
-    font-size: 19px !important;
-    width: 24px !important;
+    font-size: 22px !important;
+    width: 28px !important;
     text-align: center !important;
     flex-shrink: 0 !important;
   }
@@ -743,38 +775,40 @@
 
   .power-point .detail-row strong {
     display: block !important;
-    font-size: 11.5px !important;
-    margin-bottom: 3px !important;
-    color: #fff !important;
-    font-weight: 600 !important;
+    font-size: 13px !important;
+    margin-bottom: 4px !important;
+    color: #FFD700 !important;
+    font-weight: 700 !important;
   }
 
   .power-point .detail-row p {
-    font-size: 10.5px !important;
-    line-height: 1.5 !important;
+    font-size: 12px !important;
+    line-height: 1.6 !important;
     margin: 0 !important;
-    color: rgba(255, 255, 255, 0.85) !important;
+    color: #ffffff !important;
   }
 
   /* Close button */
   .power-point.expanded .power-details::after {
     content: '×' !important;
     position: absolute !important;
-    top: 12px !important;
-    right: 12px !important;
-    width: 34px !important;
-    height: 34px !important;
+    top: 14px !important;
+    right: 14px !important;
+    width: 38px !important;
+    height: 38px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: rgba(255, 215, 0, 0.2) !important;
+    background: #FFD700 !important;
     border: 2px solid #FFD700 !important;
     border-radius: 50% !important;
-    color: #FFD700 !important;
-    font-size: 24px !important;
-    font-weight: 400 !important;
+    color: #000 !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
     line-height: 1 !important;
-    z-index: 10 !important;
+    z-index: 100 !important;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5) !important;
+    cursor: pointer !important;
   }
 
   .power-point.expanded .power-details::after:active {

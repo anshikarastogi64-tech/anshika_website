@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>3D House Walkthrough - Anshika Rastogi</title>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- GSAP for camera animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+    }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    /* Loading Screen */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      transition: opacity 1s ease;
+    }
+
+    #loading.loaded {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 64px;
+      font-weight: 700;
+      color: #c9a96e;
+      margin-bottom: 30px;
+      letter-spacing: 8px;
+    }
+
+    .loading-text {
+      font-size: 14px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+
+    .loading-bar {
+      width: 300px;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #c9a96e, #fff);
+      transition: width 0.3s ease;
+    }
+
+    /* UI Overlay */
+    #ui-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      position: absolute;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(20px);
+      padding: 15px 40px;
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #c9a96e;
+      letter-spacing: 2px;
+    }
+
+    .tour-progress {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 1px;
+    }
+
+    .progress-current {
+      color: #c9a96e;
+      font-weight: 600;
+    }
+
+    /* Control Panel */
+    .control-panel {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      pointer-events: all;
+    }
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .control-btn:hover {
+      background: #c9a96e;
+      color: #000;
+      transform: scale(1.1);
+    }
+
+    .control-btn.active {
+      background: #c9a96e;
+      color: #000;
+    }
+
+    .control-btn.large {
+      width: 80px;
+      height: 80px;
+      font-size: 32px;
+    }
+
+    /* Scene Info */
+    .scene-info {
+      position: absolute;
+      bottom: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      max-width: 600px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(20px);
+      padding: 30px 40px;
+      border-radius: 20px;
+      border: 1px solid rgba(201,169,110,0.3);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .scene-info.visible {
+      opacity: 1;
+    }
+
+    .scene-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      color: #c9a96e;
+      margin-bottom: 15px;
+    }
+
+    .scene-description {
+      font-size: 16px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Controls Help */
+    .controls-help {
+      position: absolute;
+      top: 50%;
+      left: 40px;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .controls-help h3 {
+      font-size: 14px;
+      color: #c9a96e;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .key-icon {
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    /* Minimap */
+    .minimap {
+      position: absolute;
+      bottom: 40px;
+      right: 40px;
+      width: 200px;
+      height: 200px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(201,169,110,0.5);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .minimap-content {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .room-indicator {
+      position: absolute;
+      background: rgba(201,169,110,0.3);
+      border: 1px solid #c9a96e;
+      font-size: 10px;
+      color: white;
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-align: center;
+    }
+
+    .camera-position {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #c9a96e;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #c9a96e;
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 768px) {
+      .top-bar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 15px 25px;
+      }
+
+      .controls-help {
+        display: none;
+      }
+
+      .minimap {
+        width: 120px;
+        height: 120px;
+        bottom: 130px;
+        right: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="loading-logo">AR</div>
+    <div class="loading-text">Building Your Dream Home...</div>
+    <div class="loading-bar">
+      <div class="loading-progress" id="loading-progress"></div>
+    </div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- UI Overlay -->
+  <div id="ui-overlay">
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="logo-text">ANSHIKA RASTOGI</div>
+      <div class="tour-progress">
+        <span class="progress-current" id="current-room">Exterior</span>
+        <span> • 3D House Tour</span>
+      </div>
+    </div>
+
+    <!-- Scene Info -->
+    <div class="scene-info" id="scene-info">
+      <h2 class="scene-title" id="info-title">Welcome</h2>
+      <p class="scene-description" id="info-description">
+        Experience a beautifully designed home where luxury meets Vastu harmony
+      </p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <button class="control-btn" id="btn-auto" title="Auto Tour">
+        <i class="bi bi-play-fill"></i>
+      </button>
+      <button class="control-btn large active" id="btn-manual" title="Manual Control">
+        <i class="bi bi-hand-index"></i>
+      </button>
+      <button class="control-btn" id="btn-reset" title="Reset View">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+      <button class="control-btn" id="btn-fullscreen" title="Fullscreen">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
+    </div>
+
+    <!-- Controls Help -->
+    <div class="controls-help">
+      <h3>Controls</h3>
+      <div class="control-item">
+        <div class="key-icon">W</div>
+        <span>Move Forward</span>
+      </div>
+      <div class="control-item">
+        <div class="key-icon">S</div>
+        <span>Move Back</span>
+      </div>
+      <div class="control-item">
+        <div class="key-icon">A</div>
+        <span>Move Left</span>
+      </div>
+      <div class="control-item">
+        <div class="key-icon">D</div>
+        <span>Move Right</span>
+      </div>
+      <div class="control-item">
+        <div class="key-icon">🖱️</div>
+        <span>Look Around</span>
+      </div>
+    </div>
+
+    <!-- Minimap -->
+    <div class="minimap">
+      <div class="minimap-content" id="minimap">
+        <div class="room-indicator" style="top: 10px; left: 50%; transform: translateX(-50%);">Exterior</div>
+        <div class="room-indicator" style="top: 40%; left: 50%; transform: translateX(-50%);">Entrance</div>
+        <div class="room-indicator" style="top: 55%; left: 20%;">Living</div>
+        <div class="room-indicator" style="top: 55%; right: 20%;">Kitchen</div>
+        <div class="room-indicator" style="bottom: 10px; left: 50%; transform: translateX(-50%);">Bedroom</div>
+        <div class="camera-position" id="camera-dot"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main 3D Script -->
+  <script src="assets/js/house-3d.js"></script>
+
+</body>
+
+</html>

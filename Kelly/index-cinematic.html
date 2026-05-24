@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-CP36RKRQC2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-CP36RKRQC2');
+  </script>
+
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Experience Home - Anshika Rastogi Interior Design</title>
+  <meta content="A cinematic journey through design" name="description">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Bootstrap Icons -->
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Cinematic CSS -->
+  <link href="assets/css/cinematic.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">AR</div>
+      <div class="loading-text">Loading your experience...</div>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Indicator -->
+  <div id="scroll-progress">
+    <div class="progress-line"></div>
+    <div class="progress-text">
+      <span class="current-scene">01</span>
+      <span class="divider">/</span>
+      <span class="total-scenes">08</span>
+    </div>
+  </div>
+
+  <!-- Sound Toggle -->
+  <button id="sound-toggle" aria-label="Toggle sound">
+    <i class="bi bi-volume-up"></i>
+  </button>
+
+  <!-- Main Canvas Container -->
+  <div id="canvas-container">
+
+    <!-- 3D Scene Layers -->
+    <div id="scene-3d">
+
+      <!-- Layer 1: Far Background (Sky/Environment) -->
+      <div class="layer" id="layer-sky" data-depth="0.1">
+        <div class="sky-gradient"></div>
+        <div class="clouds cloud-1"></div>
+        <div class="clouds cloud-2"></div>
+        <div class="sun"></div>
+      </div>
+
+      <!-- Layer 2: Farmhouse Exterior (Far) -->
+      <div class="layer" id="layer-house-far" data-depth="0.3">
+        <div class="farmhouse-exterior">
+          <img src="assets/img/hero-bg.jpg" alt="Beautiful Farmhouse" class="house-img">
+          <div class="house-overlay"></div>
+        </div>
+      </div>
+
+      <!-- Layer 3: Garden/Landscape -->
+      <div class="layer" id="layer-garden" data-depth="0.5">
+        <div class="garden-elements">
+          <div class="tree tree-left"></div>
+          <div class="tree tree-right"></div>
+          <div class="plants"></div>
+        </div>
+      </div>
+
+      <!-- Layer 4: Entrance Door -->
+      <div class="layer" id="layer-door" data-depth="0.7">
+        <div class="entrance-door">
+          <div class="door-frame">
+            <div class="door door-left">
+              <div class="door-handle"></div>
+            </div>
+            <div class="door door-right">
+              <div class="door-handle"></div>
+            </div>
+          </div>
+          <div class="door-light"></div>
+        </div>
+      </div>
+
+      <!-- Layer 5: Interior - Entrance Hall -->
+      <div class="layer" id="layer-entrance-hall" data-depth="0.9">
+        <div class="room entrance-hall">
+          <div class="room-bg"></div>
+          <div class="furniture chandelier"></div>
+          <div class="furniture console-table"></div>
+        </div>
+      </div>
+
+      <!-- Layer 6: Living Room -->
+      <div class="layer" id="layer-living" data-depth="1.1">
+        <div class="room living-room">
+          <div class="room-bg living-bg"></div>
+          <div class="furniture sofa"></div>
+          <div class="furniture coffee-table"></div>
+          <div class="vastu-marker north">
+            <div class="marker-icon"><i class="bi bi-compass"></i></div>
+            <div class="marker-label">North - Career Zone</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer 7: Kitchen -->
+      <div class="layer" id="layer-kitchen" data-depth="1.3">
+        <div class="room kitchen">
+          <div class="room-bg kitchen-bg"></div>
+          <div class="furniture kitchen-island"></div>
+          <div class="vastu-marker southeast">
+            <div class="marker-icon"><i class="bi bi-fire"></i></div>
+            <div class="marker-label">South-East - Fire Element</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer 8: Master Bedroom -->
+      <div class="layer" id="layer-bedroom" data-depth="1.5">
+        <div class="room bedroom">
+          <div class="room-bg bedroom-bg"></div>
+          <div class="furniture bed"></div>
+          <div class="vastu-marker southwest">
+            <div class="marker-icon"><i class="bi bi-moon-stars"></i></div>
+            <div class="marker-label">South-West - Stability</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Text Overlays -->
+    <div id="text-overlays">
+
+      <!-- Scene 1: Intro -->
+      <div class="text-overlay" id="text-scene-1">
+        <h1 class="main-title">Welcome Home</h1>
+        <p class="subtitle">Scroll to begin your journey</p>
+        <div class="scroll-hint">
+          <div class="mouse-icon">
+            <div class="mouse-wheel"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 2: Approaching -->
+      <div class="text-overlay" id="text-scene-2">
+        <h2 class="scene-title">Every great home begins<br>with a vision</h2>
+        <p class="scene-text">Let me show you how I transform spaces<br>into sanctuaries</p>
+      </div>
+
+      <!-- Scene 3: At Door -->
+      <div class="text-overlay" id="text-scene-3">
+        <h2 class="scene-title">The entrance sets<br>the energy</h2>
+        <p class="scene-text">In Vastu, the main door is where<br>prosperity flows in</p>
+      </div>
+
+      <!-- Scene 4: Entrance Hall -->
+      <div class="text-overlay" id="text-scene-4">
+        <h2 class="scene-title">Step into harmony</h2>
+        <p class="scene-text">Where first impressions become<br>lasting memories</p>
+      </div>
+
+      <!-- Scene 5: Living Room + Anshika Intro -->
+      <div class="text-overlay" id="text-scene-5">
+        <div class="designer-card-inline">
+          <div class="designer-photo">
+            <img src="assets/img/profile.jpg" alt="Anshika Rastogi" onerror="this.src='assets/img/me.png'">
+          </div>
+          <div class="designer-info">
+            <h3 class="designer-name">Anshika Rastogi</h3>
+            <p class="designer-title">Interior Designer • Vastu Consultant</p>
+            <p class="designer-quote">"I create spaces that don't just look beautiful—<br>they feel right, nurture your goals, and align<br>with cosmic energies."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 6: Kitchen -->
+      <div class="text-overlay" id="text-scene-6">
+        <h2 class="scene-title">The heart of the home</h2>
+        <div class="info-box">
+          <div class="info-icon"><i class="bi bi-fire"></i></div>
+          <h4>Vastu Kitchen Placement</h4>
+          <p>South-East direction harnesses fire element<br>for health, prosperity & family harmony</p>
+        </div>
+      </div>
+
+      <!-- Scene 7: Bedroom -->
+      <div class="text-overlay" id="text-scene-7">
+        <h2 class="scene-title">Rest. Recharge. Realign.</h2>
+        <div class="info-box">
+          <div class="info-icon"><i class="bi bi-moon-stars"></i></div>
+          <h4>Customized by Profession</h4>
+          <p>Bedroom orientation tailored to your<br>birth chart & career for optimal rest</p>
+        </div>
+      </div>
+
+      <!-- Scene 8: Final CTA -->
+      <div class="text-overlay" id="text-scene-8">
+        <h2 class="scene-title finale-title">Your Dream Home<br>Awaits</h2>
+        <p class="scene-text">100% Vastu Compliant • Profession-Based Design<br>Premium Execution • Complete Peace of Mind</p>
+        <div class="cta-buttons">
+          <a href="contact.html" class="btn-cta primary">Start Your Journey</a>
+          <a href="portfolio.html" class="btn-cta secondary">View Portfolio</a>
+        </div>
+        <div class="finale-links">
+          <a href="about.html">About</a>
+          <a href="services.html">Services</a>
+          <a href="tel:+919557058902"><i class="bi bi-telephone"></i></a>
+          <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank"><i class="bi bi-whatsapp"></i></a>
+          <a href="https://www.instagram.com/anshikarastogi07/" target="_blank"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Spacer for scroll distance (invisible) -->
+  <div id="scroll-spacer"></div>
+
+  <!-- Audio -->
+  <audio id="ambient-sound" loop>
+    <source src="assets/audio/ambient.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Cinematic JS -->
+  <script src="assets/js/cinematic.js"></script>
+
+</body>
+
+</html>

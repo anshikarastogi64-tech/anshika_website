@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-CP36RKRQC2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-CP36RKRQC2');
+  </script>
+
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Welcome Home - Anshika Rastogi | Interior Designer with Soul</title>
+  <meta content="Experience a journey through design, Vastu, and cosmic harmony. Discover how Anshika creates homes that nurture." name="description">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP for Animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Bootstrap Icons -->
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Journey CSS -->
+  <link href="assets/css/journey-home.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <!-- Skip Navigation -->
+  <div id="skip-intro">
+    <a href="#main-content">Skip Intro</a>
+  </div>
+
+  <!-- Audio Control -->
+  <div id="audio-control">
+    <button id="audio-toggle" aria-label="Toggle audio">
+      <i class="bi bi-volume-up"></i>
+    </button>
+  </div>
+
+  <!-- Scroll Progress -->
+  <div id="scroll-progress"></div>
+
+  <!-- Navigation Dots -->
+  <nav id="scene-nav">
+    <div class="nav-dot active" data-scene="0"></div>
+    <div class="nav-dot" data-scene="1"></div>
+    <div class="nav-dot" data-scene="2"></div>
+    <div class="nav-dot" data-scene="3"></div>
+    <div class="nav-dot" data-scene="4"></div>
+    <div class="nav-dot" data-scene="5"></div>
+  </nav>
+
+  <!-- Main Container -->
+  <div id="journey-container">
+
+    <!-- ======= SCENE 0: INTRO ======= -->
+    <section class="journey-scene" id="scene-intro">
+      <div class="scene-content">
+        <h1 class="intro-title fade-in">Welcome Home</h1>
+        <p class="intro-subtitle fade-in-delay">A journey through design, energy, and harmony</p>
+        <div class="scroll-hint fade-in-delay-2">
+          <div class="scroll-icon">
+            <div class="scroll-wheel"></div>
+          </div>
+          <p>Scroll to begin your journey</p>
+        </div>
+      </div>
+      <div class="stars-bg"></div>
+    </section>
+
+    <!-- ======= SCENE 1: APPROACHING HOME ======= -->
+    <section class="journey-scene" id="scene-approach">
+      <div class="house-container">
+        <!-- House exterior that zooms in -->
+        <div class="house-exterior">
+          <img src="assets/img/hero-bg.jpg" alt="Beautiful Home Exterior" class="house-image">
+          <div class="house-glow"></div>
+        </div>
+
+        <!-- Directional markers (Vastu compass) -->
+        <div class="vastu-compass">
+          <div class="compass-ring"></div>
+          <div class="compass-directions">
+            <span class="direction north">North<br><small>Career & Opportunities</small></span>
+            <span class="direction east">East<br><small>Health & Vitality</small></span>
+            <span class="direction south">South<br><small>Fame & Recognition</small></span>
+            <span class="direction west">West<br><small>Relationships & Children</small></span>
+          </div>
+          <div class="compass-center">
+            <i class="bi bi-compass"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene-text-overlay">
+        <h2 class="scene-title">Every Home Tells a Story</h2>
+        <p class="scene-description">
+          But what if your home could be more than beautiful?<br>
+          What if it could nurture your dreams, support your ambitions,<br>
+          and align with the very cosmos itself?
+        </p>
+      </div>
+    </section>
+
+    <!-- ======= SCENE 2: ENTRANCE OPENS ======= -->
+    <section class="journey-scene" id="scene-entrance">
+      <div class="door-container">
+        <div class="door-frame">
+          <!-- Left door -->
+          <div class="door door-left">
+            <div class="door-panel"></div>
+            <div class="door-handle"></div>
+          </div>
+          <!-- Right door -->
+          <div class="door door-right">
+            <div class="door-panel"></div>
+            <div class="door-handle"></div>
+          </div>
+        </div>
+
+        <!-- Light coming through -->
+        <div class="door-light"></div>
+
+        <!-- Welcome message -->
+        <div class="entrance-welcome">
+          <h2>Step Inside</h2>
+          <p>The threshold between outside and sanctuary</p>
+        </div>
+      </div>
+
+      <!-- Entrance Vastu Info -->
+      <div class="vastu-insight entrance-insight">
+        <div class="insight-icon">
+          <i class="bi bi-door-open"></i>
+        </div>
+        <h3>Vastu Wisdom: The Main Entrance</h3>
+        <p>
+          The entrance is more than a door—it's the mouth of your home,
+          where energy flows in. Direction, placement, and design all matter.
+          A Vastu-aligned entrance invites prosperity and positive energy.
+        </p>
+      </div>
+    </section>
+
+    <!-- ======= SCENE 3: MEET ANSHIKA ======= -->
+    <section class="journey-scene" id="scene-designer">
+      <div class="designer-introduction">
+        <div class="designer-profile">
+          <div class="profile-image-frame">
+            <img src="assets/img/profile.jpg" alt="Anshika Rastogi" onerror="this.src='assets/img/me.png'">
+            <div class="profile-aura"></div>
+          </div>
+
+          <div class="profile-content">
+            <h2 class="designer-name">Anshika Rastogi</h2>
+            <p class="designer-tagline">Interior Designer • Vastu Consultant • Astro Specialist</p>
+
+            <div class="designer-story">
+              <p>
+                "I believe every space has a soul. My mission is to create interiors
+                that don't just look beautiful—they feel right. By blending contemporary
+                design with ancient Vastu and astrological wisdom, I craft homes that
+                truly support your life's journey."
+              </p>
+            </div>
+
+            <div class="designer-approach">
+              <h3>My Unique Approach</h3>
+              <div class="approach-grid">
+                <div class="approach-item">
+                  <div class="approach-icon">
+                    <i class="bi bi-palette-fill"></i>
+                  </div>
+                  <h4>Design Artistry</h4>
+                  <p>Premium interiors crafted with precision and style</p>
+                </div>
+                <div class="approach-item">
+                  <div class="approach-icon">
+                    <i class="bi bi-compass-fill"></i>
+                  </div>
+                  <h4>Vastu Science</h4>
+                  <p>100% compliant layouts for optimal energy flow</p>
+                </div>
+                <div class="approach-item">
+                  <div class="approach-icon">
+                    <i class="bi bi-stars"></i>
+                  </div>
+                  <h4>Astro Alignment</h4>
+                  <p>Spaces designed for each family member's birth chart</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= SCENE 4: VASTU IN ACTION ======= -->
+    <section class="journey-scene" id="scene-vastu">
+      <div class="scene-header">
+        <h2 class="section-title">How Vastu Shapes Your Space</h2>
+        <p class="section-subtitle">Ancient wisdom meets modern living</p>
+      </div>
+
+      <div class="vastu-demo">
+        <!-- Floor Plan Visualization -->
+        <div class="floor-plan">
+          <div class="plan-grid">
+            <!-- 9 Vastu Zones -->
+            <div class="vastu-zone zone-ne" data-zone="north-east">
+              <span class="zone-label">North-East</span>
+              <span class="zone-element">Water • Wisdom</span>
+              <div class="zone-icon">💧</div>
+            </div>
+            <div class="vastu-zone zone-n" data-zone="north">
+              <span class="zone-label">North</span>
+              <span class="zone-element">Career • Growth</span>
+              <div class="zone-icon">⬆️</div>
+            </div>
+            <div class="vastu-zone zone-nw" data-zone="north-west">
+              <span class="zone-label">North-West</span>
+              <span class="zone-element">Air • Support</span>
+              <div class="zone-icon">💨</div>
+            </div>
+            <div class="vastu-zone zone-e" data-zone="east">
+              <span class="zone-label">East</span>
+              <span class="zone-element">Sun • Health</span>
+              <div class="zone-icon">☀️</div>
+            </div>
+            <div class="vastu-zone zone-center" data-zone="center">
+              <span class="zone-label">Brahmasthan</span>
+              <span class="zone-element">Center • Balance</span>
+              <div class="zone-icon">🕉️</div>
+            </div>
+            <div class="vastu-zone zone-w" data-zone="west">
+              <span class="zone-label">West</span>
+              <span class="zone-element">Gains • Prosperity</span>
+              <div class="zone-icon">⬅️</div>
+            </div>
+            <div class="vastu-zone zone-se" data-zone="south-east">
+              <span class="zone-label">South-East</span>
+              <span class="zone-element">Fire • Energy</span>
+              <div class="zone-icon">🔥</div>
+            </div>
+            <div class="vastu-zone zone-s" data-zone="south">
+              <span class="zone-label">South</span>
+              <span class="zone-element">Fame • Recognition</span>
+              <div class="zone-icon">⬇️</div>
+            </div>
+            <div class="vastu-zone zone-sw" data-zone="south-west">
+              <span class="zone-label">South-West</span>
+              <span class="zone-element">Earth • Stability</span>
+              <div class="zone-icon">🏔️</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profession-Based Customization -->
+        <div class="profession-showcase">
+          <h3>Customized for Your Family's Professions</h3>
+          <div class="profession-cards">
+            <div class="profession-card">
+              <i class="bi bi-briefcase-fill"></i>
+              <h4>Business Owner</h4>
+              <p>Office in North-West with commanding desk placement</p>
+            </div>
+            <div class="profession-card">
+              <i class="bi bi-palette-fill"></i>
+              <h4>Creative Professional</h4>
+              <p>Studio in East for morning light and inspiration</p>
+            </div>
+            <div class="profession-card">
+              <i class="bi bi-laptop"></i>
+              <h4>IT Professional</h4>
+              <p>Work zone facing East for mental clarity</p>
+            </div>
+            <div class="profession-card">
+              <i class="bi bi-heart-pulse-fill"></i>
+              <h4>Healthcare</h4>
+              <p>North-East zone for healing energies</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= SCENE 5: DESIGN PROCESS ======= -->
+    <section class="journey-scene" id="scene-process">
+      <div class="process-container">
+        <h2 class="section-title">From Vision to Reality</h2>
+        <p class="section-subtitle">Your journey with me</p>
+
+        <div class="process-timeline">
+          <!-- Step 1 -->
+          <div class="process-step" data-step="1">
+            <div class="step-number">01</div>
+            <div class="step-visual">
+              <i class="bi bi-chat-heart-fill"></i>
+            </div>
+            <div class="step-content">
+              <h3>Deep Consultation</h3>
+              <p>We discuss your lifestyle, family dynamics, birth charts, and professions. I study your site's Vastu directions.</p>
+              <ul class="step-includes">
+                <li>Family member professions analysis</li>
+                <li>Birth chart review</li>
+                <li>Site Vastu assessment</li>
+                <li>Design preference discussion</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="process-step" data-step="2">
+            <div class="step-number">02</div>
+            <div class="step-visual">
+              <i class="bi bi-rulers"></i>
+            </div>
+            <div class="step-content">
+              <h3>Vastu-Aligned Blueprint</h3>
+              <p>Creating 100% Vastu-compliant floor plans with profession-optimized room placements.</p>
+              <ul class="step-includes">
+                <li>Directional room mapping</li>
+                <li>Energy flow optimization</li>
+                <li>Profession-based zones</li>
+                <li>Remedial solutions if needed</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="process-step" data-step="3">
+            <div class="step-number">03</div>
+            <div class="step-visual">
+              <i class="bi bi-palette2"></i>
+            </div>
+            <div class="step-content">
+              <h3>Interior Design Magic</h3>
+              <p>Layering luxury interiors, materials, colors, and furnishings—all aligned with cosmic energies.</p>
+              <ul class="step-includes">
+                <li>3D visualizations</li>
+                <li>Material & color selection</li>
+                <li>Custom furniture design</li>
+                <li>Lighting & décor curation</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="process-step" data-step="4">
+            <div class="step-number">04</div>
+            <div class="step-visual">
+              <i class="bi bi-hammer"></i>
+            </div>
+            <div class="step-content">
+              <h3>Flawless Execution</h3>
+              <p>End-to-end project management ensuring every detail is perfect—on time and on budget.</p>
+              <ul class="step-includes">
+                <li>Vendor coordination</li>
+                <li>Quality checks</li>
+                <li>Installation supervision</li>
+                <li>Final styling & handover</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= SCENE 6: FINAL CTA ======= -->
+    <section class="journey-scene" id="scene-finale">
+      <div class="finale-content">
+        <h2 class="finale-title">Your Home Awaits</h2>
+        <p class="finale-message">
+          Ready to create a space that doesn't just look beautiful, but feels aligned with your destiny?
+          Let's design your sanctuary together.
+        </p>
+
+        <div class="finale-cta">
+          <a href="contact.html" class="btn-journey-primary">
+            <span>Start Your Journey</span>
+            <i class="bi bi-arrow-right-circle"></i>
+          </a>
+          <a href="portfolio.html" class="btn-journey-secondary">
+            <span>View Portfolio</span>
+          </a>
+        </div>
+
+        <div class="finale-links">
+          <a href="about.html">About</a>
+          <a href="services.html">Services</a>
+          <a href="experience.html">Experience</a>
+          <a href="https://anshikarastogi.blogspot.com/" target="_blank">Blog</a>
+        </div>
+
+        <div class="finale-social">
+          <a href="https://www.instagram.com/anshikarastogi07/" target="_blank"><i class="bi bi-instagram"></i></a>
+          <a href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/" target="_blank"><i class="bi bi-linkedin"></i></a>
+          <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank"><i class="bi bi-whatsapp"></i></a>
+          <a href="tel:+919557058902"><i class="bi bi-telephone"></i></a>
+        </div>
+
+        <div class="finale-footer">
+          <p>&copy; 2024 Anshika Rastogi. All Rights Reserved.</p>
+        </div>
+      </div>
+
+      <!-- Ambient particles -->
+      <div class="finale-particles"></div>
+    </section>
+
+  </div>
+
+  <!-- Background Audio (optional) -->
+  <audio id="ambient-audio" loop>
+    <source src="assets/audio/ambient.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Journey JS -->
+  <script src="assets/js/journey-home.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,937 @@
+/*--------------------------------------------------------------
+# Luxury Interior Design Homepage - Interior First, Vastu/Astro Integrated
+--------------------------------------------------------------*/
+
+:root {
+  --luxury-black: #1a1a1a;
+  --luxury-gold: #c9a96e;
+  --luxury-gold-dark: #9d7c4d;
+  --luxury-cream: #f5f2ed;
+  --luxury-white: #ffffff;
+  --luxury-gray: #6b6b6b;
+  --luxury-light-gray: #e8e8e8;
+  --accent-sage: #9caf88;
+  --accent-terracotta: #d4a896;
+}
+
+/*--------------------------------------------------------------
+# General Luxury Styling
+--------------------------------------------------------------*/
+.luxury-body {
+  font-family: 'Inter', sans-serif;
+  color: var(--luxury-black);
+  background: var(--luxury-white);
+  overflow-x: hidden;
+}
+
+/*--------------------------------------------------------------
+# Luxury Header
+--------------------------------------------------------------*/
+.luxury-header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  transition: all 0.4s ease;
+  padding: 25px 0;
+}
+
+.transparent-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.luxury-header.header-scrolled {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.luxury-header .logo a {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--luxury-white);
+  transition: color 0.3s ease;
+}
+
+.luxury-header.header-scrolled .logo a {
+  color: var(--luxury-black);
+}
+
+.luxury-header .navbar a {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.luxury-header.header-scrolled .navbar a {
+  color: var(--luxury-black);
+}
+
+.luxury-header .header-social-links a {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.luxury-header.header-scrolled .header-social-links a {
+  color: var(--luxury-black);
+}
+
+/*--------------------------------------------------------------
+# Hero Section - Luxury Interior Focus
+--------------------------------------------------------------*/
+.hero-luxury-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--luxury-black);
+}
+
+/* Background Image Slider */
+.hero-bg-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.hero-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+  animation: slideShow 18s infinite;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  animation-delay: 0s;
+}
+
+.hero-slide:nth-child(2) {
+  animation-delay: 6s;
+}
+
+.hero-slide:nth-child(3) {
+  animation-delay: 12s;
+}
+
+@keyframes slideShow {
+  0%, 33.33% { opacity: 1; }
+  33.34%, 100% { opacity: 0; }
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+    rgba(26, 26, 26, 0.85) 0%,
+    rgba(26, 26, 26, 0.75) 50%,
+    rgba(26, 26, 26, 0.85) 100%);
+  z-index: 2;
+}
+
+.hero-content-wrapper {
+  position: relative;
+  z-index: 3;
+  padding: 120px 0 80px 0;
+}
+
+/* Hero Text Content */
+.hero-text {
+  color: var(--luxury-white);
+}
+
+.hero-label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.label-line {
+  width: 50px;
+  height: 1px;
+  background: var(--luxury-gold);
+}
+
+.label-text {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--luxury-gold);
+}
+
+.hero-title {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 72px;
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 30px;
+  color: var(--luxury-white);
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.hero-title .highlight {
+  color: var(--luxury-gold);
+  font-style: italic;
+  position: relative;
+  display: inline-block;
+}
+
+.hero-title .highlight::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--luxury-gold);
+  opacity: 0.5;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 600px;
+  margin-bottom: 40px;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+/* CTA Buttons */
+.hero-cta-group {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.btn-luxury-primary,
+.btn-luxury-secondary {
+  padding: 16px 40px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.btn-luxury-primary {
+  background: var(--luxury-gold);
+  color: var(--luxury-black);
+  border-color: var(--luxury-gold);
+}
+
+.btn-luxury-primary:hover {
+  background: transparent;
+  color: var(--luxury-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(201, 169, 110, 0.3);
+}
+
+.btn-luxury-secondary {
+  background: transparent;
+  color: var(--luxury-white);
+  border-color: var(--luxury-white);
+}
+
+.btn-luxury-secondary:hover {
+  background: var(--luxury-white);
+  color: var(--luxury-black);
+  transform: translateY(-2px);
+}
+
+/* Hero Stats */
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.8s both;
+}
+
+.stat-item {
+  text-align: left;
+}
+
+.stat-number {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--luxury-gold);
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Designer Profile Card */
+.designer-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 0;
+  position: relative;
+  transition: all 0.4s ease;
+}
+
+.designer-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(201, 169, 110, 0.3);
+}
+
+.designer-image {
+  position: relative;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.designer-image img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(20%);
+  transition: all 0.4s ease;
+}
+
+.designer-card:hover .designer-image img {
+  transform: scale(1.05);
+  filter: grayscale(0%);
+}
+
+.image-border {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  border: 2px solid var(--luxury-gold);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.designer-card:hover .image-border {
+  opacity: 1;
+}
+
+.designer-info {
+  color: var(--luxury-white);
+}
+
+.designer-name {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--luxury-white);
+}
+
+.designer-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--luxury-gold);
+  margin-bottom: 20px;
+}
+
+.designer-bio {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 25px;
+}
+
+.designer-specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.specialty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(201, 169, 110, 0.15);
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  font-size: 12px;
+  color: var(--luxury-gold);
+  transition: all 0.3s ease;
+}
+
+.specialty-badge:hover {
+  background: rgba(201, 169, 110, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Scroll Indicator */
+.scroll-indicator-luxury {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--luxury-gold));
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*--------------------------------------------------------------
+# Services Section
+--------------------------------------------------------------*/
+.services-luxury-section {
+  padding: 120px 0;
+  background: var(--luxury-cream);
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--luxury-gold);
+  margin-bottom: 15px;
+}
+
+.section-title-luxury {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--luxury-black);
+  margin-bottom: 30px;
+}
+
+.section-description {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--luxury-gray);
+  max-width: 500px;
+  margin-left: auto;
+}
+
+.services-grid {
+  margin-top: 80px;
+}
+
+.service-luxury-card {
+  background: var(--luxury-white);
+  padding: 50px 40px;
+  height: 100%;
+  position: relative;
+  transition: all 0.4s ease;
+  border: 1px solid transparent;
+}
+
+.service-luxury-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border-color: var(--luxury-gold);
+}
+
+.service-number {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 72px;
+  font-weight: 300;
+  color: rgba(201, 169, 110, 0.15);
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  line-height: 1;
+}
+
+.service-icon {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--luxury-gold);
+  border: 2px solid var(--luxury-gold);
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.service-luxury-card:hover .service-icon {
+  background: var(--luxury-gold);
+  color: var(--luxury-white);
+  transform: rotate(5deg);
+}
+
+.service-luxury-card h3 {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: var(--luxury-black);
+}
+
+.service-luxury-card p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--luxury-gray);
+  margin-bottom: 25px;
+}
+
+.service-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.service-features li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--luxury-gray);
+  position: relative;
+  padding-left: 25px;
+}
+
+.service-features li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--luxury-gold);
+}
+
+.card-special {
+  position: relative;
+  background: linear-gradient(135deg, #fdfbf7 0%, #f5f2ed 100%);
+}
+
+.special-badge {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: var(--luxury-gold);
+  color: var(--luxury-white);
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/*--------------------------------------------------------------
+# Process Section
+--------------------------------------------------------------*/
+.process-section {
+  padding: 120px 0;
+  background: var(--luxury-white);
+}
+
+.process-steps {
+  margin-top: 40px;
+}
+
+.process-step {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--luxury-light-gray);
+}
+
+.process-step:last-child {
+  border-bottom: none;
+}
+
+.step-number {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 48px;
+  font-weight: 300;
+  color: var(--luxury-gold);
+  min-width: 80px;
+  line-height: 1;
+}
+
+.step-content h4 {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--luxury-black);
+}
+
+.step-content p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--luxury-gray);
+  margin: 0;
+}
+
+.process-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.process-image img {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.process-image:hover img {
+  transform: scale(1.05);
+}
+
+.process-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(26, 26, 26, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.process-image:hover .process-overlay {
+  opacity: 1;
+}
+
+.overlay-content {
+  text-align: center;
+  color: var(--luxury-white);
+}
+
+.overlay-content i {
+  font-size: 64px;
+  color: var(--luxury-gold);
+  margin-bottom: 15px;
+}
+
+.overlay-content p {
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/*--------------------------------------------------------------
+# UVP Section
+--------------------------------------------------------------*/
+.uvp-section {
+  padding: 100px 0;
+  background: var(--luxury-black);
+  color: var(--luxury-white);
+}
+
+.uvp-box {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.uvp-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--luxury-gold);
+  color: var(--luxury-black);
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30px auto;
+}
+
+.uvp-box h2 {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 42px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--luxury-gold);
+}
+
+.uvp-lead {
+  font-size: 20px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 40px;
+}
+
+.uvp-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.uvp-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.uvp-feature i {
+  color: var(--luxury-gold);
+  font-size: 18px;
+}
+
+.uvp-description {
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/*--------------------------------------------------------------
+# Recognition Section
+--------------------------------------------------------------*/
+.recognition-luxury-section {
+  padding: 100px 0;
+  background: var(--luxury-cream);
+}
+
+.recognition-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 80px;
+  margin-top: 60px;
+  flex-wrap: wrap;
+}
+
+.recognition-item {
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.recognition-item:hover {
+  transform: translateY(-5px);
+}
+
+.recognition-item img {
+  max-width: 180px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.recognition-item p {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--luxury-black);
+}
+
+.bark-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 40px;
+  background: var(--luxury-white);
+  border: 2px solid var(--luxury-gold);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--luxury-black);
+}
+
+.bark-badge i {
+  font-size: 28px;
+  color: var(--luxury-gold);
+}
+
+/*--------------------------------------------------------------
+# CTA Section
+--------------------------------------------------------------*/
+.cta-luxury-section {
+  padding: 80px 0;
+  background: var(--luxury-gold);
+}
+
+.cta-title {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--luxury-black);
+  margin-bottom: 15px;
+}
+
+.cta-subtitle {
+  font-size: 18px;
+  color: rgba(26, 26, 26, 0.8);
+  margin: 0;
+}
+
+.btn-cta-luxury {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 45px;
+  background: var(--luxury-black);
+  color: var(--luxury-white);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 2px solid var(--luxury-black);
+}
+
+.btn-cta-luxury:hover {
+  background: transparent;
+  color: var(--luxury-black);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cta-luxury i {
+  font-size: 24px;
+}
+
+/*--------------------------------------------------------------
+# Footer
+--------------------------------------------------------------*/
+.luxury-footer {
+  background: var(--luxury-black);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 40px 0;
+  text-align: center;
+}
+
+/*--------------------------------------------------------------
+# Responsive
+--------------------------------------------------------------*/
+@media (max-width: 992px) {
+  .hero-title {
+    font-size: 52px;
+  }
+
+  .section-title-luxury {
+    font-size: 40px;
+  }
+
+  .designer-card {
+    margin-top: 60px;
+  }
+
+  .process-image img {
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 42px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+  }
+
+  .hero-stats {
+    gap: 20px;
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .section-title-luxury {
+    font-size: 32px;
+  }
+
+  .service-luxury-card {
+    margin-bottom: 30px;
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-luxury-primary,
+  .btn-luxury-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .designer-image img {
+    height: 300px;
+  }
+
+  .cta-title {
+    font-size: 32px;
+  }
+
+  .btn-cta-luxury {
+    width: 100%;
+    justify-content: center;
+    margin-top: 20px;
+  }
+}

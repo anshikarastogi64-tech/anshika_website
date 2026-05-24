@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Anshika Rastogi - Building Dreams Into Reality</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Lottie for animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+  <!-- Bootstrap Icons -->
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <link href="assets/css/dreams.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Paintbrush Cursor -->
+  <canvas id="brush-canvas"></canvas>
+  <div id="brush-cursor"></div>
+
+  <!-- Opening Scene: "I Build Dreams" -->
+  <section id="opening" class="full-screen">
+    <div class="dream-cloud cloud-1"></div>
+    <div class="dream-cloud cloud-2"></div>
+    <div class="dream-cloud cloud-3"></div>
+
+    <div class="opening-content">
+      <h1 class="dream-title">
+        <span class="sketch-line">I Don't Just Design Homes</span>
+        <br>
+        <span class="sketch-line delay-1">I Build</span>
+        <span class="sketch-line delay-2 highlight"> Dreams</span>
+      </h1>
+      <div class="subtitle-handwritten">— Anshika Rastogi</div>
+
+      <div class="scroll-dream">
+        <div class="dream-bubble"></div>
+        <span>Begin the journey</span>
+      </div>
+    </div>
+
+    <!-- Floating sketch elements -->
+    <div class="sketch-float sketch-house"></div>
+    <div class="sketch-float sketch-compass"></div>
+    <div class="sketch-float sketch-star"></div>
+  </section>
+
+  <!-- Story 1: The Dream Begins -->
+  <section id="dream-begins" class="story-section">
+    <div class="story-container">
+      <div class="story-left">
+        <div class="handwritten-note">
+          <p class="note-text">Every dream starts with a vision...</p>
+          <div class="note-arrow"></div>
+        </div>
+      </div>
+
+      <div class="story-right">
+        <div class="sketch-to-reality">
+          <!-- Sketch layer -->
+          <div class="sketch-layer">
+            <svg class="sketch-drawing" viewBox="0 0 800 600">
+              <!-- Hand-drawn house sketch -->
+              <path class="draw-path" d="M 100 400 L 400 150 L 700 400 M 150 400 L 150 550 L 650 550 L 650 400 M 300 550 L 300 400 L 500 400 L 500 550"
+                    stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <!-- Windows -->
+              <rect class="draw-path" x="200" y="300" width="80" height="80" stroke="#333" stroke-width="2" fill="none"/>
+              <rect class="draw-path" x="520" y="300" width="80" height="80" stroke="#333" stroke-width="2" fill="none"/>
+              <!-- Door -->
+              <rect class="draw-path" x="350" y="450" width="100" height="100" stroke="#333" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+
+          <!-- Reality layer (color photo) -->
+          <div class="reality-layer">
+            <img src="assets/img/hero-bg.jpg" alt="Beautiful Home">
+          </div>
+        </div>
+
+        <h2 class="section-title appear-text">Your Vision, My Canvas</h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 2: Meet Anshika - Watercolor Reveal -->
+  <section id="meet-designer" class="story-section watercolor-section">
+    <div class="watercolor-splash splash-1"></div>
+    <div class="watercolor-splash splash-2"></div>
+    <div class="watercolor-splash splash-3"></div>
+
+    <div class="designer-reveal">
+      <div class="designer-image-container">
+        <div class="polaroid-frame">
+          <img src="assets/img/profile.jpg" alt="Anshika" class="designer-photo" onerror="this.src='assets/img/me.png'">
+          <div class="polaroid-text">Designer • Dreamer • Creator</div>
+        </div>
+
+        <!-- Doodles around polaroid -->
+        <div class="doodle doodle-heart">♥</div>
+        <div class="doodle doodle-star">★</div>
+        <div class="doodle doodle-arrow">→</div>
+      </div>
+
+      <div class="designer-story">
+        <h2 class="handwritten-heading">Hi, I'm Anshika</h2>
+        <p class="story-text">
+          For me, design isn't about furniture and colors—it's about understanding
+          <span class="highlight-marker">your story</span>, your dreams, your energy.
+        </p>
+        <p class="story-text">
+          I blend <span class="underline-magic">luxury interiors</span> with
+          <span class="underline-magic">ancient Vastu wisdom</span> and
+          <span class="underline-magic">cosmic astrology</span>—creating spaces that
+          don't just look beautiful, but <em>feel right</em>.
+        </p>
+
+        <div class="magic-badges">
+          <div class="magic-badge">
+            <i class="bi bi-palette-fill"></i>
+            <span>Interior Designer</span>
+          </div>
+          <div class="magic-badge">
+            <i class="bi bi-compass-fill"></i>
+            <span>Vastu Expert</span>
+          </div>
+          <div class="magic-badge">
+            <i class="bi bi-stars"></i>
+            <span>Astro Consultant</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 3: The Magic Triangle -->
+  <section id="magic-triangle" class="story-section dark-section">
+    <h2 class="section-title-center glow-text">The Three Powers I Channel</h2>
+
+    <div class="triangle-container">
+      <!-- Animated triangle -->
+      <svg class="magic-triangle-svg" viewBox="0 0 600 600">
+        <defs>
+          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+
+        <!-- Triangle outline -->
+        <path class="triangle-path" d="M 300 50 L 550 500 L 50 500 Z"
+              stroke="url(#goldGradient)" stroke-width="3" fill="none"/>
+
+        <!-- Center circle -->
+        <circle cx="300" cy="300" r="40" fill="url(#goldGradient)" class="center-pulse"/>
+      </svg>
+
+      <!-- Three power points -->
+      <div class="power-point point-top">
+        <div class="power-icon">🎨</div>
+        <h3>Luxury Design</h3>
+        <p>Bespoke interiors that reflect your unique style and aspirations</p>
+      </div>
+
+      <div class="power-point point-left">
+        <div class="power-icon">🧭</div>
+        <h3>Vastu Science</h3>
+        <p>100% compliant layouts for positive energy flow and prosperity</p>
+      </div>
+
+      <div class="power-point point-right">
+        <div class="power-icon">✨</div>
+        <h3>Astro Alignment</h3>
+        <p>Spaces designed for each family member's profession & birth chart</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 4: Mood Board Gallery -->
+  <section id="mood-board" class="story-section">
+    <h2 class="section-title-center handwritten-big">What I Create</h2>
+
+    <div class="polaroid-gallery">
+      <div class="polaroid-item" data-tilt>
+        <div class="polaroid-inner">
+          <img src="assets/img/hero-bg.jpg" alt="Living Room">
+          <div class="polaroid-label">Living Spaces That Breathe</div>
+        </div>
+      </div>
+
+      <div class="polaroid-item" data-tilt>
+        <div class="polaroid-inner">
+          <img src="assets/img/about.jpg" alt="Bedroom">
+          <div class="polaroid-label">Bedrooms That Embrace</div>
+        </div>
+      </div>
+
+      <div class="polaroid-item" data-tilt>
+        <div class="polaroid-inner">
+          <img src="assets/img/hero-bg.jpg" alt="Kitchen">
+          <div class="polaroid-label">Kitchens That Nourish</div>
+        </div>
+      </div>
+
+      <div class="polaroid-item" data-tilt>
+        <div class="polaroid-inner">
+          <img src="assets/img/about.jpg" alt="Office">
+          <div class="polaroid-label">Spaces That Inspire</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-cta">
+      <a href="portfolio.html" class="btn-sketch">
+        <span>See All My Work</span>
+        <div class="btn-underline"></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Story 5: The Secret Sauce -->
+  <section id="secret-sauce" class="story-section light-section">
+    <div class="secret-container">
+      <div class="secret-badge">The Anshika Difference</div>
+
+      <h2 class="secret-title">
+        I don't just place furniture.<br>
+        I align your space with <span class="rainbow-text">your destiny</span>.
+      </h2>
+
+      <div class="secret-features">
+        <div class="feature-card">
+          <div class="feature-emoji">🏡</div>
+          <h3>Profession-Based Design</h3>
+          <p>Your home office faces the direction that boosts YOUR career specifically</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">⭐</div>
+          <h3>Birth Chart Integration</h3>
+          <p>Each family member gets a room aligned with their astrological energies</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">🧭</div>
+          <h3>100% Vastu Compliant</h3>
+          <p>Not just "Vastu-inspired"—fully compliant for maximum harmony</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-emoji">💎</div>
+          <h3>End-to-End Luxury</h3>
+          <p>From concept to installation, every detail perfected</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story 6: Process Timeline -->
+  <section id="process" class="story-section timeline-section">
+    <h2 class="section-title-center">How Your Dream Becomes Reality</h2>
+
+    <div class="timeline-path">
+      <div class="timeline-step" data-step="1">
+        <div class="step-bubble">
+          <span class="step-number">1</span>
+        </div>
+        <div class="step-content">
+          <h3>We Dream Together</h3>
+          <p>I listen to your story, understand your family, analyze birth charts & professions</p>
+        </div>
+      </div>
+
+      <div class="timeline-connector"></div>
+
+      <div class="timeline-step" data-step="2">
+        <div class="step-bubble">
+          <span class="step-number">2</span>
+        </div>
+        <div class="step-content">
+          <h3>I Sketch Your Vision</h3>
+          <p>Creating Vastu-aligned floor plans with profession-optimized room placements</p>
+        </div>
+      </div>
+
+      <div class="timeline-connector"></div>
+
+      <div class="timeline-step" data-step="3">
+        <div class="step-bubble">
+          <span class="step-number">3</span>
+        </div>
+        <div class="step-content">
+          <h3>We Paint It Real</h3>
+          <p>3D visualizations, mood boards, material selection—bringing color to the dream</p>
+        </div>
+      </div>
+
+      <div class="timeline-connector"></div>
+
+      <div class="timeline-step" data-step="4">
+        <div class="step-bubble">
+          <span class="step-number">4</span>
+        </div>
+        <div class="step-content">
+          <h3>You Live The Dream</h3>
+          <p>Flawless execution, quality checks, final styling—your dream home, ready</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final: Call to Dream -->
+  <section id="final-dream" class="story-section dream-cta-section">
+    <div class="stars-background"></div>
+
+    <div class="final-content">
+      <h2 class="final-title">
+        <span class="handwritten-massive">Ready to</span><br>
+        <span class="handwritten-massive highlight">Build Your Dream?</span>
+      </h2>
+
+      <p class="final-text">
+        Let's create a space that looks stunning, feels right, and supports your family's success.
+      </p>
+
+      <div class="final-buttons">
+        <a href="contact.html" class="btn-dream-primary">
+          <span>Start My Journey</span>
+          <div class="btn-sparkles">✨</div>
+        </a>
+
+        <a href="portfolio.html" class="btn-dream-secondary">
+          <span>See Dream Homes</span>
+        </a>
+      </div>
+
+      <div class="final-social">
+        <a href="https://www.instagram.com/anshikarastogi07/" target="_blank" class="social-bubble">
+          <i class="bi bi-instagram"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/anshika-rastogi-9814061aa/" target="_blank" class="social-bubble">
+          <i class="bi bi-linkedin"></i>
+        </a>
+        <a href="https://wa.me/message/IQKYV6MCXW5XM1" target="_blank" class="social-bubble">
+          <i class="bi bi-whatsapp"></i>
+        </a>
+        <a href="tel:+919557058902" class="social-bubble">
+          <i class="bi bi-telephone"></i>
+        </a>
+      </div>
+
+      <div class="signature">
+        <p>With love & creativity,</p>
+        <p class="signature-name">Anshika ✨</p>
+      </div>
+    </div>
+  </section>
+
+  <script src="assets/js/dreams.js"></script>
+
+</body>
+
+</html>
