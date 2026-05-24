@@ -511,8 +511,6 @@
               console.log('[MOBILE TRIANGLE] Opening modal...');
               isOpening = true; // Set flag to prevent immediate backdrop close
               point.classList.add('expanded');
-              backdrop.classList.add('active');
-              document.body.style.overflow = 'hidden';
 
               // FORCE INLINE STYLES - BYPASS CSS COMPLETELY
               details.style.cssText = `
@@ -631,22 +629,6 @@
 
               console.log('[MOBILE TRIANGLE] Forced inline styles on modal container + all children');
 
-              // Log computed styles
-              setTimeout(() => {
-                const computedStyles = window.getComputedStyle(details);
-                console.log('[MOBILE TRIANGLE] Modal computed styles AFTER FORCE:', {
-                  display: computedStyles.display,
-                  visibility: computedStyles.visibility,
-                  opacity: computedStyles.opacity,
-                  background: computedStyles.background
-                });
-              }, 100);
-
-              // Clear the opening flag after a short delay to allow backdrop clicks
-              setTimeout(() => {
-                isOpening = false;
-              }, 300);
-
               // Create close button with inline styles
               const closeBtn = document.createElement('button');
               closeBtn.className = 'power-modal-close';
@@ -681,6 +663,30 @@
                 e.stopPropagation();
                 console.log('[MOBILE TRIANGLE] Close button clicked');
                 closeAllModals();
+              });
+
+              // NOW activate backdrop and lock body AFTER everything is styled and ready
+              requestAnimationFrame(() => {
+                backdrop.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('[MOBILE TRIANGLE] Backdrop activated after modal rendered');
+
+                // Log computed styles
+                setTimeout(() => {
+                  const computedStyles = window.getComputedStyle(details);
+                  console.log('[MOBILE TRIANGLE] Modal computed styles:', {
+                    display: computedStyles.display,
+                    visibility: computedStyles.visibility,
+                    opacity: computedStyles.opacity,
+                    zIndex: computedStyles.zIndex
+                  });
+                }, 50);
+
+                // Clear the opening flag after a short delay to allow backdrop clicks
+                setTimeout(() => {
+                  isOpening = false;
+                  console.log('[MOBILE TRIANGLE] Opening flag cleared, backdrop clickable now');
+                }, 300);
               });
             }
           });
