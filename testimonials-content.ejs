@@ -1,11 +1,145 @@
 <style>
+  /* Hide default header for testimonials page */
+  body #header {
+    display: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+  }
+
   /* Testimonials Magical Theme */
   #testimonials-magical {
     background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     min-height: 100vh;
     position: relative;
     overflow: hidden;
-    padding: 80px 0;
+    padding: 0;
+  }
+
+  /* Custom Header matching home page */
+  .testimonials-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(15, 12, 41, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    padding: 15px 0;
+    transition: all 0.3s;
+  }
+
+  .testimonials-header.scrolled {
+    background: rgba(15, 12, 41, 0.98);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .testimonials-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 30px;
+  }
+
+  .testimonials-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #FFD700;
+    text-decoration: none;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    transition: all 0.3s;
+  }
+
+  .testimonials-logo:hover {
+    color: #FFA500;
+    transform: scale(1.05);
+  }
+
+  .testimonials-nav-links {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .testimonials-nav-links a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .testimonials-nav-links a:hover {
+    color: #FFD700;
+  }
+
+  .testimonials-nav-links a.active {
+    color: #FFD700;
+  }
+
+  .testimonials-nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #FFD700;
+    transition: width 0.3s;
+  }
+
+  .testimonials-nav-links a:hover::after,
+  .testimonials-nav-links a.active::after {
+    width: 100%;
+  }
+
+  .mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #FFD700;
+    font-size: 28px;
+    cursor: pointer;
+  }
+
+  /* Mobile Menu */
+  @media (max-width: 768px) {
+    .testimonials-nav-links {
+      position: fixed;
+      top: 60px;
+      right: -100%;
+      width: 70%;
+      height: calc(100vh - 60px);
+      background: rgba(15, 12, 41, 0.98);
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 30px;
+      gap: 25px;
+      transition: right 0.3s;
+      box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .testimonials-nav-links.active {
+      right: 0;
+    }
+
+    .mobile-menu-toggle {
+      display: block;
+    }
+  }
+
+  /* Add padding to content for fixed header */
+  .testimonials-content {
+    padding-top: 80px;
   }
 
   /* Floating stars background */
@@ -376,6 +510,26 @@
 </style>
 
 <section id="testimonials-magical">
+  <!-- Custom Header -->
+  <header class="testimonials-header">
+    <nav class="testimonials-nav">
+      <a href="/Kelly/index.html" class="testimonials-logo">Kelly Designers</a>
+
+      <button class="mobile-menu-toggle" onclick="document.querySelector('.testimonials-nav-links').classList.toggle('active')">
+        <i class="bx bx-menu"></i>
+      </button>
+
+      <ul class="testimonials-nav-links">
+        <li><a href="/Kelly/index.html">Home</a></li>
+        <li><a href="/portfolio">Portfolio</a></li>
+        <li><a href="/testimonials" class="active">Testimonials</a></li>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/portal/login">Client Portal</a></li>
+        <li><a href="/Kelly/index.html#final-dream" style="color: #FFD700;">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
   <!-- Floating Stars Background -->
   <div class="testimonials-stars">
     <div class="testimonials-star" style="width: 3px; height: 3px; top: 10%; left: 20%; animation-delay: 0s;"></div>
@@ -504,6 +658,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelectorAll('.fade-in-up').forEach(el => {
     observer.observe(el);
+  });
+
+  // Header scroll effect
+  window.addEventListener('scroll', function() {
+    const header = document.querySelector('.testimonials-header');
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
   });
 });
 </script>
