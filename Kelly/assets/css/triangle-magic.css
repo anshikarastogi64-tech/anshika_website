@@ -627,20 +627,20 @@
 
   /* Position at TRIANGLE VERTICES for mobile */
   .point-top {
-    top: 60px !important;
+    top: 57px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
   }
 
   .point-left {
-    bottom: 70px !important;
-    left: 15% !important;
+    bottom: 57px !important;
+    left: 11% !important;
     transform: translateX(-50%) !important;
   }
 
   .point-right {
-    bottom: 70px !important;
-    right: 15% !important;
+    bottom: 57px !important;
+    right: 11% !important;
     left: auto !important;
     transform: translateX(50%) !important;
   }
