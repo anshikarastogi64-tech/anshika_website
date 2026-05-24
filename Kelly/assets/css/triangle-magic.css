@@ -246,10 +246,15 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
     pointer-events: auto;
+    z-index: 200 !important;
   }
 
   .power-point:hover {
     z-index: 150 !important;
+  }
+
+  .power-point:hover .power-compact {
+    z-index: 200 !important;
   }
 
   /* Position adjustments */
