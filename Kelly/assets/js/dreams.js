@@ -547,11 +547,14 @@
                 visibility: visible !important;
                 opacity: 1 !important;
                 width: 100% !important;
+                max-width: 100% !important;
                 height: auto !important;
                 overflow-y: auto !important;
+                overflow-x: hidden !important;
                 position: relative !important;
                 box-sizing: border-box !important;
                 padding: 0 !important;
+                margin: 0 !important;
               `;
 
               // Reduce padding on header and content for smaller screens
@@ -560,6 +563,10 @@
                 header.style.cssText = `
                   padding: 12px !important;
                   font-size: 14px !important;
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                  overflow: hidden !important;
                 `;
               }
 
@@ -573,6 +580,10 @@
                 content.style.cssText = `
                   padding: 12px !important;
                   font-size: 12px !important;
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                  overflow-x: hidden !important;
                 `;
               }
 
@@ -583,17 +594,39 @@
                   padding: 8px !important;
                   margin-bottom: 10px !important;
                   font-size: 12px !important;
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                  overflow: hidden !important;
+                  word-wrap: break-word !important;
                 `;
 
                 const strong = row.querySelector('strong');
                 if (strong) {
-                  strong.style.fontSize = '13px !important';
+                  strong.style.cssText = `
+                    font-size: 13px !important;
+                    word-wrap: break-word !important;
+                  `;
                 }
 
                 const p = row.querySelector('p');
                 if (p) {
-                  p.style.fontSize = '12px !important';
+                  p.style.cssText = `
+                    font-size: 12px !important;
+                    word-wrap: break-word !important;
+                    overflow-wrap: break-word !important;
+                  `;
                 }
+
+                // Force all child divs to respect container width
+                const childDivs = row.querySelectorAll('div');
+                childDivs.forEach(div => {
+                  div.style.cssText = `
+                    max-width: 100% !important;
+                    overflow: hidden !important;
+                    word-wrap: break-word !important;
+                  `;
+                });
               });
 
               // Create close button
