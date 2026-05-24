@@ -694,6 +694,28 @@
 
 <!-- Dream Form Modal -->
 <link href="/Kelly/assets/css/dream-form.css" rel="stylesheet">
+<style>
+  /* Ensure modal is hidden by default */
+  .dream-form-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .dream-form-modal.active {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+  }
+</style>
 <div class="dream-form-modal" id="dreamFormModal">
   <div class="dream-form-container">
     <div class="modal-particles">
@@ -802,9 +824,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // Open dream form modal on CTA button click
   const testimonialsDreamBtn = document.getElementById('testimonialsDreamBtn');
   if (testimonialsDreamBtn) {
-    testimonialsDreamBtn.addEventListener('click', function() {
+    testimonialsDreamBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
       const modal = document.getElementById('dreamFormModal');
+      const formContent = document.getElementById('formContent');
+      const formSuccess = document.getElementById('formSuccess');
+
       if (modal) {
+        // Reset modal state
+        if (formContent) formContent.style.display = 'block';
+        if (formSuccess) formSuccess.style.display = 'none';
+
+        // Open modal
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
