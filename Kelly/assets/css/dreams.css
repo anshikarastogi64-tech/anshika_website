@@ -2099,15 +2099,22 @@ body::before {
 
   /* Magic Triangle Section */
   #magic-triangle {
-    padding: 60px 15px !important;
+    padding: 50px 15px !important;
   }
 
   #magic-triangle .section-title-center {
     margin-bottom: 10px !important;
+    font-size: 28px !important;
   }
 
   #magic-triangle .section-subtitle-center {
-    margin-bottom: 30px !important;
+    margin-bottom: 25px !important;
+  }
+
+  #magic-triangle .section-subtitle-center::after {
+    content: ' (Tap to expand)';
+    color: rgba(212, 175, 55, 0.8);
+    font-size: 13px;
   }
 
   /* Services Section */

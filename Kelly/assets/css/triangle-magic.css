@@ -484,13 +484,23 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  /* Triangle section */
   .triangle-container {
     height: auto;
     min-height: auto;
-    padding: 15px;
+    padding: 10px;
+    position: relative;
   }
 
-  /* Power points in vertical stack */
+  /* Hide triangle SVG and decorations completely */
+  .magic-triangle-svg,
+  .triangle-bg-elements,
+  .floating-symbol,
+  svg[viewBox="0 0 600 600"][style*="z-index: 15"] {
+    display: none !important;
+  }
+
+  /* Power points - compact vertical cards */
   .power-point {
     position: relative !important;
     top: auto !important;
@@ -498,50 +508,61 @@
     right: auto !important;
     bottom: auto !important;
     transform: none !important;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
   }
 
-  /* Compact card - always visible */
+  /* Compact card - small and clean */
   .power-compact {
     min-width: 100%;
-    padding: 25px 20px;
-    background: rgba(0, 0, 0, 0.9) !important;
-    border: 2px solid rgba(212, 175, 55, 0.6) !important;
+    padding: 18px 16px;
+    background: rgba(0, 0, 0, 0.85) !important;
+    border: 2px solid rgba(212, 175, 55, 0.5) !important;
     cursor: pointer;
-    position: relative;
+    border-radius: 15px !important;
+    transition: all 0.3s ease;
+  }
+
+  .power-compact:active {
+    transform: scale(0.98);
+    border-color: rgba(212, 175, 55, 0.8) !important;
   }
 
   .power-compact::after {
-    content: 'Tap to view details ↓';
+    content: 'Tap to expand ↓';
     display: block;
-    font-size: 12px;
-    color: rgba(212, 175, 55, 0.7);
-    margin-top: 10px;
+    font-size: 11px;
+    color: rgba(212, 175, 55, 0.6);
+    margin-top: 8px;
     text-align: center;
     font-weight: 500;
   }
 
+  .power-point.expanded .power-compact {
+    border-color: rgba(212, 175, 55, 0.8) !important;
+  }
+
   .power-point.expanded .power-compact::after {
-    content: 'Tap to hide details ↑';
+    content: 'Tap to collapse ↑';
   }
 
   .power-compact h3 {
-    font-size: 24px !important;
-    margin-bottom: 8px !important;
+    font-size: 20px !important;
+    margin-bottom: 5px !important;
   }
 
   .power-tagline {
-    font-size: 14px !important;
+    font-size: 13px !important;
     margin: 0 !important;
+    opacity: 0.8;
   }
 
   .power-icon-svg {
-    width: 55px !important;
-    height: 55px !important;
-    margin-bottom: 15px !important;
+    width: 45px !important;
+    height: 45px !important;
+    margin-bottom: 10px !important;
   }
 
-  /* Details - hidden by default on mobile */
+  /* Details - collapsed by default */
   .power-details {
     position: relative !important;
     top: auto !important;
@@ -553,110 +574,111 @@
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease, opacity 0.4s ease;
+    transition: max-height 0.35s ease, opacity 0.35s ease, margin-top 0.35s ease;
     border: none !important;
-    border-radius: 0 0 20px 20px !important;
+    border-radius: 0 !important;
   }
 
-  /* Show details when expanded */
+  /* Expanded state */
   .power-point.expanded .power-details {
-    max-height: 800px;
+    max-height: 600px;
     opacity: 1;
-    margin-top: 0;
-    border-top: 2px solid rgba(212, 175, 55, 0.3) !important;
+    margin-top: 10px;
   }
 
   .detail-header {
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
+    padding: 15px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px 12px 0 0;
   }
 
   .detail-header h4 {
-    font-size: 19px !important;
+    font-size: 17px !important;
+    margin: 0 !important;
   }
 
   .detail-badge {
-    font-size: 11px !important;
-    padding: 5px 12px !important;
+    font-size: 10px !important;
+    padding: 4px 10px !important;
   }
 
   .detail-content {
-    padding: 15px 20px 20px;
-    background: rgba(0, 0, 0, 0.7);
+    padding: 12px 16px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 0 0 12px 12px;
   }
 
   .detail-row {
-    gap: 12px;
-    margin-bottom: 15px;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .detail-row:last-child {
+    margin-bottom: 0;
   }
 
   .detail-icon {
-    font-size: 22px !important;
-    width: 32px !important;
+    font-size: 20px !important;
+    width: 28px !important;
   }
 
   .detail-row strong {
-    font-size: 14px !important;
+    font-size: 13px !important;
+    display: block;
+    margin-bottom: 3px;
   }
 
   .detail-row p {
-    font-size: 13px !important;
+    font-size: 12px !important;
+    line-height: 1.4;
+    margin: 0;
   }
 
-  /* Hide triangle SVG */
-  .magic-triangle-svg {
-    display: none;
-  }
-
-  /* Hide triangle overlay lines */
-  svg[viewBox="0 0 600 600"][style*="z-index: 15"] {
-    display: none !important;
-  }
-
-  /* Center globe - more prominent on mobile */
+  /* Center globe - at top, smaller */
   .triangle-center-clickable {
     position: relative !important;
     transform: none !important;
-    width: 90px !important;
-    height: 90px !important;
-    margin: 25px auto;
+    width: 70px !important;
+    height: 70px !important;
+    margin: 0 auto 20px !important;
     display: flex !important;
+    order: -1;
   }
 
   .triangle-center-clickable::after {
-    font-size: 42px !important;
+    font-size: 35px !important;
   }
 
-  /* Center label - visible but compact */
+  /* Center label - compact at top */
   .triangle-center-label {
     position: relative !important;
     transform: none !important;
     opacity: 1 !important;
-    margin: 25px 0;
+    margin: 0 0 20px 0 !important;
     pointer-events: all;
     display: block !important;
+    order: -1;
   }
 
   .center-label-content {
-    padding: 25px 20px;
+    padding: 18px 16px;
+    background: rgba(0, 0, 0, 0.75) !important;
   }
 
   .center-label-content h4 {
-    font-size: 22px !important;
-    margin-bottom: 12px !important;
+    font-size: 19px !important;
+    margin-bottom: 8px !important;
   }
 
   .center-label-content p {
-    font-size: 14px !important;
-    line-height: 1.5;
+    font-size: 13px !important;
+    line-height: 1.4;
+    margin: 0;
   }
 
-  /* Hide floating decorations */
-  .floating-symbol {
-    display: none;
-  }
-
-  .triangle-bg-elements {
-    display: none;
+  /* Make triangle container flex to reorder elements */
+  .triangle-container {
+    display: flex;
+    flex-direction: column;
   }
 }
