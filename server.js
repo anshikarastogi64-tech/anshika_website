@@ -1402,23 +1402,34 @@ app.get('/portal/api/cctv/:projectId', async (req, res) => {
 });
 
 
-app.post("/Kelly/forms/dream-contact", express.json(), async (req, res) => {
+
+// Dream Contact Form Route
+app.post('/Kelly/forms/dream-contact', express.json(), async (req, res) => {
   try {
     const { name, mobile, email, projectType, message } = req.body;
-    
+
     if (!name || !mobile || !email || !projectType) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
-    const { getTransporter } = require("./lib/portal-email");
+    const { getTransporter } = require('./lib/portal-email');
     const transporter = getTransporter();
-    
+
     if (!transporter) {
-      return res.status(500).json({ success: false, message: "Email not configured" });
+      return res.status(500).json({ success: false, message: 'Email not configured' });
     }
 
-    const adminHtml = "<h1>New Dream Lead!</h1><p><strong>Name:</strong> " + name + "</p><p><strong>Mobile:</strong> " + mobile + "</p><p><strong>Email:</strong> " + email + "</p><p><strong>Project:</strong> " + projectType + "</p><p><strong>Message:</strong> " + (message || "No message") + "</p>";
+    // Admin email HTML
+    const adminHtml = `
+      <h1 style="color: #FFD700;">✨ New Dream Lead!</h1>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Mobile:</strong> ${mobile}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Project:</strong> ${projectType}</p>
+      <p><strong>Message:</strong> ${message || 'No message'}</p>
+    `;
 
+    // Customer welcome email HTML
     const customerHtml = `
 <!DOCTYPE html>
 <html>
@@ -1446,27 +1457,27 @@ app.post("/Kelly/forms/dream-contact", express.json(), async (req, res) => {
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class='container'>
+        <div class='header'>
             <h1>✨ Welcome to Your Dream Journey! ✨</h1>
             <p>Where luxury meets cosmic wisdom</p>
         </div>
 
-        <div class="content">
-            <p class="greeting">Dear \${name},</p>
+        <div class='content'>
+            <p class='greeting'>Dear ${name},</p>
 
-            <p class="message">
+            <p class='message'>
                 Thank you for trusting me with your vision! I'm absolutely thrilled that you've chosen to embark on this
-                magical journey of creating your dream \${projectType}.
+                magical journey of creating your dream ${projectType}.
             </p>
 
-            <p class="message">
+            <p class='message'>
                 I don't just design spaces – I craft experiences that transform lives. Your home will be more than beautiful;
                 it will be a sanctuary that nurtures your family's growth, prosperity, and joy for generations to come.
             </p>
 
-            <div class="section">
-                <div class="section-title">🎨 What Happens Next?</div>
+            <div class='section'>
+                <div class='section-title'>🎨 What Happens Next?</div>
                 <ul>
                     <li><strong>Within 24 hours:</strong> I'll personally review your vision and reach out to you</li>
                     <li><strong>Discovery Call:</strong> We'll discuss your dreams, timeline, budget, and lifestyle</li>
@@ -1475,8 +1486,8 @@ app.post("/Kelly/forms/dream-contact", express.json(), async (req, res) => {
                 </ul>
             </div>
 
-            <div class="section">
-                <div class="section-title">💫 Why You Made the Right Choice</div>
+            <div class='section'>
+                <div class='section-title'>💫 Why You Made the Right Choice</div>
                 <ul>
                     <li><strong>300+ Dream Homes Created:</strong> Each one unique, each one magical</li>
                     <li><strong>Luxury Design:</strong> Sophisticated aesthetics that reflect your personality</li>
@@ -1486,64 +1497,80 @@ app.post("/Kelly/forms/dream-contact", express.json(), async (req, res) => {
                 </ul>
             </div>
 
-            <div class="highlight">
+            <div class='highlight'>
                 <p>📱 Have questions? I'm just a WhatsApp away!</p>
-                <p style="font-size: 20px; margin-top: 15px;">+91 9557058902</p>
+                <p style='font-size: 20px; margin-top: 15px;'>+91 9557058902</p>
             </div>
 
-            <p class="message">
+            <p class='message'>
                 In the meantime, feel free to explore my portfolio and see the magic I've created for others.
                 Each project is a love story between design and the families who live in these spaces.
             </p>
 
-            <div class="cta">
-                <a href="https://wa.me/919557058902?text=Hi%20Anshika%2C%20I%20just%20received%20your%20email!" target="_blank">
+            <div class='cta'>
+                <a href='https://wa.me/919557058902?text=Hi%20Anshika%2C%20I%20just%20received%20your%20email!' target='_blank'>
                     💬 Let's Chat on WhatsApp
                 </a>
             </div>
 
-            <p class="message" style="margin-top: 40px;">
+            <p class='message' style='margin-top: 40px;'>
                 <strong>"My Promise to You:"</strong><br>
                 I will listen to your dreams with my heart, design them with my expertise, align them with cosmic wisdom,
                 and deliver them with unwavering commitment to excellence.
             </p>
 
-            <p style="text-align: center; margin-top: 40px; color: #888; font-style: italic;">
+            <p style='text-align: center; margin-top: 40px; color: #888; font-style: italic;'>
                 With love & creativity,
             </p>
-            <p class="signature" style="text-align: center;">
+            <p class='signature' style='text-align: center;'>
                 Anshika Rastogi
             </p>
-            <p style="text-align: center; color: #888; font-size: 14px;">
+            <p style='text-align: center; color: #888; font-size: 14px;'>
                 Master Interior Designer | Vastu Expert | Astro Consultant
             </p>
         </div>
 
-        <div class="footer">
+        <div class='footer'>
             <p>✨ Designer's Vision Studio ✨</p>
             <p>Creating Spaces That Transform Lives</p>
-            <p style="margin-top: 15px; font-size: 12px;">
+            <p style='margin-top: 15px; font-size: 12px;'>
                 📧 designersvisionstudio@gmail.com | 📱 +91 9557058902
             </p>
         </div>
     </div>
 </body>
 </html>
-`;
+    `;
 
-    res.json({ success: true, message: "Emails sent!" });
+    // Send emails
+    console.log('Sending dream form emails...');
+    await Promise.all([
+      transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'designersvisionstudio@gmail.com',
+        to: 'designersvisionstudio@gmail.com',
+        subject: `🎨 New Dream Lead: ${projectType}`,
+        html: adminHtml
+      }),
+      transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'designersvisionstudio@gmail.com',
+        to: email,
+        subject: `✨ Welcome to Your Dream Journey, ${name}!`,
+        html: customerHtml
+      })
+    ]);
+
+    console.log('Dream form emails sent successfully');
+    res.json({ success: true, message: 'Emails sent!' });
   } catch (error) {
-    console.error("Dream contact error:", error);
-    res.status(500).json({ success: false, message: "Failed to send email" });
+    console.error('Dream contact error:', error);
+    res.status(500).json({ success: false, message: 'Failed to send email' });
   }
 });
+
 
 app.use((req, res) => {
   res.status(404).send('Not Found');
 });
-
-
-// Dream Contact Form Route
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on http://0.0.0.0:${PORT}`);
