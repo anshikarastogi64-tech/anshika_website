@@ -484,133 +484,190 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  /* Triangle section */
+  /* Triangle section - compact */
   .triangle-container {
     height: auto;
-    min-height: auto;
+    min-height: 400px;
     padding: 10px;
     position: relative;
   }
 
-  /* Hide triangle SVG and decorations completely */
-  .magic-triangle-svg,
-  .triangle-bg-elements,
-  .floating-symbol,
+  /* Show triangle SVG - scaled down */
+  .magic-triangle-svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 350px !important;
+    max-height: 350px !important;
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1 !important;
+  }
+
+  /* Show top overlay line */
   svg[viewBox="0 0 600 600"][style*="z-index: 15"] {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 350px !important;
+    max-height: 350px !important;
+  }
+
+  /* Hide decorations */
+  .triangle-bg-elements,
+  .floating-symbol {
     display: none !important;
   }
 
-  /* Power points - compact vertical cards */
+  /* Power points - position at triangle vertices */
   .power-point {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: none !important;
-    margin-bottom: 15px;
+    position: absolute !important;
+    z-index: 10;
+  }
+
+  /* Positions relative to small triangle */
+  .point-top {
+    top: 8% !important;
+    left: 50% !important;
+    transform: translate(-50%, 0) !important;
+  }
+
+  .point-left {
+    bottom: 8% !important;
+    left: 10% !important;
+    transform: translate(0, 0) !important;
+  }
+
+  .point-right {
+    bottom: 8% !important;
+    right: 10% !important;
+    transform: translate(0, 0) !important;
   }
 
   /* Compact card - small and clean */
   .power-compact {
-    min-width: 100%;
-    padding: 18px 16px;
-    background: rgba(0, 0, 0, 0.85) !important;
-    border: 2px solid rgba(212, 175, 55, 0.5) !important;
+    min-width: 110px;
+    max-width: 130px;
+    padding: 12px 10px;
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 2px solid rgba(212, 175, 55, 0.6) !important;
     cursor: pointer;
-    border-radius: 15px !important;
+    border-radius: 12px !important;
     transition: all 0.3s ease;
   }
 
   .power-compact:active {
-    transform: scale(0.98);
-    border-color: rgba(212, 175, 55, 0.8) !important;
+    transform: scale(0.95);
+    border-color: rgba(212, 175, 55, 0.9) !important;
   }
 
   .power-compact::after {
-    content: 'Tap to expand ↓';
+    content: '↓';
     display: block;
-    font-size: 11px;
-    color: rgba(212, 175, 55, 0.6);
-    margin-top: 8px;
+    font-size: 14px;
+    color: rgba(212, 175, 55, 0.7);
+    margin-top: 6px;
     text-align: center;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .power-point.expanded .power-compact {
-    border-color: rgba(212, 175, 55, 0.8) !important;
+    border-color: rgba(212, 175, 55, 0.9) !important;
+    background: rgba(0, 0, 0, 0.95) !important;
   }
 
   .power-point.expanded .power-compact::after {
-    content: 'Tap to collapse ↑';
+    content: '↑';
   }
 
   .power-compact h3 {
-    font-size: 20px !important;
-    margin-bottom: 5px !important;
+    font-size: 14px !important;
+    margin-bottom: 3px !important;
+    line-height: 1.2;
   }
 
   .power-tagline {
-    font-size: 13px !important;
+    font-size: 10px !important;
     margin: 0 !important;
-    opacity: 0.8;
+    opacity: 0.7;
   }
 
   .power-icon-svg {
-    width: 45px !important;
-    height: 45px !important;
-    margin-bottom: 10px !important;
+    width: 35px !important;
+    height: 35px !important;
+    margin-bottom: 8px !important;
   }
 
-  /* Details - collapsed by default */
+  /* Details - show in modal/overlay */
   .power-details {
-    position: relative !important;
-    top: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    transform: none !important;
-    width: 100%;
-    margin-top: 0;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(0.8) !important;
+    width: 90%;
+    max-width: 340px;
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.35s ease, opacity 0.35s ease, margin-top 0.35s ease;
-    border: none !important;
-    border-radius: 0 !important;
+    transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+    border: 2px solid rgba(212, 175, 55, 0.6) !important;
+    border-radius: 15px !important;
+    z-index: 1000 !important;
+    pointer-events: none;
   }
 
-  /* Expanded state */
+  /* Expanded state - modal popup */
   .power-point.expanded .power-details {
-    max-height: 600px;
+    max-height: 80vh;
     opacity: 1;
-    margin-top: 10px;
+    transform: translate(-50%, -50%) scale(1) !important;
+    pointer-events: all;
+    overflow-y: auto;
+  }
+
+  /* Backdrop */
+  .power-point.expanded::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
   }
 
   .detail-header {
-    padding: 15px 16px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 12px 12px 0 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.95);
+    border-radius: 13px 13px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   .detail-header h4 {
-    font-size: 17px !important;
+    font-size: 18px !important;
     margin: 0 !important;
   }
 
   .detail-badge {
-    font-size: 10px !important;
-    padding: 4px 10px !important;
+    font-size: 11px !important;
+    padding: 5px 12px !important;
   }
 
   .detail-content {
-    padding: 12px 16px 16px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 0 0 12px 12px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 0 0 13px 13px;
   }
 
   .detail-row {
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
   }
 
   .detail-row:last-child {
@@ -618,67 +675,64 @@
   }
 
   .detail-icon {
-    font-size: 20px !important;
-    width: 28px !important;
+    font-size: 24px !important;
+    width: 32px !important;
   }
 
   .detail-row strong {
-    font-size: 13px !important;
+    font-size: 14px !important;
     display: block;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
   }
 
   .detail-row p {
-    font-size: 12px !important;
-    line-height: 1.4;
+    font-size: 13px !important;
+    line-height: 1.5;
     margin: 0;
   }
 
-  /* Center globe - at top, smaller */
+  /* Center globe - at center of triangle */
   .triangle-center-clickable {
-    position: relative !important;
-    transform: none !important;
-    width: 70px !important;
-    height: 70px !important;
-    margin: 0 auto 20px !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 60px !important;
+    height: 60px !important;
+    z-index: 20 !important;
     display: flex !important;
-    order: -1;
   }
 
   .triangle-center-clickable::after {
-    font-size: 35px !important;
+    font-size: 30px !important;
   }
 
-  /* Center label - compact at top */
+  /* Center label - show above triangle */
   .triangle-center-label {
     position: relative !important;
     transform: none !important;
     opacity: 1 !important;
-    margin: 0 0 20px 0 !important;
+    margin: 0 auto 20px !important;
     pointer-events: all;
     display: block !important;
-    order: -1;
+    max-width: 320px;
+    z-index: 2;
   }
 
   .center-label-content {
-    padding: 18px 16px;
-    background: rgba(0, 0, 0, 0.75) !important;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.85) !important;
+    border-radius: 12px;
   }
 
   .center-label-content h4 {
-    font-size: 19px !important;
+    font-size: 17px !important;
     margin-bottom: 8px !important;
   }
 
   .center-label-content p {
-    font-size: 13px !important;
+    font-size: 12px !important;
     line-height: 1.4;
     margin: 0;
-  }
-
-  /* Make triangle container flex to reorder elements */
-  .triangle-container {
-    display: flex;
-    flex-direction: column;
   }
 }
