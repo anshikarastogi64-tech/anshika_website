@@ -762,7 +762,12 @@
   .power-point.expanded .power-details,
   .point-top.expanded .power-details,
   .point-left.expanded .power-details,
-  .point-right.expanded .power-details {
+  .point-right.expanded .power-details,
+  /* HIGHER SPECIFICITY - must override base rules */
+  .power-point.power-point.expanded .power-details,
+  .point-top.point-top.expanded .power-details,
+  .point-left.point-left.expanded .power-details,
+  .point-right.point-right.expanded .power-details {
     display: block !important;
     transform: translate(-50%, -50%) scale(1) !important;
     opacity: 1 !important;
