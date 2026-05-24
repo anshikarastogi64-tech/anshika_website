@@ -333,28 +333,30 @@
       }
     });
 
-    // Credentials slide in
-    gsap.from('.credentials-row', {
-      opacity: 0,
-      y: 50,
-      duration: 1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.credentials-row',
-        start: 'top 75%'
-      }
-    });
+    // Credentials slide in (disabled on mobile to prevent visibility issues)
+    if (window.innerWidth > 768) {
+      gsap.from('.credentials-row', {
+        opacity: 0,
+        y: 50,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.credentials-row',
+          start: 'top 75%'
+        }
+      });
 
-    gsap.from('.credential-item', {
-      opacity: 0,
-      x: -30,
-      duration: 0.8,
-      stagger: 0.2,
-      scrollTrigger: {
-        trigger: '.credentials-row',
-        start: 'top 75%'
-      }
-    });
+      gsap.from('.credential-item', {
+        opacity: 0,
+        x: -30,
+        duration: 0.8,
+        stagger: 0.2,
+        scrollTrigger: {
+          trigger: '.credentials-row',
+          start: 'top 75%'
+        }
+      });
+    }
 
     // Magic badges bounce in (DISABLED to prevent visibility issues)
     // gsap.from('.magic-badge', {
