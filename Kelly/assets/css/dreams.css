@@ -2099,22 +2099,29 @@ body::before {
 
   /* Magic Triangle Section */
   #magic-triangle {
-    padding: 50px 15px 40px !important;
+    padding: 50px 20px !important;
   }
 
   #magic-triangle .section-title-center {
-    margin-bottom: 12px !important;
-    font-size: 30px !important;
+    margin-bottom: 10px !important;
+    font-size: 32px !important;
+    line-height: 1.2;
   }
 
   #magic-triangle .section-subtitle-center {
-    margin-bottom: 30px !important;
-    font-size: 14px !important;
+    margin-bottom: 35px !important;
+    font-size: 15px !important;
+    opacity: 0.8;
   }
 
   #magic-triangle .section-subtitle-center::after {
     content: '';
     display: none;
+  }
+
+  #magic-triangle .triangle-container {
+    max-width: 500px;
+    margin: 0 auto;
   }
 
   /* Services Section */
