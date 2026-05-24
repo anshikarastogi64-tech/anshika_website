@@ -1,0 +1,280 @@
+/* Magical Floating Contact Button */
+.magical-floating-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Main Magic Button */
+.magic-main-btn {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #1a1a2e;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4),
+              0 8px 40px rgba(255, 165, 0, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  animation: float 3s ease-in-out infinite, pulse-glow 2s ease-in-out infinite;
+}
+
+.magic-main-btn::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  animation: rotate-border 3s linear infinite;
+}
+
+.magic-main-btn:hover::before {
+  opacity: 0.6;
+}
+
+.magic-main-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 30px rgba(255, 215, 0, 0.6),
+              0 12px 60px rgba(255, 165, 0, 0.5);
+}
+
+.magic-main-btn.active {
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+  color: #FFD700;
+}
+
+/* Sparkle effect */
+.magic-main-btn::after {
+  content: '✨';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 16px;
+  animation: sparkle-pop 2s ease-in-out infinite;
+}
+
+/* Contact Options Menu */
+.contact-options {
+  position: absolute;
+  bottom: 85px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.8);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.contact-options.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* Individual Contact Option */
+.contact-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.95) 0%, rgba(255, 165, 0, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 50px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #1a1a2e;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  animation: slide-in-right 0.5s ease backwards;
+}
+
+.contact-option:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.contact-option:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.contact-option:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.contact-option:hover {
+  transform: translateX(-5px) scale(1.05);
+  box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+.contact-option .icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: rgba(26, 26, 46, 0.15);
+  border-radius: 50%;
+}
+
+.contact-option .text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4),
+                0 8px 40px rgba(255, 165, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(255, 215, 0, 0.6),
+                0 12px 60px rgba(255, 165, 0, 0.5),
+                0 0 80px rgba(255, 215, 0, 0.2);
+  }
+}
+
+@keyframes sparkle-pop {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3) rotate(180deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes rotate-border {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .magical-floating-btn {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .magic-main-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
+  }
+
+  .magic-main-btn::after {
+    font-size: 14px;
+    top: -3px;
+    right: -3px;
+  }
+
+  .contact-options {
+    bottom: 75px;
+    right: 0;
+  }
+
+  .contact-option {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .contact-option .icon {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+  }
+
+  .contact-option .text {
+    font-size: 13px;
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+  .magical-floating-btn {
+    bottom: 15px;
+    right: 15px;
+  }
+
+  .magic-main-btn {
+    width: 55px;
+    height: 55px;
+    font-size: 24px;
+  }
+
+  .contact-options {
+    bottom: 70px;
+  }
+
+  .contact-option {
+    padding: 8px 14px;
+  }
+}
+
+/* Tooltip on hover */
+.magic-main-btn:hover::before {
+  content: 'Contact Us';
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  background: rgba(26, 26, 46, 0.95);
+  color: #FFD700;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 1;
+  animation: none;
+  pointer-events: none;
+}
+
+.magic-main-btn.active:hover::before {
+  content: 'Close';
+}
