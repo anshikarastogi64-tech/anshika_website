@@ -100,19 +100,12 @@
     submitBtn.disabled = true;
 
     try {
-      // Try to send to admin via email (will fail on localhost without PHP)
-      try {
-        await sendToAdmin(data);
-      } catch (emailError) {
-        console.warn('Email sending failed (expected on localhost):', emailError);
-        // Continue anyway - WhatsApp will still work
-      }
+      // Send to admin via email
+      await sendToAdmin(data);
 
-      // Send WhatsApp message to customer
-      sendWhatsAppToCustomer(data);
-
-      // Send notification to admin WhatsApp
-      sendWhatsAppToAdmin(data);
+      // WhatsApp integration disabled for now - will integrate business WhatsApp later
+      // sendWhatsAppToCustomer(data);
+      // sendWhatsAppToAdmin(data);
 
       // Show success
       formContent.style.display = 'none';
@@ -123,7 +116,7 @@
 
     } catch (error) {
       console.error('Form submission error:', error);
-      alert('Oops! Something went wrong. Please try again or contact us directly via WhatsApp.');
+      alert('Oops! Something went wrong. Please try again or contact us directly.');
       submitBtn.classList.remove('loading');
       submitBtn.disabled = false;
     }
