@@ -475,17 +475,19 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 10000 !important;
-        width: 90vw !important;
-        max-width: 340px !important;
+        width: 85vw !important;
+        max-width: 320px !important;
         max-height: 70vh !important;
-        border-radius: 16px !important;
+        border-radius: 12px !important;
         border: 2px solid rgba(212, 175, 55, 0.6) !important;
-        overflow: visible !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
         background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
+        box-sizing: border-box !important;
       `;
       document.body.appendChild(modalContainer);
 
@@ -545,10 +547,30 @@
                 visibility: visible !important;
                 opacity: 1 !important;
                 width: 100% !important;
-                height: 100% !important;
+                height: auto !important;
                 overflow-y: auto !important;
                 position: relative !important;
+                box-sizing: border-box !important;
+                padding: 0 !important;
               `;
+
+              // Reduce padding on header and content for smaller screens
+              const header = clonedDetails.querySelector('.detail-header');
+              if (header) {
+                header.style.padding = '15px !important';
+              }
+
+              const content = clonedDetails.querySelector('.detail-content');
+              if (content) {
+                content.style.padding = '15px !important';
+              }
+
+              // Make rows more compact
+              const rows = clonedDetails.querySelectorAll('.detail-row');
+              rows.forEach(row => {
+                row.style.padding = '10px !important';
+                row.style.fontSize = '13px !important';
+              });
 
               // Create close button
               const closeBtn = document.createElement('button');
