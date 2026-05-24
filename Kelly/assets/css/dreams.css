@@ -303,7 +303,7 @@ body::before {
 
 /* MENU CLOSE BUTTON */
 .menu-close {
-  position: absolute;
+  position: fixed;
   top: 40px;
   right: 40px;
   width: 60px;
@@ -319,6 +319,8 @@ body::before {
   gap: 0;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  z-index: 100000;
+  pointer-events: auto;
 }
 
 .menu-close:hover {
