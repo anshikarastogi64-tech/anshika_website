@@ -451,6 +451,44 @@
         // Power points are visible by default now
       }
     });
+
+    // Mobile: Tap to expand/collapse details
+    if (window.innerWidth <= 768) {
+      const powerPoints = document.querySelectorAll('.power-point');
+
+      powerPoints.forEach(point => {
+        const compactCard = point.querySelector('.power-compact');
+
+        if (compactCard) {
+          compactCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+
+            // Toggle expanded class
+            const isExpanded = point.classList.contains('expanded');
+
+            // Close all other power points
+            powerPoints.forEach(p => p.classList.remove('expanded'));
+
+            // Toggle current
+            if (!isExpanded) {
+              point.classList.add('expanded');
+
+              // Scroll into view smoothly
+              setTimeout(() => {
+                point.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }, 100);
+            }
+          });
+        }
+      });
+
+      // Close all when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.power-point')) {
+          powerPoints.forEach(p => p.classList.remove('expanded'));
+        }
+      });
+    }
   }
 
   /**
