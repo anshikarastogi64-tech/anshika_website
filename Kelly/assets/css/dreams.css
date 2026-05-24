@@ -1697,12 +1697,35 @@ body::before {
 
 /* MOBILE RESPONSIVE */
 @media (max-width: 768px) {
+  * {
+    box-sizing: border-box !important;
+  }
+
+  html, body {
+    width: 100%;
+    overflow-x: hidden !important;
+    margin: 0;
+    padding: 0;
+  }
+
   body {
     cursor: auto;
-    overflow-x: hidden;
   }
 
   #brush-cursor { display: none; }
+
+  /* Prevent any element from overflowing */
+  * {
+    max-width: 100% !important;
+  }
+
+  /* All sections must fit viewport */
+  section {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
 
   /* Force single column layouts - override inline styles */
   .story-container[style*="grid-template-columns"] {
@@ -1715,9 +1738,15 @@ body::before {
     grid-template-columns: 1fr !important;
   }
 
-  /* Viewport width constraint */
-  * {
-    max-width: 100vw;
+  /* Reset all div widths */
+  div {
+    max-width: 100% !important;
+  }
+
+  /* Images must fit */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
   }
 
   /* Menu */
@@ -1838,29 +1867,40 @@ body::before {
 
   /* Dream Begins Section */
   #dream-begins {
-    padding: 60px 15px !important;
+    padding: 50px 10px !important;
     overflow-x: hidden;
+    margin: 0 !important;
   }
 
   #dream-begins .story-container {
     max-width: 100% !important;
-    padding: 0 5px !important;
+    padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
   }
 
   #dream-begins .story-container > div {
     order: 2;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
   }
 
   #dream-begins .story-container > div:first-child {
     order: 1;
   }
 
+  #dream-begins .story-left {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
   #dream-begins .story-left > div {
-    padding: 25px 18px !important;
-    margin-bottom: 30px;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    padding: 20px 15px !important;
+    margin: 0 0 25px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   #dream-begins .story-left > div > div[style*="position: absolute"] {
@@ -1872,18 +1912,20 @@ body::before {
   }
 
   #dream-begins h2 {
-    font-size: 28px !important;
-    margin: 20px 0 20px !important;
+    font-size: 26px !important;
+    margin: 15px 0 18px 0 !important;
+    line-height: 1.3 !important;
   }
 
   #dream-begins h3 {
-    font-size: 24px !important;
-    margin-bottom: 25px !important;
+    font-size: 22px !important;
+    margin-bottom: 20px !important;
   }
 
   #dream-begins p {
     font-size: 15px !important;
     line-height: 1.6 !important;
+    margin-bottom: 15px !important;
   }
 
   #dream-begins > div[style*="display: flex"] {
@@ -1897,37 +1939,54 @@ body::before {
   }
 
   #dream-begins div[style*="font-size: 36px"] {
-    font-size: 28px !important;
+    font-size: 26px !important;
   }
 
   #dream-begins div[style*="font-size: 32px"] {
-    font-size: 24px !important;
+    font-size: 22px !important;
+  }
+
+  #dream-begins div[style*="font-size: 14px"] {
+    font-size: 12px !important;
+  }
+
+  #dream-begins div[style*="margin-top: 30px; display: flex"] {
+    margin-top: 20px !important;
   }
 
   /* Image grid in Dream Begins */
   .story-right {
-    padding: 0 5px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   .story-right > div {
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .story-right h3 {
+    padding: 0 15px !important;
   }
 
   .story-right > div > div[style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
     gap: 15px !important;
-    padding: 0 !important;
+    padding: 0 15px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .story-right > div > div > div {
-    margin-bottom: 15px;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: 0 0 15px 0 !important;
+    width: 100% !important;
   }
 
   .story-right > div > div img {
-    height: 220px !important;
+    height: 200px !important;
     width: 100% !important;
   }
 
@@ -1936,162 +1995,183 @@ body::before {
   }
 
   .story-right a[style*="padding: 18px 45px"] {
-    padding: 14px 30px !important;
-    font-size: 16px !important;
+    padding: 12px 25px !important;
+    font-size: 14px !important;
     display: block !important;
-    width: 100%;
-    max-width: 280px;
-    margin: 30px auto 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 25px 15px 0 15px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
   }
 
   /* Designer Section */
   #meet-designer {
-    padding: 60px 15px !important;
+    padding: 50px 10px !important;
     overflow-x: hidden;
+    margin: 0 !important;
   }
 
   .designer-reveal {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 35px;
     max-width: 100%;
-    padding: 0 5px !important;
+    padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
   }
 
   .designer-story {
-    padding: 0 5px !important;
+    padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
   }
 
   .designer-image-container {
-    margin-bottom: 30px;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: 0 0 25px 0 !important;
+    padding: 0 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .polaroid-frame {
+    margin: 0 auto !important;
   }
 
   .designer-photo {
-    height: 350px;
+    height: 320px;
   }
 
   .doodle {
-    font-size: 25px;
+    font-size: 22px;
   }
 
   .doodle-arrow {
-    right: -25px;
-    font-size: 35px;
+    right: -20px;
+    font-size: 30px;
   }
 
   .handwritten-heading {
-    font-size: 36px !important;
+    font-size: 32px !important;
+    padding: 0 15px !important;
   }
 
   .story-text {
-    font-size: 16px !important;
-    padding: 0 5px !important;
+    font-size: 15px !important;
+    padding: 0 15px !important;
+    margin-bottom: 15px !important;
   }
 
   /* Credentials */
   .credentials-row {
     grid-template-columns: 1fr !important;
     padding: 20px 15px !important;
-    gap: 20px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    gap: 18px !important;
+    margin: 20px 15px !important;
+    width: auto !important;
   }
 
   .credential-item {
     flex-direction: column !important;
     text-align: center;
-    gap: 10px !important;
+    gap: 8px !important;
   }
 
   .credential-icon {
-    font-size: 32px !important;
+    font-size: 30px !important;
   }
 
   .credential-info strong {
-    font-size: 15px !important;
+    font-size: 14px !important;
   }
 
   .credential-info span {
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 
   .recognition-banner {
-    padding: 20px 15px !important;
+    padding: 18px 15px !important;
     flex-direction: column !important;
     text-align: center;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: 20px 15px !important;
+    width: auto !important;
   }
 
   .recognition-banner > div:first-child {
-    font-size: 35px !important;
+    font-size: 32px !important;
   }
 
   .recognition-banner strong {
-    font-size: 16px !important;
+    font-size: 15px !important;
   }
 
   .recognition-banner span {
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
 
   /* Badges */
   .magic-badges {
     flex-wrap: wrap !important;
-    gap: 12px !important;
+    gap: 10px !important;
     justify-content: center !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding: 0 5px !important;
+    margin: 30px 15px !important;
+    padding: 0 !important;
+    width: auto !important;
   }
 
   .magic-badge {
-    padding: 15px 20px !important;
+    padding: 14px 18px !important;
     flex: 0 1 auto;
   }
 
   .magic-badge i {
-    font-size: 24px !important;
+    font-size: 22px !important;
   }
 
   .magic-badge span {
-    font-size: 15px !important;
+    font-size: 14px !important;
+  }
+
+  .specialization-header {
+    padding: 0 15px !important;
+    margin-top: 30px !important;
+  }
+
+  .specialization-header h3 {
+    font-size: 19px !important;
+  }
+
+  .specialization-header p {
+    font-size: 13px !important;
   }
 
   /* Expertise Tags */
   .expertise-tags-final {
-    gap: 10px !important;
-    padding: 15px 10px !important;
+    gap: 8px !important;
+    padding: 15px !important;
     justify-content: center !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin: 0 15px 20px 15px !important;
+    width: auto !important;
   }
 
   .expertise-tags-final span {
-    padding: 10px 20px !important;
-    font-size: 13px !important;
-  }
-
-  .specialization-header h3 {
-    font-size: 20px !important;
-  }
-
-  .specialization-header p {
-    font-size: 14px !important;
+    padding: 9px 18px !important;
+    font-size: 12px !important;
   }
 
   .professional-statement {
-    padding: 20px 15px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    padding: 18px 15px !important;
+    margin: 25px 15px !important;
+    width: auto !important;
   }
 
   .professional-statement p {
-    font-size: 15px !important;
-    padding: 0 5px !important;
+    font-size: 14px !important;
+    padding: 0 !important;
+  }
+
+  .professional-statement p:last-child {
+    font-size: 13px !important;
   }
 
   /* Section Titles */
@@ -2166,97 +2246,118 @@ body::before {
 
   /* Services Section */
   .services-showcase {
-    padding: 60px 15px !important;
+    padding: 50px 10px !important;
+    overflow-x: hidden;
+  }
+
+  #what-i-create > p {
+    padding: 0 15px !important;
   }
 
   .services-categories {
-    gap: 10px !important;
-    margin-bottom: 30px !important;
+    gap: 8px !important;
+    margin-bottom: 25px !important;
+    padding: 0 10px !important;
   }
 
   .cat-btn-dream {
-    padding: 10px 20px !important;
-    font-size: 13px !important;
+    padding: 9px 18px !important;
+    font-size: 12px !important;
   }
 
   .services-dream-grid {
     grid-template-columns: 1fr !important;
-    gap: 25px !important;
-    padding: 0 !important;
+    gap: 20px !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    width: auto !important;
   }
 
   .service-dream-card {
     padding: 15px !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   .service-dream-card h4 {
-    font-size: 20px !important;
+    font-size: 19px !important;
   }
 
   .service-dream-card p {
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
 
   .service-dream-img img {
-    height: 220px !important;
+    height: 200px !important;
   }
 
   .gallery-cta {
-    margin-top: 40px !important;
+    margin-top: 35px !important;
+    padding: 0 10px !important;
   }
 
   .gallery-cta a {
-    padding: 15px 35px !important;
-    font-size: 16px !important;
+    padding: 14px 30px !important;
+    font-size: 15px !important;
   }
 
   /* Trust & Transparency Section */
   #trust-transparency {
-    padding: 50px 15px !important;
+    padding: 50px 10px !important;
+    overflow-x: hidden;
   }
 
   #trust-transparency > div {
     max-width: 100% !important;
     padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   #trust-transparency h2 {
-    font-size: 28px !important;
-    margin-bottom: 12px !important;
-    padding: 0 5px;
+    font-size: 26px !important;
+    margin-bottom: 10px !important;
+    padding: 0 10px !important;
+    line-height: 1.3 !important;
   }
 
   #trust-transparency > div > div:first-child {
-    margin-bottom: 35px !important;
+    margin-bottom: 30px !important;
+    padding: 0 !important;
   }
 
   #trust-transparency > div > div:first-child p {
-    font-size: 15px !important;
-    padding: 0 5px;
+    font-size: 14px !important;
+    padding: 0 10px !important;
+    line-height: 1.5 !important;
   }
 
   #trust-transparency > div > div[style*="grid-template-columns: repeat(3"] {
     grid-template-columns: 1fr !important;
-    gap: 20px !important;
-    margin-bottom: 25px !important;
+    gap: 18px !important;
+    margin: 0 10px 20px 10px !important;
+    padding: 0 !important;
+    width: auto !important;
   }
 
   #trust-transparency > div > div > div[style*="padding: 30px"] {
-    padding: 25px 20px !important;
+    padding: 20px 18px !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   #trust-transparency div[style*="width: 70px; height: 70px"] {
-    width: 60px !important;
-    height: 60px !important;
-    font-size: 35px !important;
+    width: 55px !important;
+    height: 55px !important;
+    font-size: 32px !important;
   }
 
   #trust-transparency h3[style*="font-size: 24px"] {
-    font-size: 20px !important;
+    font-size: 18px !important;
   }
 
   #trust-transparency div[style*="font-size: 16px; line-height: 1.4"] {
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
 
   #trust-transparency div[style*="display: grid; grid-template-columns: 1fr 1fr"] {
@@ -2264,108 +2365,140 @@ body::before {
   }
 
   #trust-transparency > div > div:last-child {
-    padding: 25px 20px !important;
+    padding: 20px 15px !important;
+    margin: 0 10px !important;
+    width: auto !important;
   }
 
   #trust-transparency > div > div:last-child p {
-    font-size: 15px !important;
+    font-size: 14px !important;
     margin-bottom: 15px !important;
+    line-height: 1.5 !important;
   }
 
   #trust-transparency > div > div:last-child > div[style*="display: flex"] {
-    gap: 20px !important;
+    gap: 18px !important;
     flex-wrap: wrap;
+    justify-content: center;
   }
 
   #trust-transparency div[style*="font-size: 32px"] {
-    font-size: 26px !important;
+    font-size: 24px !important;
   }
 
   #trust-transparency div[style*="font-size: 12px"] {
-    font-size: 11px !important;
+    font-size: 10px !important;
+  }
+
+  #trust-transparency div[style*="text-align: center"] > div {
+    margin: 0 !important;
   }
 
   /* Secret Sauce Section */
   #secret-sauce {
-    padding: 60px 15px !important;
+    padding: 50px 10px !important;
+    overflow-x: hidden;
   }
 
   .secret-container {
     max-width: 100%;
-    padding: 0 10px;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   .secret-badge {
-    font-size: 14px;
-    padding: 8px 20px;
-    margin-bottom: 20px;
+    font-size: 13px;
+    padding: 8px 18px;
+    margin: 0 auto 18px auto !important;
   }
 
   .secret-features {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 18px;
+    margin-top: 30px !important;
+    padding: 0 10px !important;
   }
 
   .feature-card {
-    padding: 25px 20px;
+    padding: 22px 18px;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   .feature-emoji {
-    font-size: 40px;
-    margin-bottom: 15px;
+    font-size: 38px;
+    margin-bottom: 12px;
   }
 
   .feature-card h3 {
-    font-size: 19px;
+    font-size: 18px;
     margin-bottom: 10px;
   }
 
   .feature-card p {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.5;
   }
 
   .secret-title {
-    font-size: 28px !important;
-    line-height: 1.4;
-    padding: 0 10px;
-    margin-bottom: 25px;
+    font-size: 26px !important;
+    line-height: 1.35;
+    padding: 0 15px !important;
+    margin-bottom: 20px;
   }
 
   .rainbow-text {
-    font-size: 32px !important;
+    font-size: 28px !important;
+    display: inline-block;
   }
 
   /* Process Timeline */
   #process {
-    padding: 60px 15px !important;
+    padding: 50px 10px !important;
+    overflow-x: hidden;
+  }
+
+  #process .section-title-center {
+    padding: 0 15px !important;
   }
 
   .timeline-path {
-    padding: 0 10px;
+    padding: 0 15px !important;
+    margin-top: 40px !important;
+    width: 100% !important;
   }
 
   .timeline-step {
     flex-direction: column;
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 28px;
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
   }
 
   .step-bubble {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
+    margin: 0 auto !important;
   }
 
   .step-number {
-    font-size: 32px;
+    font-size: 30px;
+  }
+
+  .step-content {
+    padding: 10px 0 !important;
   }
 
   .step-content h3 {
-    font-size: 22px;
+    font-size: 20px;
+    margin-bottom: 10px !important;
   }
 
   .step-content p {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.6 !important;
   }
 
   .timeline-connector {
@@ -2374,60 +2507,64 @@ body::before {
 
   /* Final CTA */
   #final-dream {
-    padding: 60px 15px !important;
+    padding: 50px 10px !important;
+    overflow-x: hidden;
   }
 
   .final-content {
     max-width: 100%;
-    padding: 0 10px;
+    padding: 0 15px !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 
   .final-buttons {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
   }
 
   .btn-dream-primary,
   .btn-dream-secondary {
     width: 100%;
-    max-width: 280px;
-    padding: 15px 35px !important;
-    font-size: 15px !important;
+    max-width: 260px;
+    padding: 14px 30px !important;
+    font-size: 14px !important;
   }
 
   .final-title {
-    margin-bottom: 25px;
+    margin-bottom: 22px;
   }
 
   .final-title .handwritten-massive {
-    font-size: 36px !important;
+    font-size: 34px !important;
     line-height: 1.3;
   }
 
   .final-title .handwritten-massive.highlight {
-    font-size: 42px !important;
+    font-size: 40px !important;
   }
 
   .final-text {
-    font-size: 15px;
-    padding: 0 10px;
-    margin-bottom: 30px;
+    font-size: 14px;
+    padding: 0 !important;
+    margin-bottom: 28px;
+    line-height: 1.6 !important;
   }
 
   .final-social {
     gap: 12px;
-    margin: 30px 0;
+    margin: 28px 0;
   }
 
   .social-bubble {
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
+    width: 46px;
+    height: 46px;
+    font-size: 19px;
   }
 
   .signature {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .signature p {
@@ -2435,7 +2572,7 @@ body::before {
   }
 
   .signature-name {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   /* Dark sections */
