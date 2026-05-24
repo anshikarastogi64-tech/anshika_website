@@ -685,12 +685,88 @@
     <div class="testimonials-cta">
       <h2>Ready to Write Your Own Success Story?</h2>
       <p>Join hundreds of satisfied clients who trusted us to bring their dream homes to life. Let's create something magical together.</p>
-      <a href="/contact" class="cta-button">
+      <button class="cta-button" id="testimonialsDreamBtn" style="border: none; cursor: pointer;">
         ✨ Start Your Dream Journey ✨
-      </a>
+      </button>
     </div>
   </div>
 </section>
+
+<!-- Dream Form Modal -->
+<link href="/Kelly/assets/css/dream-form.css" rel="stylesheet">
+<div class="dream-form-modal" id="dreamFormModal">
+  <div class="dream-form-container">
+    <div class="modal-particles">
+      <div class="modal-particle"></div>
+      <div class="modal-particle"></div>
+      <div class="modal-particle"></div>
+      <div class="modal-particle"></div>
+      <div class="modal-particle"></div>
+    </div>
+
+    <button class="form-close-btn" id="formCloseBtn">×</button>
+
+    <div class="form-content" id="formContent">
+      <div class="form-header">
+        <h2 class="form-title">✨ Let's Build Your Dream ✨</h2>
+        <p class="form-subtitle">Share your vision, and I'll make it reality</p>
+      </div>
+
+      <form id="dreamContactForm">
+        <div class="form-group">
+          <label>Your Name <span class="required">*</span></label>
+          <input type="text" name="name" class="form-input" placeholder="Enter your full name" required>
+        </div>
+
+        <div class="form-group">
+          <label>Mobile Number <span class="required">*</span></label>
+          <input type="tel" name="mobile" class="form-input" placeholder="Enter your mobile number" required pattern="[0-9]{10}">
+        </div>
+
+        <div class="form-group">
+          <label>Email Address <span class="required">*</span></label>
+          <input type="email" name="email" class="form-input" placeholder="Enter your email" required>
+        </div>
+
+        <div class="form-group">
+          <label>Project Type <span class="required">*</span></label>
+          <select name="projectType" class="form-select" required>
+            <option value="">Select project type</option>
+            <option value="Home Interior">Home Interior - Complete Design</option>
+            <option value="Kitchen Design">Kitchen Design</option>
+            <option value="Bedroom Design">Bedroom Design</option>
+            <option value="Living Room">Living Room Design</option>
+            <option value="Office Interior">Office/Commercial Interior</option>
+            <option value="Vastu Consultation">Vastu Consultation</option>
+            <option value="Astro Alignment">Astro Alignment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Your Dream Vision</label>
+          <textarea name="message" class="form-textarea" placeholder="Tell me about your dream space... What inspired you? What feeling do you want when you walk in?"></textarea>
+        </div>
+
+        <button type="submit" class="form-submit-btn">
+          <span class="btn-text">✨ Start My Dream Journey ✨</span>
+          <div class="btn-loader"></div>
+        </button>
+      </form>
+    </div>
+
+    <div class="form-success" id="formSuccess">
+      <div class="success-icon">🎉</div>
+      <h3 class="success-title">Your Dream Begins Now!</h3>
+      <p class="success-message">
+        Thank you for trusting me with your vision! I've received your details and will reach out within 24 hours.<br><br>
+        Check your email for a special welcome message! 💫
+      </p>
+      <button class="success-close-btn" id="successCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+<script src="/Kelly/assets/js/dream-form.js"></script>
 
 <script>
 // Add scroll animations
@@ -722,5 +798,17 @@ document.addEventListener('DOMContentLoaded', function() {
       header.classList.remove('scrolled');
     }
   });
+
+  // Open dream form modal on CTA button click
+  const testimonialsDreamBtn = document.getElementById('testimonialsDreamBtn');
+  if (testimonialsDreamBtn) {
+    testimonialsDreamBtn.addEventListener('click', function() {
+      const modal = document.getElementById('dreamFormModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+  }
 });
 </script>
