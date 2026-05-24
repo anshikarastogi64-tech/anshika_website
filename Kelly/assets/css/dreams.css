@@ -1978,11 +1978,12 @@ body::before {
 
   .designer-reveal {
     grid-template-columns: 1fr !important;
-    gap: 35px !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 auto !important;
-    width: 100% !important;
+    gap: 30px !important;
+    max-width: 100vw !important;
+    padding: 0 20px !important;
+    margin: 0 !important;
+    width: 100vw !important;
+    box-sizing: border-box !important;
   }
 
   .designer-story {
@@ -1991,13 +1992,11 @@ body::before {
   }
 
   .designer-image-container {
-    margin: 0 auto 25px auto !important;
-    padding: 0 20px !important;
+    margin: 0 0 25px 0 !important;
+    padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow: visible !important;
-    display: flex !important;
-    justify-content: center !important;
+    overflow: hidden !important;
   }
 
   .polaroid-frame {
@@ -2005,7 +2004,7 @@ body::before {
     transform: rotate(0deg) !important;
     max-width: 100% !important;
     width: 100% !important;
-    padding: 10px 10px 40px 10px !important;
+    padding: 10px !important;
     box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
   }
 
@@ -2028,18 +2027,20 @@ body::before {
     font-size: 22px;
   }
 
+  .doodle {
+    display: none !important;
+  }
+
   .doodle-heart {
-    top: -15px;
-    right: -10px;
+    display: none !important;
   }
 
   .doodle-star {
-    bottom: -15px;
-    left: -10px;
+    display: none !important;
   }
 
   .doodle-arrow {
-    display: none;
+    display: none !important;
   }
 
   .handwritten-heading {
