@@ -510,18 +510,37 @@
               backdrop.classList.add('active');
               document.body.style.overflow = 'hidden';
 
+              // FORCE INLINE STYLES - BYPASS CSS COMPLETELY
+              details.style.cssText = `
+                display: block !important;
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) scale(1) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto !important;
+                z-index: 10000 !important;
+                background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
+                width: calc(100vw - 30px) !important;
+                max-width: 400px !important;
+                max-height: 80vh !important;
+                border-radius: 20px !important;
+                border: 2px solid rgba(212, 175, 55, 0.6) !important;
+                overflow: visible !important;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
+              `;
+
               // Log computed styles
-              const computedStyles = window.getComputedStyle(details);
-              console.log('[MOBILE TRIANGLE] Modal computed styles:', {
-                display: computedStyles.display,
-                visibility: computedStyles.visibility,
-                opacity: computedStyles.opacity,
-                background: computedStyles.background,
-                backgroundColor: computedStyles.backgroundColor,
-                zIndex: computedStyles.zIndex,
-                position: computedStyles.position,
-                transform: computedStyles.transform
-              });
+              setTimeout(() => {
+                const computedStyles = window.getComputedStyle(details);
+                console.log('[MOBILE TRIANGLE] Modal computed styles AFTER FORCE:', {
+                  display: computedStyles.display,
+                  visibility: computedStyles.visibility,
+                  opacity: computedStyles.opacity,
+                  background: computedStyles.background
+                });
+              }, 100);
 
               // Create close button
               const closeBtn = document.createElement('button');
