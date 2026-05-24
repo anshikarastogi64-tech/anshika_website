@@ -9,22 +9,27 @@
 
 /* Main Magic Button */
 .magic-main-btn {
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
+  min-width: 160px;
+  height: 60px;
+  border-radius: 30px;
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
-  border: none;
+  border: 3px solid rgba(255, 255, 255, 0.4);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  gap: 8px;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 700;
   color: #1a1a2e;
   box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4),
               0 8px 40px rgba(255, 165, 0, 0.3);
   transition: all 0.3s ease;
   position: relative;
   animation: float 3s ease-in-out infinite, pulse-glow 2s ease-in-out infinite;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .magic-main-btn::before {
@@ -44,24 +49,39 @@
 }
 
 .magic-main-btn:hover {
-  transform: scale(1.1) rotate(90deg);
+  transform: translateY(-3px) scale(1.05);
   box-shadow: 0 6px 30px rgba(255, 215, 0, 0.6),
               0 12px 60px rgba(255, 165, 0, 0.5);
 }
 
 .magic-main-btn.active {
-  transform: rotate(45deg);
   background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
   color: #FFD700;
+  border-color: #FFD700;
+}
+
+.magic-main-btn.active .btn-icon {
+  transform: rotate(45deg);
+}
+
+/* Icon styling */
+.magic-main-btn .btn-icon {
+  font-size: 24px;
+  transition: transform 0.3s ease;
+}
+
+.magic-main-btn .btn-text {
+  font-size: 14px;
+  font-weight: 700;
 }
 
 /* Sparkle effect */
 .magic-main-btn::after {
-  content: '✨';
+  content: '💫';
   position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 16px;
+  top: -8px;
+  right: -8px;
+  font-size: 20px;
   animation: sparkle-pop 2s ease-in-out infinite;
 }
 
@@ -202,19 +222,27 @@
   }
 
   .magic-main-btn {
-    width: 60px;
-    height: 60px;
-    font-size: 26px;
+    min-width: 140px;
+    height: 55px;
+    padding: 0 16px;
+  }
+
+  .magic-main-btn .btn-icon {
+    font-size: 22px;
+  }
+
+  .magic-main-btn .btn-text {
+    font-size: 12px;
   }
 
   .magic-main-btn::after {
-    font-size: 14px;
-    top: -3px;
-    right: -3px;
+    font-size: 16px;
+    top: -6px;
+    right: -6px;
   }
 
   .contact-options {
-    bottom: 75px;
+    bottom: 70px;
     right: 0;
   }
 
@@ -242,13 +270,21 @@
   }
 
   .magic-main-btn {
-    width: 55px;
-    height: 55px;
-    font-size: 24px;
+    min-width: 130px;
+    height: 50px;
+    padding: 0 14px;
+  }
+
+  .magic-main-btn .btn-icon {
+    font-size: 20px;
+  }
+
+  .magic-main-btn .btn-text {
+    font-size: 11px;
   }
 
   .contact-options {
-    bottom: 70px;
+    bottom: 65px;
   }
 
   .contact-option {
@@ -256,25 +292,4 @@
   }
 }
 
-/* Tooltip on hover */
-.magic-main-btn:hover::before {
-  content: 'Contact Us';
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  margin-bottom: 10px;
-  padding: 6px 12px;
-  background: rgba(26, 26, 46, 0.95);
-  color: #FFD700;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 1;
-  animation: none;
-  pointer-events: none;
-}
-
-.magic-main-btn.active:hover::before {
-  content: 'Close';
-}
+/* Remove tooltip since text is now visible */

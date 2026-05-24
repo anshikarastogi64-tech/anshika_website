@@ -28,7 +28,8 @@
         </button>
       </div>
       <button class="magic-main-btn" id="magicMainBtn" aria-label="Contact Us">
-        ✨
+        <span class="btn-icon">📞</span>
+        <span class="btn-text">Contact Us</span>
       </button>
     </div>
   `;
@@ -106,11 +107,21 @@
     function openMenu() {
       mainBtn.classList.add('active');
       contactOptions.classList.add('active');
+      // Change button text and icon
+      const btnIcon = mainBtn.querySelector('.btn-icon');
+      const btnText = mainBtn.querySelector('.btn-text');
+      if (btnIcon) btnIcon.textContent = '✕';
+      if (btnText) btnText.textContent = 'Close';
     }
 
     function closeMenu() {
       mainBtn.classList.remove('active');
       contactOptions.classList.remove('active');
+      // Restore button text and icon
+      const btnIcon = mainBtn.querySelector('.btn-icon');
+      const btnText = mainBtn.querySelector('.btn-text');
+      if (btnIcon) btnIcon.textContent = '📞';
+      if (btnText) btnText.textContent = 'Contact Us';
     }
 
     // Add ripple effect on main button click
