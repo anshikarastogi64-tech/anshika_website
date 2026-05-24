@@ -468,6 +468,9 @@
 
       console.log('[MOBILE TRIANGLE] Backdrop created and appended to body');
 
+      // Flag to prevent immediate backdrop close
+      let isOpening = false;
+
       // Function to close all modals
       function closeAllModals() {
         console.log('[MOBILE TRIANGLE] Closing all modals');
@@ -506,6 +509,7 @@
             // If wasn't expanded, open this one
             if (!isExpanded) {
               console.log('[MOBILE TRIANGLE] Opening modal...');
+              isOpening = true; // Set flag to prevent immediate backdrop close
               point.classList.add('expanded');
               backdrop.classList.add('active');
               document.body.style.overflow = 'hidden';
@@ -638,6 +642,11 @@
                 });
               }, 100);
 
+              // Clear the opening flag after a short delay to allow backdrop clicks
+              setTimeout(() => {
+                isOpening = false;
+              }, 300);
+
               // Create close button with inline styles
               const closeBtn = document.createElement('button');
               closeBtn.className = 'power-modal-close';
@@ -681,8 +690,12 @@
       // Backdrop click to close
       backdrop.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('[MOBILE TRIANGLE] Backdrop clicked');
-        closeAllModals();
+        console.log('[MOBILE TRIANGLE] Backdrop clicked, isOpening:', isOpening);
+
+        // Only close if not currently opening a modal
+        if (!isOpening) {
+          closeAllModals();
+        }
       });
 
       // Prevent modal content clicks from closing
