@@ -719,9 +719,9 @@
     opacity: 1 !important;
     width: 100px !important;
     height: 100px !important;
-    min-width: unset !important;
+    min-width: 100px !important;
     max-width: 100px !important;
-    min-height: unset !important;
+    min-height: 100px !important;
     max-height: 100px !important;
     padding: 10px 8px !important;
     background: rgba(0, 0, 0, 0.95) !important;
@@ -733,8 +733,9 @@
     gap: 4px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), 0 0 12px rgba(212, 175, 55, 0.3) !important;
     cursor: pointer !important;
-    transition: transform 0.15s ease !important;
+    transition: transform 0.15s ease, background 0.15s ease !important;
     overflow: visible !important;
+    backdrop-filter: blur(5px) !important;
   }
 
   .power-compact:active {
@@ -760,23 +761,37 @@
     height: 38px !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .power-icon-svg svg {
     width: 38px !important;
     height: 38px !important;
+    display: block !important;
+  }
+
+  /* Ensure all icons render consistently */
+  .power-icon-svg svg circle,
+  .power-icon-svg svg line,
+  .power-icon-svg svg path,
+  .power-icon-svg svg polygon {
+    vector-effect: non-scaling-stroke !important;
   }
 
   /* Text */
   .power-compact h3 {
     font-size: 11px !important;
     margin: 0 !important;
-    line-height: 1.2 !important;
+    line-height: 1.3 !important;
     color: #FFD700 !important;
     font-weight: 700 !important;
     text-align: center !important;
     max-width: 100% !important;
     word-wrap: break-word !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+    -webkit-font-smoothing: antialiased !important;
   }
 
   .power-tagline {
@@ -786,6 +801,8 @@
     text-align: center !important;
     line-height: 1.2 !important;
     max-width: 100% !important;
+    font-weight: 500 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
   }
 
   /* ========================================
