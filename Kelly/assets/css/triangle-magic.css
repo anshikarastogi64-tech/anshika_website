@@ -484,36 +484,21 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  /* Triangle section - compact */
+  /* Triangle section - redesigned vertical layout */
   .triangle-container {
     height: auto;
-    min-height: 400px;
-    padding: 10px;
+    min-height: auto;
+    padding: 20px 15px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  /* Show triangle SVG - scaled down */
-  .magic-triangle-svg {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 350px !important;
-    max-height: 350px !important;
-    margin: 0 auto;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1 !important;
-  }
-
-  /* Show top overlay line */
+  /* Hide triangle SVG on mobile - too complex */
+  .magic-triangle-svg,
   svg[viewBox="0 0 600 600"][style*="z-index: 15"] {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 350px !important;
-    max-height: 350px !important;
+    display: none !important;
   }
 
   /* Hide decorations */
@@ -522,152 +507,151 @@
     display: none !important;
   }
 
-  /* Power points - position at triangle vertices */
+  /* Power points - vertical stack with cards */
   .power-point {
-    position: absolute !important;
-    z-index: 10;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    width: 100%;
+    margin-bottom: 0;
   }
 
-  /* Positions relative to small triangle */
-  .point-top {
-    top: 8% !important;
-    left: 50% !important;
-    transform: translate(-50%, 0) !important;
-  }
-
-  .point-left {
-    bottom: 8% !important;
-    left: 10% !important;
-    transform: translate(0, 0) !important;
-  }
-
+  /* Reset positioning classes */
+  .point-top,
+  .point-left,
   .point-right {
-    bottom: 8% !important;
-    right: 10% !important;
-    transform: translate(0, 0) !important;
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
   }
 
-  /* Compact card - small and clean */
+  /* Card styling - horizontal layout with icon on left */
   .power-compact {
-    min-width: 110px;
-    max-width: 130px;
-    padding: 12px 10px;
-    background: rgba(0, 0, 0, 0.9) !important;
-    border: 2px solid rgba(212, 175, 55, 0.6) !important;
+    width: 100%;
+    min-width: auto;
+    max-width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95)) !important;
+    border: 2px solid rgba(212, 175, 55, 0.5) !important;
     cursor: pointer;
-    border-radius: 12px !important;
+    border-radius: 16px !important;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   }
 
   .power-compact:active {
-    transform: scale(0.95);
-    border-color: rgba(212, 175, 55, 0.9) !important;
+    transform: scale(0.98);
+    border-color: rgba(212, 175, 55, 0.8) !important;
   }
 
-  .power-compact::after {
-    content: '↓';
-    display: block;
-    font-size: 14px;
-    color: rgba(212, 175, 55, 0.7);
-    margin-top: 6px;
-    text-align: center;
-    font-weight: 600;
+  /* Icon container on left */
+  .power-icon-svg {
+    width: 50px !important;
+    height: 50px !important;
+    margin: 0 !important;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.4));
   }
 
-  .power-point.expanded .power-compact {
-    border-color: rgba(212, 175, 55, 0.9) !important;
-    background: rgba(0, 0, 0, 0.95) !important;
-  }
-
-  .power-point.expanded .power-compact::after {
-    content: '↑';
-  }
-
+  /* Text content on right */
   .power-compact h3 {
-    font-size: 14px !important;
-    margin-bottom: 3px !important;
+    font-size: 18px !important;
+    margin: 0 0 4px 0 !important;
     line-height: 1.2;
+    color: #D4AF37;
+    flex: 1;
   }
 
   .power-tagline {
-    font-size: 10px !important;
+    font-size: 13px !important;
     margin: 0 !important;
-    opacity: 0.7;
+    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.7);
   }
 
-  .power-icon-svg {
-    width: 35px !important;
-    height: 35px !important;
-    margin-bottom: 8px !important;
+  /* Expand indicator on far right */
+  .power-compact::after {
+    content: '›';
+    font-size: 28px;
+    color: rgba(212, 175, 55, 0.6);
+    font-weight: 300;
+    flex-shrink: 0;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
   }
 
-  /* Details - show in modal/overlay */
+  .power-point.expanded .power-compact {
+    border-color: rgba(212, 175, 55, 0.8) !important;
+    background: linear-gradient(135deg, rgba(26, 26, 46, 1), rgba(22, 33, 62, 1)) !important;
+  }
+
+  .power-point.expanded .power-compact::after {
+    transform: rotate(90deg);
+  }
+
+  /* Details - accordion style inline */
   .power-details {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) scale(0.8) !important;
-    width: 90%;
-    max-width: 340px;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100%;
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
-    border: 2px solid rgba(212, 175, 55, 0.6) !important;
-    border-radius: 15px !important;
-    z-index: 1000 !important;
-    pointer-events: none;
+    transition: max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease;
+    border: none !important;
+    border-radius: 0 !important;
+    z-index: auto !important;
+    pointer-events: auto;
+    margin-top: 0;
   }
 
-  /* Expanded state - modal popup */
+  /* Expanded state - show inline */
   .power-point.expanded .power-details {
-    max-height: 80vh;
+    max-height: 700px;
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1) !important;
-    pointer-events: all;
-    overflow-y: auto;
-  }
-
-  /* Backdrop */
-  .power-point.expanded::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 999;
+    margin-top: 12px;
   }
 
   .detail-header {
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.95);
-    border-radius: 13px 13px 0 0;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    padding: 14px 16px;
+    background: rgba(26, 26, 46, 0.95);
+    border-radius: 12px 12px 0 0;
+    border-top: 1px solid rgba(212, 175, 55, 0.3);
   }
 
   .detail-header h4 {
-    font-size: 18px !important;
+    font-size: 17px !important;
     margin: 0 !important;
+    color: #D4AF37;
   }
 
   .detail-badge {
     font-size: 11px !important;
-    padding: 5px 12px !important;
+    padding: 4px 10px !important;
+    background: rgba(212, 175, 55, 0.2);
   }
 
   .detail-content {
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 0 0 13px 13px;
+    padding: 16px;
+    background: rgba(22, 33, 62, 0.95);
+    border-radius: 0 0 12px 12px;
   }
 
   .detail-row {
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: flex-start;
   }
 
   .detail-row:last-child {
@@ -675,64 +659,63 @@
   }
 
   .detail-icon {
-    font-size: 24px !important;
-    width: 32px !important;
+    font-size: 22px !important;
+    width: 30px !important;
+    text-align: center;
+  }
+
+  .detail-row > div {
+    flex: 1;
   }
 
   .detail-row strong {
     font-size: 14px !important;
     display: block;
     margin-bottom: 4px;
+    color: #fff;
   }
 
   .detail-row p {
     font-size: 13px !important;
     line-height: 1.5;
     margin: 0;
+    color: rgba(255, 255, 255, 0.8);
   }
 
-  /* Center globe - at center of triangle */
+  /* Center globe - hide on mobile */
   .triangle-center-clickable {
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 60px !important;
-    height: 60px !important;
-    z-index: 20 !important;
-    display: flex !important;
+    display: none !important;
   }
 
-  .triangle-center-clickable::after {
-    font-size: 30px !important;
-  }
-
-  /* Center label - show above triangle */
+  /* Center label - show at top */
   .triangle-center-label {
     position: relative !important;
     transform: none !important;
     opacity: 1 !important;
-    margin: 0 auto 20px !important;
+    margin: 0 0 25px 0 !important;
     pointer-events: all;
     display: block !important;
-    max-width: 320px;
-    z-index: 2;
+    order: -1;
   }
 
   .center-label-content {
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.85) !important;
-    border-radius: 12px;
+    padding: 18px 16px;
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9)) !important;
+    border-radius: 16px;
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    text-align: center;
   }
 
   .center-label-content h4 {
-    font-size: 17px !important;
-    margin-bottom: 8px !important;
+    font-size: 20px !important;
+    margin-bottom: 10px !important;
+    color: #D4AF37;
   }
 
   .center-label-content p {
-    font-size: 12px !important;
-    line-height: 1.4;
+    font-size: 14px !important;
+    line-height: 1.5;
     margin: 0;
+    color: rgba(255, 255, 255, 0.85);
   }
 }
