@@ -475,9 +475,9 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 10000 !important;
-        width: calc(100vw - 60px) !important;
-        max-width: 360px !important;
-        max-height: 75vh !important;
+        width: 90vw !important;
+        max-width: 340px !important;
+        max-height: 70vh !important;
         border-radius: 16px !important;
         border: 2px solid rgba(212, 175, 55, 0.6) !important;
         overflow: visible !important;
