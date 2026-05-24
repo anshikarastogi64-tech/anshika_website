@@ -1843,20 +1843,32 @@ body::before {
 
   /* Sections */
   .story-section {
-    padding: 60px 20px;
+    padding: 60px 15px;
     min-height: auto;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   .story-container {
     grid-template-columns: 1fr !important;
     gap: 40px;
     padding: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Ensure all text wraps properly */
+  p, h1, h2, h3, h4, h5, h6, span, div {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
 
   /* Dream Begins Section */
   #dream-begins {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
     overflow-x: hidden;
+    width: 100%;
   }
 
   #dream-begins .story-container {
@@ -1947,7 +1959,11 @@ body::before {
 
   /* Designer Section */
   #meet-designer {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
+    overflow-x: hidden;
+  }
+
+  .watercolor-section {
     overflow-x: hidden;
   }
 
@@ -1965,31 +1981,59 @@ body::before {
 
   .designer-image-container {
     margin-bottom: 30px !important;
+    padding: 0 10px !important;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
   }
 
   .polaroid-frame {
     margin: 0 auto;
+    transform: rotate(0deg) !important;
+    max-width: 100%;
+    padding: 15px 15px 50px !important;
+  }
+
+  .polaroid-frame:hover {
+    transform: rotate(0deg) scale(1) !important;
   }
 
   .designer-photo {
-    height: 350px;
+    height: 320px;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .polaroid-text {
+    font-size: 22px !important;
   }
 
   .doodle {
-    font-size: 25px;
+    font-size: 22px;
+  }
+
+  .doodle-heart {
+    top: -15px;
+    right: -10px;
+  }
+
+  .doodle-star {
+    bottom: -15px;
+    left: -10px;
   }
 
   .doodle-arrow {
-    right: -25px;
-    font-size: 35px;
+    display: none;
   }
 
   .handwritten-heading {
     font-size: 36px !important;
+    margin-bottom: 20px !important;
   }
 
   .story-text {
     font-size: 15px !important;
+    line-height: 1.7 !important;
   }
 
   /* Credentials */
@@ -2168,8 +2212,9 @@ body::before {
 
   /* Services Section */
   .services-showcase {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
     overflow-x: hidden;
+    width: 100%;
   }
 
   .services-categories {
@@ -2215,8 +2260,9 @@ body::before {
 
   /* Trust & Transparency Section */
   #trust-transparency {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
     overflow-x: hidden;
+    width: 100%;
   }
 
   #trust-transparency > div {
@@ -2290,8 +2336,9 @@ body::before {
 
   /* Secret Sauce Section */
   #secret-sauce {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
     overflow-x: hidden;
+    width: 100%;
   }
 
   .secret-container {
@@ -2342,8 +2389,9 @@ body::before {
 
   /* Process Timeline */
   #process {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
     overflow-x: hidden;
+    width: 100%;
   }
 
   .timeline-path {
@@ -2379,8 +2427,9 @@ body::before {
 
   /* Final CTA */
   #final-dream {
-    padding: 50px 20px !important;
+    padding: 50px 15px !important;
     overflow-x: hidden;
+    width: 100%;
   }
 
   .final-content {
