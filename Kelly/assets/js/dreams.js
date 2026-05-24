@@ -614,11 +614,121 @@
   }
 
   /**
-   * TRIANGLE CENTER - Hover handled by CSS
+   * TRIANGLE CENTER - Click to show synergy modal
    */
   function initTriangleCenter() {
     // Globe is always visible with CSS animations
-    // Hover effect shows label automatically via CSS
+    // On mobile, clicking center opens modal
+
+    if (window.innerWidth <= 768) {
+      const centerClick = document.getElementById('triangleCenterClick');
+      const centerLabel = document.getElementById('triangleCenterLabel');
+
+      // Get or create modal elements from initMobileTriangle
+      const backdrop = document.querySelector('.modal-backdrop-mobile');
+      const modalContainer = document.querySelector('.mobile-modal-container');
+
+      if (centerClick && centerLabel && backdrop && modalContainer) {
+        centerClick.addEventListener('click', function(e) {
+          e.stopPropagation();
+          console.log('[MOBILE TRIANGLE] Center globe clicked');
+
+          // Clone the center label content
+          const clonedLabel = centerLabel.cloneNode(true);
+
+          // Clear modal container
+          modalContainer.innerHTML = '';
+          modalContainer.appendChild(clonedLabel);
+
+          // Style the cloned content
+          clonedLabel.style.cssText = `
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            padding: 30px !important;
+            text-align: center !important;
+          `;
+
+          // Style the content inside
+          const content = clonedLabel.querySelector('.center-label-content');
+          if (content) {
+            content.style.cssText = `
+              display: block !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+            `;
+
+            const h4 = content.querySelector('h4');
+            if (h4) {
+              h4.style.cssText = `
+                color: #FFD700 !important;
+                font-size: 24px !important;
+                margin-bottom: 15px !important;
+                font-weight: 700 !important;
+              `;
+            }
+
+            const p = content.querySelector('p');
+            if (p) {
+              p.style.cssText = `
+                color: #FFFFFF !important;
+                font-size: 16px !important;
+                line-height: 1.8 !important;
+                margin: 0 !important;
+              `;
+            }
+          }
+
+          // Create close button
+          const closeBtn = document.createElement('button');
+          closeBtn.className = 'power-modal-close';
+          closeBtn.innerHTML = '×';
+          closeBtn.setAttribute('aria-label', 'Close modal');
+          closeBtn.style.cssText = `
+            position: absolute !important;
+            top: 20px !important;
+            right: 20px !important;
+            width: 44px !important;
+            height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+            border: none !important;
+            border-radius: 50% !important;
+            color: #000 !important;
+            font-size: 32px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            z-index: 10001 !important;
+            box-shadow: 0 4px 16px rgba(255, 215, 0, 0.6) !important;
+            cursor: pointer !important;
+          `;
+          modalContainer.appendChild(closeBtn);
+
+          // Close button click
+          closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            console.log('[MOBILE TRIANGLE] Center modal close button clicked');
+            modalContainer.style.display = 'none';
+            modalContainer.style.opacity = '0';
+            modalContainer.style.pointerEvents = 'none';
+            backdrop.classList.remove('active');
+            document.body.style.overflow = '';
+          });
+
+          // Show modal
+          modalContainer.style.display = 'block';
+          modalContainer.style.opacity = '1';
+          modalContainer.style.pointerEvents = 'auto';
+          backdrop.classList.add('active');
+          document.body.style.overflow = 'hidden';
+
+          console.log('[MOBILE TRIANGLE] Center globe modal opened');
+        });
+      }
+    }
   }
 
   /**
