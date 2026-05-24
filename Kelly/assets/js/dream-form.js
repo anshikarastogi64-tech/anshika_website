@@ -14,10 +14,10 @@
 
   // Configuration
   const CONFIG = {
-    adminEmail: 'anshika.rastogi@example.com', // Replace with actual admin email
+    adminEmail: 'designersvisionstudio@gmail.com',
     adminMobile: '919557058902', // Admin WhatsApp number (with country code, no +)
     adminWhatsApp: '919557058902',
-    emailEndpoint: 'forms/dream-contact.php' // Your existing PHP email handler
+    emailEndpoint: './forms/dream-contact.php' // Your existing PHP email handler (relative to index.html)
   };
 
   // Elements
@@ -124,7 +124,14 @@
 
   // Send to admin email using your existing PHP backend
   async function sendToAdmin(data) {
-    const response = await fetch(CONFIG.emailEndpoint, {
+    // Build absolute URL based on current page location
+    const currentPath = window.location.pathname;
+    const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+    const emailUrl = window.location.origin + basePath + CONFIG.emailEndpoint;
+
+    console.log('Sending email to:', emailUrl);
+
+    const response = await fetch(emailUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
