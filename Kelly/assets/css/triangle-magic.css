@@ -222,9 +222,31 @@
   margin: 0;
 }
 
-/* Power Details - NO DESKTOP HOVER */
+/* Power Details - DESKTOP: Hidden, NO HOVER */
+@media (min-width: 769px) {
+  .power-details {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .power-point:hover .power-details,
+  .point-top .power-details,
+  .point-left .power-details,
+  .point-right .power-details,
+  .point-top:hover .power-details,
+  .point-left:hover .power-details,
+  .point-right:hover .power-details {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Power Details - Base styles for content (used on mobile) */
 .power-details {
-  display: none !important;
   position: absolute;
   top: 100%;
   left: 50%;
@@ -243,28 +265,6 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   z-index: 6;
   pointer-events: none;
-}
-
-/* COMPLETELY DISABLE DESKTOP HOVER */
-.power-point:hover .power-details {
-  display: none !important;
-  max-height: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-.point-top .power-details,
-.point-left .power-details,
-.point-right .power-details {
-  display: none !important;
-}
-
-.point-top:hover .power-details,
-.point-left:hover .power-details,
-.point-right:hover .power-details {
-  display: none !important;
-  max-height: 0 !important;
-  opacity: 0 !important;
 }
 
 .detail-header {
@@ -705,7 +705,10 @@
   }
 
   /* Hidden by default - CENTERED FULLSCREEN MODAL */
-  .power-point .power-details {
+  .power-point .power-details,
+  .point-top .power-details,
+  .point-left .power-details,
+  .point-right .power-details {
     display: block !important;
     position: fixed !important;
     top: 50% !important;
@@ -717,7 +720,7 @@
     background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%) !important;
     border-radius: 20px !important;
     z-index: 9999 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 1) !important;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
     opacity: 0 !important;
@@ -726,7 +729,11 @@
   }
 
   /* Visible when expanded - scales and fades in at center */
-  .power-point.expanded .power-details {
+  .power-point.expanded .power-details,
+  .point-top.expanded .power-details,
+  .point-left.expanded .power-details,
+  .point-right.expanded .power-details {
+    display: block !important;
     transform: translate(-50%, -50%) scale(1) !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -739,7 +746,10 @@
   }
 
   /* Header */
-  .power-point .detail-header {
+  .power-point .detail-header,
+  .point-top .detail-header,
+  .point-left .detail-header,
+  .point-right .detail-header {
     padding: 20px 20px 16px 20px !important;
     background: rgba(255, 215, 0, 0.08) !important;
     border-bottom: 2px solid rgba(212, 175, 55, 0.4) !important;
@@ -748,9 +758,14 @@
     justify-content: space-between !important;
     align-items: center !important;
     position: relative !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-  .power-point .detail-header h4 {
+  .power-point .detail-header h4,
+  .point-top .detail-header h4,
+  .point-left .detail-header h4,
+  .point-right .detail-header h4 {
     font-size: 20px !important;
     margin: 0 !important;
     padding-right: 50px !important;
@@ -758,9 +773,14 @@
     font-weight: 700 !important;
     line-height: 1.3 !important;
     text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-  .power-point .detail-badge {
+  .power-point .detail-badge,
+  .point-top .detail-badge,
+  .point-left .detail-badge,
+  .point-right .detail-badge {
     font-size: 11px !important;
     padding: 6px 12px !important;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
@@ -768,14 +788,22 @@
     color: #000 !important;
     font-weight: 800 !important;
     box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   /* Content - scrollable area */
-  .power-point .detail-content {
+  .power-point .detail-content,
+  .point-top .detail-content,
+  .point-left .detail-content,
+  .point-right .detail-content {
     padding: 20px 20px 30px 20px !important;
     max-height: calc(80vh - 140px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
   }
 
   /* Custom scrollbar */
@@ -793,7 +821,10 @@
     border-radius: 10px !important;
   }
 
-  .power-point .detail-row {
+  .power-point .detail-row,
+  .point-top .detail-row,
+  .point-left .detail-row,
+  .point-right .detail-row {
     display: flex !important;
     gap: 12px !important;
     margin-bottom: 16px !important;
@@ -802,36 +833,59 @@
     padding: 14px !important;
     border-radius: 12px !important;
     border: 1px solid rgba(212, 175, 55, 0.2) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-  .power-point .detail-row:last-child {
+  .power-point .detail-row:last-child,
+  .point-top .detail-row:last-child,
+  .point-left .detail-row:last-child,
+  .point-right .detail-row:last-child {
     margin-bottom: 0 !important;
   }
 
-  .power-point .detail-icon {
+  .power-point .detail-icon,
+  .point-top .detail-icon,
+  .point-left .detail-icon,
+  .point-right .detail-icon {
     font-size: 26px !important;
     width: 32px !important;
     text-align: center !important;
     flex-shrink: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-  .power-point .detail-row > div {
+  .power-point .detail-row > div,
+  .point-top .detail-row > div,
+  .point-left .detail-row > div,
+  .point-right .detail-row > div {
     flex: 1 !important;
   }
 
-  .power-point .detail-row strong {
+  .power-point .detail-row strong,
+  .point-top .detail-row strong,
+  .point-left .detail-row strong,
+  .point-right .detail-row strong {
     display: block !important;
     font-size: 15px !important;
     margin-bottom: 5px !important;
     color: #FFD700 !important;
     font-weight: 700 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-  .power-point .detail-row p {
+  .power-point .detail-row p,
+  .point-top .detail-row p,
+  .point-left .detail-row p,
+  .point-right .detail-row p {
     font-size: 13px !important;
     line-height: 1.6 !important;
     margin: 0 !important;
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: #FFFFFF !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   /* Close button - Fixed at top right */
