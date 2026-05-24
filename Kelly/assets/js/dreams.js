@@ -454,92 +454,80 @@
       }
     });
 
-    // Mobile: Tap to expand/collapse details in modal
+    // Mobile: Click to open modal with backdrop
     if (window.innerWidth <= 768) {
       const powerPoints = document.querySelectorAll('.power-point');
       const triangleContainer = document.querySelector('.triangle-container');
-      const centerGlobe = document.querySelector('.triangle-center-clickable');
+
+      // Create backdrop element
+      let backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop-mobile';
+      document.body.appendChild(backdrop);
+
+      // Function to close all modals
+      function closeAllModals() {
+        powerPoints.forEach(p => {
+          p.classList.remove('expanded');
+          // Remove close button if exists
+          const closeBtn = p.querySelector('.power-modal-close');
+          if (closeBtn) closeBtn.remove();
+        });
+        backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+      }
 
       // Power point tap to open modal
       powerPoints.forEach(point => {
         const compactCard = point.querySelector('.power-compact');
+        const details = point.querySelector('.power-details');
 
-        if (compactCard) {
+        if (compactCard && details) {
           compactCard.addEventListener('click', function(e) {
             e.stopPropagation();
 
-            // Toggle expanded class
+            // Check if already expanded
             const isExpanded = point.classList.contains('expanded');
 
-            // Close all other power points
-            powerPoints.forEach(p => p.classList.remove('expanded'));
-            if (triangleContainer) triangleContainer.classList.remove('center-active');
+            // Close all first
+            closeAllModals();
 
-            // Toggle current
+            // If wasn't expanded, open this one
             if (!isExpanded) {
               point.classList.add('expanded');
-              document.body.style.overflow = 'hidden'; // Prevent background scroll
-            } else {
-              document.body.style.overflow = ''; // Restore scroll
+              backdrop.classList.add('active');
+              document.body.style.overflow = 'hidden';
+
+              // Create close button
+              const closeBtn = document.createElement('button');
+              closeBtn.className = 'power-modal-close';
+              closeBtn.innerHTML = '×';
+              closeBtn.setAttribute('aria-label', 'Close modal');
+              details.appendChild(closeBtn);
+
+              // Close button click
+              closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeAllModals();
+              });
             }
           });
         }
+      });
 
-        // Close button in modal
+      // Backdrop click to close
+      backdrop.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeAllModals();
+      });
+
+      // Prevent modal content clicks from closing
+      powerPoints.forEach(point => {
         const details = point.querySelector('.power-details');
         if (details) {
           details.addEventListener('click', function(e) {
-            // If clicked on the close button (::after pseudo element area)
-            const rect = details.getBoundingClientRect();
-            const closeButtonArea = {
-              left: rect.right - 50,
-              right: rect.right - 10,
-              top: rect.top + 10,
-              bottom: rect.top + 50
-            };
-
-            if (e.clientX >= closeButtonArea.left && e.clientX <= closeButtonArea.right &&
-                e.clientY >= closeButtonArea.top && e.clientY <= closeButtonArea.bottom) {
-              point.classList.remove('expanded');
-              document.body.style.overflow = '';
-              e.stopPropagation();
-            }
+            e.stopPropagation();
           });
         }
-      });
-
-      // Center globe tap to show/hide label
-      if (centerGlobe && triangleContainer) {
-        centerGlobe.addEventListener('click', function(e) {
-          e.stopPropagation();
-
-          // Close any open power points
-          powerPoints.forEach(p => p.classList.remove('expanded'));
-          document.body.style.overflow = '';
-
-          // Toggle center label
-          triangleContainer.classList.toggle('center-active');
-        });
-      }
-
-      // Close all when clicking outside or on backdrop
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('.power-point') && !e.target.closest('.triangle-center-clickable')) {
-          powerPoints.forEach(p => p.classList.remove('expanded'));
-          if (triangleContainer) triangleContainer.classList.remove('center-active');
-          document.body.style.overflow = '';
-        }
-      });
-
-      // Close on backdrop click (when modal is open)
-      powerPoints.forEach(point => {
-        point.addEventListener('click', function(e) {
-          // If clicking the backdrop (::before pseudo element)
-          if (e.target === point && point.classList.contains('expanded')) {
-            point.classList.remove('expanded');
-            document.body.style.overflow = '';
-          }
-        });
       });
     }
   }
