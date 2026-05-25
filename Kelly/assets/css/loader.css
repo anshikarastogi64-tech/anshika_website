@@ -101,22 +101,25 @@
   font-family: 'Playfair Display', serif;
   font-size: 48px;
   font-weight: 700;
-  background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
-  background-size: 200% auto;
+  background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700, #FFA500, #FFD700);
+  background-size: 300% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shimmer 3s linear infinite, fadeInUp 1s ease-out;
+  animation: shimmerSmooth 2.5s ease-in-out infinite, fadeInUp 0.8s ease-out;
   letter-spacing: 4px;
   text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
 }
 
-@keyframes shimmer {
+@keyframes shimmerSmooth {
   0% {
     background-position: 0% center;
   }
+  50% {
+    background-position: 100% center;
+  }
   100% {
-    background-position: 200% center;
+    background-position: 0% center;
   }
 }
 

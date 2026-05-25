@@ -1,0 +1,733 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.css">
+<link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+
+<style>
+  /* Hide default header */
+  body #header {
+    display: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+    background: #FFF8E7 !important;
+    margin: 0;
+  }
+
+  /* Contact Professional Theme */
+  #contact-professional {
+    background: #FFF8E7;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Subtle Background */
+  #contact-professional::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  .contact-pro-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 248, 231, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 20px 0;
+    transition: all 0.3s;
+  }
+
+  .contact-pro-header.scrolled {
+    box-shadow: 0 2px 20px rgba(212, 175, 55, 0.1);
+  }
+
+  .contact-pro-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .contact-pro-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #D4AF37;
+    text-decoration: none;
+    letter-spacing: 3px;
+  }
+
+  .contact-pro-nav-links {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .contact-pro-nav-links a {
+    color: #2C2C2C;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.3s;
+  }
+
+  .contact-pro-nav-links a:hover,
+  .contact-pro-nav-links a.active {
+    color: #D4AF37;
+  }
+
+  /* Hero Section */
+  .contact-hero {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 140px 40px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .contact-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 56px;
+    font-weight: 600;
+    color: #2C2C2C;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+
+  .contact-hero .accent {
+    color: #D4AF37;
+    font-style: italic;
+  }
+
+  .contact-hero p {
+    font-size: 20px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  /* Stats Section */
+  .contact-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-top: 40px;
+  }
+
+  .contact-stat {
+    text-align: center;
+  }
+
+  .contact-stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: #D4AF37;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .contact-stat-label {
+    font-size: 14px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Main Content */
+  .contact-main {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+  }
+
+  /* Form Section */
+  .contact-form-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 50px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  .contact-form-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: #2C2C2C;
+    margin-bottom: 10px;
+  }
+
+  .contact-form-section p {
+    color: #999;
+    margin-bottom: 35px;
+    font-size: 16px;
+  }
+
+  .contact-form-group {
+    margin-bottom: 25px;
+  }
+
+  .contact-form-label {
+    display: block;
+    font-weight: 600;
+    color: #2C2C2C;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .contact-form-input,
+  .contact-form-select,
+  .contact-form-textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid rgba(212, 175, 55, 0.2);
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+    background: #FFF8E7;
+  }
+
+  .contact-form-input:focus,
+  .contact-form-select:focus,
+  .contact-form-textarea:focus {
+    outline: none;
+    border-color: #D4AF37;
+    background: #fff;
+  }
+
+  .contact-form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .contact-form-select {
+    cursor: pointer;
+  }
+
+  .contact-form-select option {
+    background: #fff;
+    color: #2C2C2C;
+    padding: 10px;
+  }
+
+  .contact-form-submit {
+    width: 100%;
+    padding: 16px;
+    background: #D4AF37;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .contact-form-submit:hover {
+    background: #C49B2E;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  }
+
+  /* Info Section */
+  .contact-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .contact-info-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 35px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s;
+  }
+
+  .contact-info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.15);
+  }
+
+  .contact-info-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #D4AF37, #C49B2E);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .contact-info-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: #2C2C2C;
+    margin-bottom: 10px;
+  }
+
+  .contact-info-card p {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .contact-info-card a {
+    color: #D4AF37;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .contact-info-card a:hover {
+    color: #C49B2E;
+  }
+
+  /* Why Choose Section */
+  .contact-why-section {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .contact-why-title {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    color: #2C2C2C;
+    margin-bottom: 60px;
+  }
+
+  .contact-why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  .contact-why-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s;
+  }
+
+  .contact-why-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.15);
+  }
+
+  .contact-why-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .contact-why-item h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: #2C2C2C;
+    margin-bottom: 12px;
+  }
+
+  .contact-why-item p {
+    color: #666;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* CTA Section */
+  .contact-cta {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .contact-cta-box {
+    background: linear-gradient(135deg, #D4AF37, #C49B2E);
+    border-radius: 20px;
+    padding: 60px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+  }
+
+  .contact-cta-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 38px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .contact-cta-box p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin-bottom: 35px;
+    line-height: 1.6;
+  }
+
+  .contact-cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .contact-cta-btn {
+    padding: 16px 40px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .contact-cta-btn-primary {
+    background: #fff;
+    color: #D4AF37;
+  }
+
+  .contact-cta-btn-primary:hover {
+    background: #FFF8E7;
+    color: #C49B2E;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+  }
+
+  .contact-cta-btn-secondary {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+  }
+
+  .contact-cta-btn-secondary:hover {
+    background: #fff;
+    color: #D4AF37;
+    transform: translateY(-2px);
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .contact-hero h1 {
+      font-size: 38px;
+    }
+
+    .contact-hero p {
+      font-size: 18px;
+    }
+
+    .contact-stats {
+      gap: 30px;
+    }
+
+    .contact-stat-number {
+      font-size: 32px;
+    }
+
+    .contact-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .contact-form-section {
+      padding: 35px 25px;
+    }
+
+    .contact-why-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .contact-cta-box {
+      padding: 40px 25px;
+    }
+
+    .contact-cta-box h2 {
+      font-size: 28px;
+    }
+
+    .contact-cta-buttons {
+      flex-direction: column;
+    }
+
+    .contact-cta-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .contact-pro-nav-links {
+      display: none;
+    }
+
+    .contact-hero,
+    .contact-main,
+    .contact-why-section,
+    .contact-cta {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+</style>
+
+<div id="contact-professional">
+  <!-- Header -->
+  <header class="contact-pro-header">
+    <nav class="contact-pro-nav">
+      <a href="/" class="contact-pro-logo">ANSHIKA</a>
+      <ul class="contact-pro-nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/portfolio">Portfolio</a></li>
+        <li><a href="/testimonials">Testimonials</a></li>
+        <li><a href="/portal/login">Client Portal</a></li>
+        <li><a href="/contact" class="active">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <div class="contact-hero">
+    <h1>Let's Build Your <span class="accent">Dream</span></h1>
+    <p>Transform your vision into reality. With 300+ successful projects and 100% client satisfaction, we're ready to craft your perfect space.</p>
+
+    <div class="contact-stats">
+      <div class="contact-stat">
+        <span class="contact-stat-number">300+</span>
+        <span class="contact-stat-label">Projects</span>
+      </div>
+      <div class="contact-stat">
+        <span class="contact-stat-number">100%</span>
+        <span class="contact-stat-label">Satisfaction</span>
+      </div>
+      <div class="contact-stat">
+        <span class="contact-stat-number">15+</span>
+        <span class="contact-stat-label">Cities</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="contact-main">
+    <div class="contact-grid">
+      <!-- Form Section -->
+      <div class="contact-form-section">
+        <h2>Start Your Journey</h2>
+        <p>Fill out the form and we'll get back to you within 24 hours</p>
+
+        <form id="contactForm" action="/contact/submit" method="POST">
+          <div class="contact-form-group">
+            <label class="contact-form-label">Full Name *</label>
+            <input type="text" name="name" class="contact-form-input" placeholder="Your name" required>
+          </div>
+
+          <div class="contact-form-group">
+            <label class="contact-form-label">Email Address *</label>
+            <input type="email" name="email" class="contact-form-input" placeholder="your@email.com" required>
+          </div>
+
+          <div class="contact-form-group">
+            <label class="contact-form-label">Phone Number *</label>
+            <input type="tel" name="phone" class="contact-form-input" placeholder="+91 xxxxx xxxxx" required>
+          </div>
+
+          <div class="contact-form-group">
+            <label class="contact-form-label">Project Type *</label>
+            <select name="project_type" class="contact-form-select" required>
+              <option value="">Select project type</option>
+              <option value="residential">Residential Interior</option>
+              <option value="commercial">Commercial Space</option>
+              <option value="villa">Villa/Farmhouse</option>
+              <option value="apartment">Apartment</option>
+              <option value="office">Office Design</option>
+              <option value="renovation">Renovation</option>
+              <option value="consultation">Design Consultation</option>
+            </select>
+          </div>
+
+          <div class="contact-form-group">
+            <label class="contact-form-label">Tell Us About Your Project *</label>
+            <textarea name="message" class="contact-form-textarea" placeholder="Share your vision, requirements, timeline, and budget..." required></textarea>
+          </div>
+
+          <button type="submit" class="contact-form-submit">Get Free Consultation</button>
+        </form>
+      </div>
+
+      <!-- Info Section -->
+      <div class="contact-info-section">
+        <div class="contact-info-card">
+          <div class="contact-info-icon">
+            <i class="bi bi-geo-alt-fill"></i>
+          </div>
+          <h3>Visit Our Studio</h3>
+          <p><%= typeof contactInfo !== 'undefined' ? contactInfo.address : 'Noida, Delhi NCR, India' %></p>
+        </div>
+
+        <div class="contact-info-card">
+          <div class="contact-info-icon">
+            <i class="bi bi-telephone-fill"></i>
+          </div>
+          <h3>Call Us</h3>
+          <p><a href="tel:<%= typeof contactInfo !== 'undefined' ? contactInfo.phone : '+91-xxxxx-xxxxx' %>"><%= typeof contactInfo !== 'undefined' ? contactInfo.phone : '+91-xxxxx-xxxxx' %></a></p>
+          <p style="margin-top: 8px; font-size: 14px; color: #999;">Mon-Sat, 10 AM - 7 PM</p>
+        </div>
+
+        <div class="contact-info-card">
+          <div class="contact-info-icon">
+            <i class="bi bi-envelope-fill"></i>
+          </div>
+          <h3>Email Us</h3>
+          <p><a href="mailto:<%= typeof contactInfo !== 'undefined' ? contactInfo.email : 'contact@anshikarastogi.com' %>"><%= typeof contactInfo !== 'undefined' ? contactInfo.email : 'contact@anshikarastogi.com' %></a></p>
+          <p style="margin-top: 8px; font-size: 14px; color: #999;">We respond within 24 hours</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Why Choose Section -->
+  <div class="contact-why-section">
+    <h2 class="contact-why-title">Why Choose Us?</h2>
+
+    <div class="contact-why-grid">
+      <div class="contact-why-item">
+        <div class="contact-why-icon">🏆</div>
+        <h3>Award-Winning Design</h3>
+        <p>Recognized excellence in interior design with multiple industry awards</p>
+      </div>
+
+      <div class="contact-why-item">
+        <div class="contact-why-icon">⚡</div>
+        <h3>On-Time Delivery</h3>
+        <p>98% projects delivered on schedule with transparent timelines</p>
+      </div>
+
+      <div class="contact-why-item">
+        <div class="contact-why-icon">💰</div>
+        <h3>Budget-Friendly</h3>
+        <p>Get premium designs within your budget with no hidden costs</p>
+      </div>
+
+      <div class="contact-why-item">
+        <div class="contact-why-icon">🎨</div>
+        <h3>Custom Solutions</h3>
+        <p>Every design is tailored specifically to your taste and lifestyle</p>
+      </div>
+
+      <div class="contact-why-item">
+        <div class="contact-why-icon">👥</div>
+        <h3>Expert Team</h3>
+        <p>Skilled designers, architects, and craftsmen working together</p>
+      </div>
+
+      <div class="contact-why-item">
+        <div class="contact-why-icon">🔒</div>
+        <h3>End-to-End Service</h3>
+        <p>From concept to completion, we handle everything seamlessly</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="contact-cta">
+    <div class="contact-cta-box">
+      <h2>Ready to Transform Your Space?</h2>
+      <p>Join 300+ happy clients who trusted us with their dream projects. Get a free consultation and see how we can bring your vision to life.</p>
+
+      <div class="contact-cta-buttons">
+        <a href="#contactForm" class="contact-cta-btn contact-cta-btn-primary">
+          <i class="bi bi-calendar-check"></i> Schedule Free Consultation
+        </a>
+        <a href="/portfolio" class="contact-cta-btn contact-cta-btn-secondary">
+          <i class="bi bi-images"></i> View Our Portfolio
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Header scroll effect
+  const header = document.querySelector('.contact-pro-header');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+
+  // Smooth scroll for CTA button
+  document.querySelector('a[href="#contactForm"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.querySelector('#contactForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Form submission
+  const form = document.getElementById('contactForm');
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Get form data
+    const formData = new FormData(form);
+
+    // Submit via fetch
+    fetch('/contact/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(Object.fromEntries(formData))
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Thank you! We will get back to you within 24 hours.');
+        form.reset();
+      } else {
+        alert('Something went wrong. Please try again or call us directly.');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Something went wrong. Please try again or call us directly.');
+    });
+  });
+});
+</script>

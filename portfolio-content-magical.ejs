@@ -1,0 +1,581 @@
+<style>
+  /* Hide default header */
+  body #header {
+    display: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+  }
+
+  /* Magical Portfolio Theme */
+  #portfolio-magical {
+    background: linear-gradient(135deg,
+      #0a0015 0%,
+      #1a0033 25%,
+      #0d1b2a 50%,
+      #1a0033 75%,
+      #0a0015 100%);
+    background-size: 400% 400%;
+    animation: dreamGradient 20s ease infinite;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    padding: 0;
+  }
+
+  @keyframes dreamGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Ambient particles */
+  .portfolio-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .portfolio-particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: particleFloat 15s ease-in-out infinite, particleGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes particleFloat {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-30px) translateX(20px); }
+    50% { transform: translateY(-15px) translateX(-15px); }
+    75% { transform: translateY(-40px) translateX(10px); }
+  }
+
+  @keyframes particleGlow {
+    0%, 100% {
+      opacity: 0.3;
+      box-shadow: 0 0 15px currentColor;
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 30px currentColor, 0 0 50px currentColor;
+    }
+  }
+
+  /* Custom Header */
+  .portfolio-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(10, 0, 21, 0.95);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255, 107, 157, 0.2);
+    padding: 15px 0;
+    transition: all 0.3s;
+  }
+
+  .portfolio-header.scrolled {
+    background: rgba(10, 0, 21, 0.98);
+    box-shadow: 0 5px 30px rgba(196, 75, 230, 0.3);
+  }
+
+  .portfolio-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 30px;
+  }
+
+  .portfolio-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFD700, #FF6B9D, #C44BE6);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    letter-spacing: 2px;
+    animation: logoShimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes logoShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .portfolio-nav-links {
+    display: flex;
+    gap: 35px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .portfolio-nav-links a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .portfolio-nav-links a:hover,
+  .portfolio-nav-links a.active {
+    color: #FF6B9D;
+  }
+
+  .portfolio-nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #FFD700, #FF6B9D);
+    transition: width 0.3s;
+  }
+
+  .portfolio-nav-links a:hover::after,
+  .portfolio-nav-links a.active::after {
+    width: 100%;
+  }
+
+  /* Hero Section */
+  .portfolio-hero {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 140px 20px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .portfolio-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFD700 0%, #FF6B9D 30%, #C44BE6 60%, #4ECDC4 100%);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    animation: heroGradient 5s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.4));
+  }
+
+  @keyframes heroGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .portfolio-hero p {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  .portfolio-stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFD700, #FF6B9D);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 5px;
+  }
+
+  /* Filter Tabs */
+  .portfolio-filters {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+    max-width: 1000px;
+  }
+
+  .filter-btn {
+    padding: 12px 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 107, 157, 0.3);
+    border-radius: 25px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.3), rgba(196, 75, 230, 0.3));
+    border-color: #FF6B9D;
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+  }
+
+  /* Portfolio Grid */
+  .portfolio-grid {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 30px 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 40px;
+  }
+
+  /* Project Card */
+  .project-card {
+    position: relative;
+    background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.03),
+      rgba(255, 255, 255, 0.08));
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 107, 157, 0.2);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(196, 75, 230, 0.2);
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+      rgba(255, 215, 0, 0.1),
+      rgba(255, 107, 157, 0.1),
+      rgba(196, 75, 230, 0.1));
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 1;
+  }
+
+  .project-card:hover::before {
+    opacity: 1;
+  }
+
+  .project-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    border-color: #FF6B9D;
+    box-shadow: 0 20px 60px rgba(255, 107, 157, 0.5),
+                0 0 80px rgba(196, 75, 230, 0.3);
+  }
+
+  .project-image {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+  }
+
+  .project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s ease;
+  }
+
+  .project-card:hover .project-image img {
+    transform: scale(1.1);
+  }
+
+  .project-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom,
+      transparent 0%,
+      rgba(0, 0, 0, 0.7) 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .project-card:hover .project-overlay {
+    opacity: 1;
+  }
+
+  .project-category-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 8px 20px;
+    background: rgba(196, 75, 230, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+
+  .project-info {
+    position: relative;
+    padding: 25px;
+    z-index: 2;
+  }
+
+  .project-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .project-location {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .project-description {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+
+  .view-project-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #FFD700, #FF6B9D);
+    border-radius: 20px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+
+  .project-card:hover .view-project-btn {
+    transform: translateX(5px);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .portfolio-hero h1 {
+      font-size: 42px;
+    }
+
+    .portfolio-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+      padding: 0 20px 60px;
+    }
+
+    .portfolio-nav-links {
+      display: none;
+    }
+
+    .portfolio-stats {
+      gap: 30px;
+    }
+
+    .stat-number {
+      font-size: 36px;
+    }
+  }
+</style>
+
+<div id="portfolio-magical">
+  <!-- Custom Header -->
+  <header class="portfolio-header">
+    <nav class="portfolio-nav">
+      <a href="/" class="portfolio-logo">ANSHIKA</a>
+      <ul class="portfolio-nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/portfolio" class="active">Portfolio</a></li>
+        <li><a href="/testimonials">Testimonials</a></li>
+        <li><a href="/portal/login">Client Portal</a></li>
+        <li><a href="/#contact" style="color: #FF6B9D;">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Ambient Particles -->
+  <div class="portfolio-particles">
+    <div class="portfolio-particle" style="width: 4px; height: 4px; top: 15%; left: 10%; background: #FFD700; color: #FFD700; animation-delay: 0s;"></div>
+    <div class="portfolio-particle" style="width: 3px; height: 3px; top: 25%; left: 85%; background: #FF6B9D; color: #FF6B9D; animation-delay: 1s;"></div>
+    <div class="portfolio-particle" style="width: 5px; height: 5px; top: 40%; left: 20%; background: #C44BE6; color: #C44BE6; animation-delay: 2s;"></div>
+    <div class="portfolio-particle" style="width: 3px; height: 3px; top: 60%; left: 70%; background: #4ECDC4; color: #4ECDC4; animation-delay: 3s;"></div>
+    <div class="portfolio-particle" style="width: 4px; height: 4px; top: 75%; left: 30%; background: #FFD700; color: #FFD700; animation-delay: 4s;"></div>
+    <div class="portfolio-particle" style="width: 3px; height: 3px; top: 50%; left: 90%; background: #FF6B9D; color: #FF6B9D; animation-delay: 2.5s;"></div>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="portfolio-hero">
+    <h1>✨ Dream Spaces Portfolio ✨</h1>
+    <p>Every project tells a story. Every space transforms lives. Explore 300+ dream homes brought to magical reality.</p>
+
+    <div class="portfolio-stats">
+      <div class="stat">
+        <span class="stat-number">300+</span>
+        <span class="stat-label">Projects</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">100%</span>
+        <span class="stat-label">Satisfaction</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">15+</span>
+        <span class="stat-label">Cities</span>
+      </div>
+    </div>
+  </div>
+
+  <% const cats = (typeof categories !== 'undefined' && Array.isArray(categories)) ? categories : []; %>
+  <% const projs = (typeof projects !== 'undefined' && Array.isArray(projects)) ? projects : []; %>
+
+  <!-- Filters -->
+  <% if (cats.length > 0) { %>
+  <div class="portfolio-filters">
+    <button class="filter-btn active" data-filter="*">All Projects</button>
+    <% cats.forEach(function(c) { %>
+    <button class="filter-btn" data-filter=".filter-cat-<%= c.id %>"><%= (c.name || '').toUpperCase() %></button>
+    <% }); %>
+  </div>
+  <% } %>
+
+  <!-- Portfolio Grid -->
+  <div class="portfolio-grid" id="portfolioGrid">
+    <% if (projs.length === 0) { %>
+    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.5);">
+      <div style="font-size: 64px; margin-bottom: 20px;">✨</div>
+      <h3 style="color: #FF6B9D;">Projects Coming Soon</h3>
+      <p>We're curating our most magical transformations to showcase here.</p>
+    </div>
+    <% } else { %>
+    <% projs.forEach(function(p) { %>
+    <a href="/portfolio/project/<%= p.id %>" class="project-card filter-cat-<%= p.category_id %>">
+      <div class="project-image">
+        <img src="/<%= p.cover_image_path || 'assets/img/portfolio/portfolio-1.jpg' %>" alt="<%= (p.name || '').replace(/"/g, '&quot;') %>" loading="lazy">
+        <% if (p.category_name) { %>
+        <div class="project-category-badge"><%= p.category_name %></div>
+        <% } %>
+        <div class="project-overlay">
+          <div class="view-project-btn">
+            View Project <i class="bi bi-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+      <div class="project-info">
+        <h3 class="project-title"><%= p.name || 'Untitled Project' %></h3>
+        <% if ((p.location && p.location.trim()) || (p.city && p.city.trim())) { %>
+        <div class="project-location">
+          <i class="bx bx-map-pin"></i>
+          <span>
+            <% if (p.location && p.location.trim()) { %><%= p.location %><% } %>
+            <% if (p.city && p.city.trim()) { %><% if (p.location && p.location.trim()) { %>, <% } %><%= p.city %><% } %>
+          </span>
+        </div>
+        <% } %>
+        <% if (p.initial_text && p.initial_text.trim()) { %>
+        <p class="project-description">
+          <%= (p.initial_text || '').substring(0, 120) %><%= (p.initial_text && p.initial_text.length > 120) ? '...' : '' %>
+        </p>
+        <% } %>
+      </div>
+    </a>
+    <% }); %>
+    <% } %>
+  </div>
+</div>
+
+<script src="https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Header scroll effect
+  const header = document.querySelector('.portfolio-header');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+
+  // Initialize Isotope
+  const grid = document.getElementById('portfolioGrid');
+  if (grid && grid.children.length > 0) {
+    const iso = new Isotope(grid, {
+      itemSelector: '.project-card',
+      layoutMode: 'fitRows',
+      fitRows: {
+        gutter: 40
+      }
+    });
+
+    // Filter buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const filterValue = this.getAttribute('data-filter');
+
+        // Update active state
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        // Filter
+        iso.arrange({ filter: filterValue });
+      });
+    });
+  }
+});
+</script>

@@ -1,0 +1,612 @@
+<style>
+  /* Hide default header */
+  body #header {
+    display: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+    background: #FFF8E7 !important;
+    margin: 0;
+  }
+
+  /* Project Detail Professional Theme */
+  #project-professional {
+    background: #FFF8E7;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Subtle Background */
+  #project-professional::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  .project-pro-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 248, 231, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 20px 0;
+    transition: all 0.3s;
+  }
+
+  .project-pro-header.scrolled {
+    box-shadow: 0 2px 20px rgba(212, 175, 55, 0.1);
+  }
+
+  .project-pro-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .project-pro-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #D4AF37;
+    text-decoration: none;
+    letter-spacing: 3px;
+  }
+
+  .project-pro-nav-links {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .project-pro-nav-links a {
+    color: #2C2C2C;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.3s;
+  }
+
+  .project-pro-nav-links a:hover {
+    color: #D4AF37;
+  }
+
+  /* Breadcrumb */
+  .project-pro-breadcrumb {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 110px 40px 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .project-pro-breadcrumb a {
+    color: #999;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .project-pro-breadcrumb a:hover {
+    color: #D4AF37;
+  }
+
+  .project-pro-breadcrumb span {
+    color: #ccc;
+  }
+
+  .project-pro-breadcrumb .current {
+    color: #2C2C2C;
+  }
+
+  /* Hero Image */
+  .project-pro-hero-image {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .project-pro-hero-image-wrap {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.1);
+  }
+
+  .project-pro-hero-image-wrap img {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .project-pro-category-badge {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    padding: 12px 28px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* Project Info */
+  .project-pro-info-section {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .project-pro-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 600;
+    color: #2C2C2C;
+    margin-bottom: 15px;
+    line-height: 1.2;
+  }
+
+  .project-pro-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #999;
+    margin-bottom: 40px;
+  }
+
+  .project-pro-location i {
+    color: #D4AF37;
+    font-size: 20px;
+  }
+
+  .project-pro-about {
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  .project-pro-about h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: #2C2C2C;
+    margin-bottom: 20px;
+  }
+
+  .project-pro-about p {
+    color: #666;
+    line-height: 1.8;
+    font-size: 16px;
+  }
+
+  .project-pro-details {
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    white-space: pre-line;
+    color: #666;
+    line-height: 1.8;
+  }
+
+  /* Testimonial */
+  .project-pro-testimonial {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .testimonial-pro-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #D4AF37;
+  }
+
+  .testimonial-pro-quote {
+    font-size: 20px;
+    color: #2C2C2C;
+    line-height: 1.8;
+    font-style: italic;
+    margin-bottom: 25px;
+    position: relative;
+  }
+
+  .testimonial-pro-quote::before {
+    content: '"';
+    font-size: 80px;
+    color: rgba(212, 175, 55, 0.15);
+    position: absolute;
+    left: -20px;
+    top: -30px;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .testimonial-pro-author {
+    color: #D4AF37;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+
+  .testimonial-pro-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #D4AF37;
+    border-radius: 30px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+
+  .testimonial-pro-link:hover {
+    background: #C49B2E;
+    color: #fff;
+    gap: 12px;
+  }
+
+  /* Gallery */
+  .project-pro-gallery {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 80px;
+    padding: 0 40px;
+  }
+
+  .gallery-pro-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .gallery-pro-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: #2C2C2C;
+  }
+
+  .gallery-pro-filters {
+    display: flex;
+    gap: 15px;
+  }
+
+  .gallery-pro-filter-btn {
+    padding: 10px 24px;
+    background: #fff;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 25px;
+    color: #2C2C2C;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .gallery-pro-filter-btn:hover,
+  .gallery-pro-filter-btn.active {
+    background: #D4AF37;
+    border-color: #D4AF37;
+    color: #fff;
+  }
+
+  .gallery-pro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 40px;
+  }
+
+  .gallery-pro-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+  }
+
+  .gallery-pro-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.2);
+  }
+
+  .gallery-pro-item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+
+  .gallery-pro-item:hover img {
+    transform: scale(1.05);
+  }
+
+  .gallery-pro-item iframe {
+    width: 100%;
+    height: 250px;
+    display: block;
+    border: none;
+  }
+
+  /* Back Button */
+  .project-pro-back {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+  }
+
+  .back-pro-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: #fff;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 30px;
+    color: #2C2C2C;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s;
+  }
+
+  .back-pro-btn:hover {
+    background: #D4AF37;
+    border-color: #D4AF37;
+    color: #fff;
+    gap: 14px;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .project-pro-hero-image-wrap img {
+      height: 300px;
+    }
+
+    .project-pro-title {
+      font-size: 32px;
+    }
+
+    .project-pro-about,
+    .project-pro-details,
+    .testimonial-pro-card {
+      padding: 30px 25px;
+    }
+
+    .gallery-pro-grid {
+      grid-template-columns: 1fr;
+      gap: 35px;
+    }
+
+    .project-pro-nav-links {
+      display: none;
+    }
+
+    .project-pro-nav,
+    .project-pro-breadcrumb,
+    .project-pro-hero-image,
+    .project-pro-info-section,
+    .project-pro-testimonial,
+    .project-pro-gallery,
+    .project-pro-back {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    .gallery-pro-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .gallery-pro-title {
+      font-size: 28px;
+    }
+  }
+</style>
+
+<div id="project-professional">
+  <!-- Header -->
+  <header class="project-pro-header">
+    <nav class="project-pro-nav">
+      <a href="/" class="project-pro-logo">ANSHIKA</a>
+      <ul class="project-pro-nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/portfolio">Portfolio</a></li>
+        <li><a href="/testimonials">Testimonials</a></li>
+        <li><a href="/portal/login">Client Portal</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <% const media = (typeof projectMedia !== 'undefined' && Array.isArray(projectMedia)) ? projectMedia : []; %>
+  <% const testimonialList = (typeof testimonials !== 'undefined' && Array.isArray(testimonials)) ? testimonials : []; %>
+
+  <!-- Breadcrumb -->
+  <div class="project-pro-breadcrumb">
+    <a href="/portfolio">Portfolio</a>
+    <span>/</span>
+    <span class="current"><%= project.name || 'Project' %></span>
+  </div>
+
+  <!-- Hero Image -->
+  <div class="project-pro-hero-image">
+    <div class="project-pro-hero-image-wrap">
+      <% if (project.cover_image_path && project.cover_image_path.trim()) { %>
+      <img src="/<%= project.cover_image_path %>" alt="<%= (project.name || '').replace(/"/g, '&quot;') %>">
+      <% } else { %>
+      <img src="/assets/img/portfolio/portfolio-1.jpg" alt="Project Image">
+      <% } %>
+      <% if (project.category_name) { %>
+      <div class="project-pro-category-badge"><%= project.category_name %></div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Project Info -->
+  <div class="project-pro-info-section">
+    <h1 class="project-pro-title"><%= project.name || 'Untitled Project' %></h1>
+
+    <% if ((project.location && project.location.trim()) || (project.city && project.city.trim())) { %>
+    <div class="project-pro-location">
+      <i class="bx bx-map-pin"></i>
+      <span>
+        <% if (project.location && project.location.trim()) { %><%= project.location %><% } %>
+        <% if (project.city && project.city.trim()) { %><% if (project.location && project.location.trim()) { %>, <% } %><%= project.city %><% } %>
+      </span>
+    </div>
+    <% } %>
+
+    <% if (project.initial_text && project.initial_text.trim()) { %>
+    <div class="project-pro-about">
+      <h3>About This Project</h3>
+      <p><%= project.initial_text %></p>
+    </div>
+    <% } %>
+
+    <% if (project.details && project.details.trim()) { %>
+    <div class="project-pro-details">
+      <% const br = '\x3cbr\x3e'; %>
+      <%- (project.details || '').replace(/\n/g, br) %>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Testimonial -->
+  <% if (testimonialList.length > 0) { %>
+  <div class="project-pro-testimonial">
+    <% testimonialList.forEach(function(t) { %>
+    <div class="testimonial-pro-card">
+      <div class="testimonial-pro-quote">
+        <%= t.message || '' %>
+      </div>
+      <div class="testimonial-pro-author">
+        — <%= t.client_name || 'Client' %>
+      </div>
+      <a href="/testimonials/<%= t.id %>" class="testimonial-pro-link">
+        Read Full Testimonial <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+    <% }); %>
+  </div>
+  <% } %>
+
+  <!-- Gallery -->
+  <% if (media.length > 0) { %>
+  <div class="project-pro-gallery">
+    <div class="gallery-pro-header">
+      <h2 class="gallery-pro-title">Project Gallery</h2>
+      <div class="gallery-pro-filters">
+        <button class="gallery-pro-filter-btn active" data-filter="*">All</button>
+        <button class="gallery-pro-filter-btn" data-filter="image">Images</button>
+        <button class="gallery-pro-filter-btn" data-filter="video">Videos</button>
+      </div>
+    </div>
+
+    <div class="gallery-pro-grid" id="projectProGalleryGrid">
+      <% media.forEach(function(m) { %>
+      <div class="gallery-pro-item" data-type="<%= m.type %>">
+        <% if (m.type === 'image') { %>
+        <a href="/<%= m.path %>" class="portfolio-lightbox" data-gallery="project-gallery">
+          <img src="/<%= m.path %>" alt="" loading="lazy">
+        </a>
+        <% } else if (m.type === 'video') { %>
+        <iframe src="<%= m.path %>" allowfullscreen></iframe>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Back Button -->
+  <div class="project-pro-back">
+    <a href="/portfolio" class="back-pro-btn">
+      <i class="bi bi-arrow-left"></i> Back to Portfolio
+    </a>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Header scroll effect
+  const header = document.querySelector('.project-pro-header');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+
+  // Gallery filtering
+  const filterBtns = document.querySelectorAll('.gallery-pro-filter-btn');
+  const galleryItems = document.querySelectorAll('.gallery-pro-item');
+
+  if (filterBtns.length > 0 && galleryItems.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const filterValue = this.getAttribute('data-filter');
+
+        // Update active state
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        // Filter items
+        galleryItems.forEach(item => {
+          if (filterValue === '*' || item.getAttribute('data-type') === filterValue) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  }
+});
+</script>
