@@ -1,119 +1,462 @@
-<section id="portfolio" class="portfolio">
-  <div class="container" data-aos="fade-up">
-    <div class="section-title">
-      <h2>Portfolio</h2>
-    </div>
-    <% const cats = (typeof categories !== 'undefined' && Array.isArray(categories)) ? categories : []; %>
-    <% const projs = (typeof projects !== 'undefined' && Array.isArray(projects)) ? projects : []; %>
-    <% if (cats.length > 0) { %>
-    <div class="row" data-aos="fade-up" data-aos-delay="100">
-      <div class="col-lg-12 d-flex justify-content-center">
-        <ul id="portfolio-flters">
-          <li data-filter="*" class="filter-active">All</li>
-          <% cats.forEach(function(c) { %>
-          <li data-filter=".filter-cat-<%= c.id %>"><%= (c.name || '').toUpperCase() %></li>
-          <% }); %>
-        </ul>
-      </div>
-    </div>
-    <% } %>
-    <div class="row portfolio-container" data-aos="fade-up" data-aos-delay="200">
-      <% if (projs.length === 0) { %>
-      <div class="col-12 text-center text-muted py-5">No projects yet. Check back later.</div>
-      <% } else { %>
-      <% projs.forEach(function(p) { %>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-cat-<%= p.category_id %>">
-        <div class="portfolio-wrap">
-          <a href="/portfolio/project/<%= p.id %>" class="portfolio-card-link" title="View <%= (p.name || 'project').replace(/"/g, '&quot;') %>">
-            <img src="/<%= p.cover_image_path || 'assets/img/portfolio/portfolio-1.jpg' %>" class="img-fluid" alt="<%= (p.name || '').replace(/"/g, '&quot;') %>" loading="lazy" width="400" height="300">
-            <div class="portfolio-info">
-              <h4><%= p.name || 'Project' %></h4>
-              <% if (p.location && p.location.trim()) { %><p class="mb-0"><small><i class="bx bx-map-pin"></i> <%= p.location %><% if (p.city && p.city.trim()) { %>, <%= p.city %><% } %></small></p><% } %>
-              <p><%= (p.initial_text || '').substring(0, 80) %><%= (p.initial_text && p.initial_text.length > 80) ? '...' : '' %></p>
-              <div class="portfolio-links">
-                <span class="portfolio-cta">View project <i class="bi bi-arrow-right"></i></span>
-              </div>
-            </div>
-          </a>
-        </div>
-      </div>
-      <% }); %>
-      <% } %>
-    </div>
-  </div>
-</section>
 <style>
-  /* Whole card is one link: click photo or overlay to open project */
-  .portfolio .portfolio-wrap .portfolio-card-link {
-    display: block;
+  /* Hide default header */
+  body #header {
+    display: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+    background: #FFF8E7 !important;
+  }
+
+  /* Portfolio Professional Theme */
+  #portfolio-professional {
+    background: #FFF8E7;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Subtle Background Gradient */
+  #portfolio-professional::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Simple Header */
+  .portfolio-pro-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 248, 231, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 20px 0;
+    transition: all 0.3s;
+  }
+
+  .portfolio-pro-header.scrolled {
+    box-shadow: 0 2px 20px rgba(212, 175, 55, 0.1);
+  }
+
+  .portfolio-pro-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .portfolio-pro-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #D4AF37;
+    text-decoration: none;
+    letter-spacing: 3px;
+  }
+
+  .portfolio-pro-nav-links {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .portfolio-pro-nav-links a {
+    color: #2C2C2C;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.3s;
+    position: relative;
+  }
+
+  .portfolio-pro-nav-links a:hover,
+  .portfolio-pro-nav-links a.active {
+    color: #D4AF37;
+  }
+
+  .portfolio-pro-nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #D4AF37;
+    transition: width 0.3s;
+  }
+
+  .portfolio-pro-nav-links a:hover::after,
+  .portfolio-pro-nav-links a.active::after {
+    width: 100%;
+  }
+
+  /* Hero Section */
+  .portfolio-pro-hero {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 130px 40px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .portfolio-pro-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 56px;
+    font-weight: 600;
+    color: #2C2C2C;
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+
+  .portfolio-pro-hero .accent {
+    color: #D4AF37;
+    font-style: italic;
+  }
+
+  .portfolio-pro-hero p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  /* Filter Tabs */
+  .portfolio-pro-filters {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+  }
+
+  .filter-pro-btn {
+    padding: 12px 32px;
+    background: #fff;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 30px;
+    color: #2C2C2C;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .filter-pro-btn:hover,
+  .filter-pro-btn.active {
+    background: #D4AF37;
+    border-color: #D4AF37;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  }
+
+  /* Portfolio Grid */
+  .portfolio-pro-grid {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 35px;
+  }
+
+  /* Project Card */
+  .project-pro-card {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
     cursor: pointer;
     text-decoration: none;
-    color: inherit;
+    display: block;
   }
-  .portfolio .portfolio-wrap .portfolio-cta {
-    color: #fff;
-    font-size: 1rem;
+
+  .project-pro-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(212, 175, 55, 0.2);
+  }
+
+  .project-pro-image {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+  }
+
+  .project-pro-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .project-pro-card:hover .project-pro-image img {
+    transform: scale(1.08);
+  }
+
+  .project-pro-category {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 8px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .project-pro-info {
+    padding: 30px;
+  }
+
+  .project-pro-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #2C2C2C;
+    margin-bottom: 10px;
+  }
+
+  .project-pro-location {
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .project-pro-location i {
+    color: #D4AF37;
+  }
+
+  .project-pro-description {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .view-pro-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    transition: opacity 0.2s, transform 0.2s;
+    gap: 8px;
+    color: #D4AF37;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
   }
-  .portfolio .portfolio-wrap a:hover .portfolio-cta {
-    opacity: 0.95;
-    transform: translateX(2px);
+
+  .project-pro-card:hover .view-pro-btn {
+    gap: 12px;
   }
-  /* Mobile: disable Isotope overlap – stack items normally; constrain image height */
-  @media (max-width: 767.98px) {
-    /* Override Isotope's absolute positioning so items stack instead of overlapping */
-    .portfolio .portfolio-container {
-      height: auto !important;
-      min-height: 0 !important;
+
+  /* Empty State */
+  .portfolio-empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 100px 40px;
+  }
+
+  .portfolio-empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+
+  .portfolio-empty h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: #2C2C2C;
+    margin-bottom: 10px;
+  }
+
+  .portfolio-empty p {
+    color: #999;
+    font-size: 16px;
+  }
+
+  /* Tablet Responsive */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .portfolio-pro-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
     }
-    .portfolio .portfolio-container .portfolio-item {
-      position: relative !important;
-      left: auto !important;
-      top: auto !important;
-      right: auto !important;
-      transform: none !important;
-      width: 100% !important;
-      margin-bottom: 1.25rem;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .portfolio-pro-hero h1 {
+      font-size: 38px;
     }
-    .portfolio .portfolio-container .portfolio-item:last-child {
-      margin-bottom: 0;
+
+    .portfolio-pro-hero p {
+      font-size: 16px;
     }
-    .portfolio .portfolio-wrap {
-      background: #1a1a1a;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+
+    .portfolio-pro-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+      padding: 0 20px 60px;
     }
-    .portfolio .portfolio-wrap::before {
+
+    .portfolio-pro-nav-links {
       display: none;
     }
-    .portfolio .portfolio-wrap .portfolio-card-link {
-      display: flex;
-      flex-direction: column;
+
+    .portfolio-pro-nav {
+      padding: 0 20px;
     }
-    /* Fixed-height image area so tall images don't blow up the card or cause overlap */
-    .portfolio .portfolio-wrap img {
-      width: 100%;
-      height: auto;
-      max-height: 280px;
-      object-fit: cover;
-      object-position: center;
-      display: block;
+
+    .portfolio-pro-hero {
+      padding: 120px 20px 60px;
     }
-    .portfolio .portfolio-wrap .portfolio-info {
-      position: static;
-      opacity: 1;
-      padding: 0.75rem 0.75rem 1rem;
-    }
-    .portfolio .portfolio-wrap .portfolio-info h4 {
-      margin-bottom: 0.25rem;
-    }
-    .portfolio .portfolio-wrap .portfolio-links {
-      margin-top: 0.25rem;
+
+    .portfolio-pro-filters {
+      padding: 0 20px;
     }
   }
 </style>
+
+<div id="portfolio-professional">
+  <!-- Header -->
+  <header class="portfolio-pro-header">
+    <nav class="portfolio-pro-nav">
+      <a href="/" class="portfolio-pro-logo">ANSHIKA</a>
+      <ul class="portfolio-pro-nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/portfolio" class="active">Portfolio</a></li>
+        <li><a href="/testimonials">Testimonials</a></li>
+        <li><a href="/portal/login">Client Portal</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <div class="portfolio-pro-hero">
+    <h1>Crafted <span class="accent">Dreams</span></h1>
+    <p>Every space tells a story. Explore our curated collection of 300+ thoughtfully designed projects that transform houses into homes.</p>
+  </div>
+
+  <% const cats = (typeof categories !== 'undefined' && Array.isArray(categories)) ? categories : []; %>
+  <% const projs = (typeof projects !== 'undefined' && Array.isArray(projects)) ? projects : []; %>
+
+  <!-- Filters -->
+  <% if (cats.length > 0) { %>
+  <div class="portfolio-pro-filters">
+    <button class="filter-pro-btn active" data-filter="*">All Projects</button>
+    <% cats.forEach(function(c) { %>
+    <button class="filter-pro-btn" data-filter=".filter-cat-<%= c.id %>"><%= (c.name || '').toUpperCase() %></button>
+    <% }); %>
+  </div>
+  <% } %>
+
+  <!-- Portfolio Grid -->
+  <div class="portfolio-pro-grid" id="portfolioProGrid">
+    <% if (projs.length === 0) { %>
+    <div class="portfolio-empty">
+      <div class="portfolio-empty-icon">🏛️</div>
+      <h3>Projects Coming Soon</h3>
+      <p>We're curating our finest work to showcase here.</p>
+    </div>
+    <% } else { %>
+    <% projs.forEach(function(p) { %>
+    <a href="/portfolio/project/<%= p.id %>" class="project-pro-card filter-cat-<%= p.category_id %>">
+      <div class="project-pro-image">
+        <img src="/<%= p.cover_image_path || 'assets/img/portfolio/portfolio-1.jpg' %>" alt="<%= (p.name || '').replace(/"/g, '&quot;') %>" loading="lazy">
+        <% if (p.category_name) { %>
+        <div class="project-pro-category"><%= p.category_name %></div>
+        <% } %>
+      </div>
+      <div class="project-pro-info">
+        <h3 class="project-pro-title"><%= p.name || 'Untitled Project' %></h3>
+        <% if ((p.location && p.location.trim()) || (p.city && p.city.trim())) { %>
+        <div class="project-pro-location">
+          <i class="bx bx-map-pin"></i>
+          <span>
+            <% if (p.location && p.location.trim()) { %><%= p.location %><% } %>
+            <% if (p.city && p.city.trim()) { %><% if (p.location && p.location.trim()) { %>, <% } %><%= p.city %><% } %>
+          </span>
+        </div>
+        <% } %>
+        <% if (p.initial_text && p.initial_text.trim()) { %>
+        <p class="project-pro-description">
+          <%= (p.initial_text || '').substring(0, 120) %><%= (p.initial_text && p.initial_text.length > 120) ? '...' : '' %>
+        </p>
+        <% } %>
+        <div class="view-pro-btn">
+          View Project <i class="bi bi-arrow-right"></i>
+        </div>
+      </div>
+    </a>
+    <% }); %>
+    <% } %>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Header scroll effect
+  const header = document.querySelector('.portfolio-pro-header');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+
+  // Simple filter without Isotope
+  const filterBtns = document.querySelectorAll('.filter-pro-btn');
+  const cards = document.querySelectorAll('.project-pro-card');
+
+  if (filterBtns.length > 0 && cards.length > 0) {
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const filterValue = this.getAttribute('data-filter');
+
+        // Update active state
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        // Filter cards
+        cards.forEach(card => {
+          if (filterValue === '*' || card.classList.contains(filterValue.substring(1))) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  }
+});
+</script>
