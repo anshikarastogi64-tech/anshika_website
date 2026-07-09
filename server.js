@@ -985,11 +985,27 @@ app.post('/admin/portfolio/projects', requireAdmin, upload.single('cover_image')
   const initialText = (req.body?.initial_text || '').trim();
   const details = (req.body?.details || '').trim();
   const coverPath = req.file ? 'assets/uploads/' + req.file.filename : '';
-  if (!name || !categoryId) return res.redirect('/admin/portfolio');
+
+  if (!name || !categoryId) {
+    console.error('Portfolio project validation failed:', { name, categoryId });
+    return res.redirect('/admin/portfolio?msg=' + encodeURIComponent('Project name and category are required'));
+  }
+
   db.get('SELECT COALESCE(MAX(sort_order), -1) + 1 AS nextOrder FROM portfolio_projects WHERE category_id = ?', [categoryId], (err, row) => {
+    if (err) {
+      console.error('Portfolio project sort_order query error:', err);
+      return res.status(500).send('Database error: ' + err.message);
+    }
     const nextOrder = row?.nextOrder ?? 0;
     db.run('INSERT INTO portfolio_projects (category_id, name, location, city, initial_text, cover_image_path, details, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [categoryId, name, location, city, initialText, coverPath, details, nextOrder], () => res.redirect('/admin/portfolio'));
+      [categoryId, name, location, city, initialText, coverPath, details, nextOrder], function(insertErr) {
+        if (insertErr) {
+          console.error('Portfolio project insert error:', insertErr);
+          return res.status(500).send('Failed to add project: ' + insertErr.message);
+        }
+        console.log('Portfolio project added successfully:', { id: this.lastID, name, categoryId });
+        res.redirect('/admin/portfolio?msg=' + encodeURIComponent('Project added successfully'));
+      });
   });
 });
 
@@ -1567,6 +1583,21 @@ app.post('/Kelly/forms/dream-contact', express.json(), async (req, res) => {
   }
 });
 
+// Multer error handler
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    console.error('Multer error:', err);
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).send('File too large. Maximum size is 5MB.');
+    }
+    return res.status(400).send('File upload error: ' + err.message);
+  }
+  if (err) {
+    console.error('Server error:', err);
+    return res.status(500).send('Server error: ' + err.message);
+  }
+  next();
+});
 
 app.use((req, res) => {
   res.status(404).send('Not Found');
