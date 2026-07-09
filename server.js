@@ -254,6 +254,16 @@ app.get('/experience', async (req, res) => {
   res.render('experience', { footerName });
 });
 
+app.get('/vastu-process', async (req, res) => {
+  const footerName = await getBlock(
+    'global',
+    'footer',
+    'owner_name',
+    'Anshika Rastogi'
+  );
+  res.render('vastu-process', { footerName });
+});
+
 app.get('/services', async (req, res) => {
   const [footerName, dbServices] = await Promise.all([
     getBlock('global', 'footer', 'owner_name', 'Anshika Rastogi'),

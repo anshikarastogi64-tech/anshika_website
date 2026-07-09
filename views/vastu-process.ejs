@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Vastu-Compliant Interior Design Process | <%= footerName %></title>
+  <meta name="description" content="Discover our comprehensive 11-step Vastu-compliant interior design process that combines ancient wisdom with modern luxury to create harmonious living spaces.">
+  <meta name="keywords" content="vastu shastra, vastu interior design, vastu consultant, vastu compliant homes, interior design india, panch tatva">
+
+  <!-- Favicons -->
+  <link href="/assets/img/favicon.png" rel="icon" />
+  <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- CSS Files -->
+  <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --vastu-gold: #FFD700;
+      --vastu-deep-red: #8B0000;
+      --vastu-purple: #6B4C9A;
+      --vastu-green: #2D5F2E;
+      --vastu-earth: #8B7355;
+      --cosmic-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gold-gradient: linear-gradient(135deg, #f09819 0%, #edde5d 100%);
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      overflow-x: hidden;
+    }
+
+    /* Hero Section with Cosmic Energy */
+    .vastu-hero {
+      position: relative;
+      min-height: 70vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-top: 72px;
+    }
+
+    .vastu-hero::before {
+      content: '';
+      position: absolute;
+      width: 300%;
+      height: 300%;
+      background: radial-gradient(circle, rgba(255,215,0,0.1) 1%, transparent 2%);
+      background-size: 50px 50px;
+      animation: cosmicFlow 60s linear infinite;
+    }
+
+    @keyframes cosmicFlow {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-50px, -50px) rotate(360deg); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      color: white;
+      padding: 2rem;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+
+    .hero-subtitle {
+      font-size: 1.5rem;
+      color: #FFD700;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    .compass-decoration {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.15;
+      animation: rotate 60s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Process Steps */
+    .process-section {
+      padding: 5rem 0;
+      background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.2rem;
+      color: #666;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .process-timeline {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .process-step {
+      position: relative;
+      padding: 2rem 0;
+      display: flex;
+      gap: 3rem;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: all 0.6s ease;
+    }
+
+    .process-step.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .process-step:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--cosmic-gradient);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-content {
+      flex: 1;
+      background: white;
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .step-content:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+
+    .step-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .step-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: var(--gold-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .step-description {
+      color: #555;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-list {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .step-list li {
+      padding: 0.8rem 1.2rem;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .step-list li:hover {
+      transform: scale(1.05);
+      background: var(--gold-gradient);
+      color: white;
+    }
+
+    .step-list li i {
+      color: var(--vastu-deep-red);
+    }
+
+    .step-list li:hover i {
+      color: white;
+    }
+
+    /* Five Elements Section */
+    .elements-section {
+      padding: 5rem 0;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .elements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .element-card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      border: 2px solid rgba(255,215,0,0.3);
+      transition: all 0.4s ease;
+      cursor: pointer;
+    }
+
+    .element-card:hover {
+      transform: translateY(-20px) scale(1.05);
+      border-color: #FFD700;
+      background: rgba(255,215,0,0.15);
+      box-shadow: 0 30px 60px rgba(255,215,0,0.3);
+    }
+
+    .element-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .element-name {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #FFD700;
+      margin-bottom: 1rem;
+    }
+
+    .element-description {
+      color: rgba(255,255,255,0.8);
+      font-size: 1rem;
+    }
+
+    /* Benefits Section */
+    .benefits-section {
+      padding: 5rem 0;
+      background: white;
+    }
+
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 3rem auto 0;
+      padding: 0 2rem;
+    }
+
+    .benefit-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 2.5rem;
+      color: white;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .benefit-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+      transform: scale(0);
+      transition: transform 0.6s ease;
+    }
+
+    .benefit-card:hover::before {
+      transform: scale(1);
+    }
+
+    .benefit-card:hover {
+      transform: translateY(-15px);
+      box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+    }
+
+    .benefit-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .benefit-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Advanced Services Section */
+    .advanced-section {
+      padding: 5rem 0;
+      background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .advanced-card {
+      max-width: 900px;
+      margin: 3rem auto;
+      background: white;
+      border-radius: 30px;
+      padding: 3rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      border: 3px solid #FFD700;
+    }
+
+    .advanced-badge {
+      display: inline-block;
+      background: var(--gold-gradient);
+      color: white;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    .advanced-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .advanced-feature {
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 15px;
+      border-left: 4px solid var(--vastu-deep-red);
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 5rem 0;
+      background: linear-gradient(135deg, #8B0000 0%, #6B4C9A 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .cta-title {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    .cta-subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 3rem;
+      opacity: 0.95;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 1.5rem 4rem;
+      background: var(--gold-gradient);
+      color: #1a1a2e;
+      font-size: 1.3rem;
+      font-weight: 700;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 15px 40px rgba(255,215,0,0.4);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 60px rgba(255,215,0,0.6);
+      color: #1a1a2e;
+    }
+
+    @media (max-width: 768px) {
+      .vastu-hero { min-height: 50vh; margin-top: 60px; }
+      .hero-title { font-size: 2.5rem; }
+      .hero-subtitle { font-size: 1.2rem; }
+      .section-title { font-size: 2rem; }
+      .process-step { flex-direction: column !important; gap: 1.5rem; }
+      .step-number { width: 60px; height: 60px; font-size: 1.5rem; }
+      .elements-grid { grid-template-columns: 1fr; }
+      .cta-title { font-size: 2rem; }
+      .cta-button { padding: 1.2rem 2.5rem; font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <%- include('partials/layout', {
+    active: 'vastu',
+    footerName: typeof footerName !== 'undefined' ? footerName : 'Anshika Rastogi',
+    body: `
+      <!-- Hero Section -->
+      <section class="vastu-hero">
+        <svg class="compass-decoration" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="100" cy="100" r="70" fill="none" stroke="currentColor" stroke-width="1"/>
+          <line x1="100" y1="10" x2="100" y2="190" stroke="currentColor" stroke-width="1"/>
+          <line x1="10" y1="100" x2="190" y2="100" stroke="currentColor" stroke-width="1"/>
+          <line x1="30" y1="30" x2="170" y2="170" stroke="currentColor" stroke-width="1"/>
+          <line x1="170" y1="30" x2="30" y2="170" stroke="currentColor" stroke-width="1"/>
+          <text x="100" y="25" text-anchor="middle" fill="currentColor" font-size="14" font-weight="bold">N</text>
+          <text x="100" y="190" text-anchor="middle" fill="currentColor" font-size="14" font-weight="bold">S</text>
+          <text x="20" y="105" text-anchor="middle" fill="currentColor" font-size="14" font-weight="bold">W</text>
+          <text x="180" y="105" text-anchor="middle" fill="currentColor" font-size="14" font-weight="bold">E</text>
+        </svg>
+        <div class="hero-content">
+          <h1 class="hero-title">Vastu-Compliant Interior Design</h1>
+          <p class="hero-subtitle">✨ Where Ancient Wisdom Meets Modern Luxury ✨</p>
+          <p style="max-width: 800px; margin: 0 auto; font-size: 1.1rem; color: rgba(255,255,255,0.9);">
+            Combining the ancient science of Vastu Shastra with contemporary design to create spaces that promote health, happiness, prosperity, and positive energy.
+          </p>
+        </div>
+      </section>
+
+      <!-- Five Elements Section -->
+      <section class="elements-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title" style="color: #FFD700;">Panch Tatva - The Five Sacred Elements</h2>
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.8);">Every space is balanced according to these five natural elements that govern all life</p>
+          </div>
+          <div class="elements-grid">
+            <div class="element-card" data-element="fire">
+              <div class="element-icon">🔥</div>
+              <h3 class="element-name">Agni (Fire)</h3>
+              <p class="element-description">Energy, passion, transformation, and illumination</p>
+            </div>
+            <div class="element-card" data-element="water">
+              <div class="element-icon">💧</div>
+              <h3 class="element-name">Jal (Water)</h3>
+              <p class="element-description">Flow, healing, prosperity, and emotional balance</p>
+            </div>
+            <div class="element-card" data-element="earth">
+              <div class="element-icon">🌍</div>
+              <h3 class="element-name">Prithvi (Earth)</h3>
+              <p class="element-description">Stability, grounding, nourishment, and support</p>
+            </div>
+            <div class="element-card" data-element="air">
+              <div class="element-icon">🌬️</div>
+              <h3 class="element-name">Vayu (Air)</h3>
+              <p class="element-description">Movement, growth, communication, and freshness</p>
+            </div>
+            <div class="element-card" data-element="space">
+              <div class="element-icon">✨</div>
+              <h3 class="element-name">Akash (Space)</h3>
+              <p class="element-description">Expansion, consciousness, potential, and spirituality</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Process Steps -->
+      <section class="process-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Our 11-Step Vastu Design Journey</h2>
+            <p class="section-subtitle">A comprehensive process that transforms your space into a harmonious sanctuary</p>
+          </div>
+
+          <div class="process-timeline">
+            ${[
+              {
+                num: 1,
+                icon: 'compass',
+                title: 'Site Visit & Direction Analysis',
+                desc: 'We begin with a detailed site visit and accurately measure the magnetic degree of your property to determine its exact orientation. Understanding the true directions is the foundation of Vastu compliance.',
+                items: []
+              },
+              {
+                num: 2,
+                icon: 'dharmachakra',
+                title: 'Analysis of All 16 Directions',
+                desc: 'We conduct a thorough analysis of all 16 Vastu zones of your home to understand how each direction influences different aspects of life - from wealth and career to health and relationships.',
+                items: []
+              },
+              {
+                num: 3,
+                icon: 'yin-yang',
+                title: 'Panch Tatva (Five Elements) Zoning',
+                desc: 'The entire property is divided according to the five natural elements to identify the energy balance and functionality of each zone.',
+                items: ['fire:Fire (Agni)', 'tint:Water (Jal)', 'mountain:Earth (Prithvi)', 'wind:Air (Vayu)', 'star:Space (Akash)']
+              },
+              {
+                num: 4,
+                icon: 'search',
+                title: 'Complete Vastu Audit',
+                desc: 'We evaluate the existing layout, room placements, and energy distribution throughout the property to identify strengths and areas for improvement.',
+                items: []
+              },
+              {
+                num: 5,
+                icon: 'couch',
+                title: 'Furniture & Functional Planning',
+                desc: 'Based on the zonal analysis, we strategically plan the placement of every element in your home for maximum positive energy flow.',
+                items: ['bed:Beds', 'couch:Sofas', 'door-closed:Wardrobes', 'utensils:Dining', 'book:Study', 'laptop:Workstations', 'om:Temple', 'lock:Safe', 'pills:Medicine', 'music:Music System', 'file-alt:Documents', 'tv:Electronics']
+              },
+              {
+                num: 6,
+                icon: 'cube',
+                title: '3D Design & Furniture Drawings',
+                desc: 'Once the Vastu planning is finalized, we bring your space to life with detailed visualizations.',
+                items: ['eye:3D Visualizations', 'drafting-compass:Furniture Drawings', 'sitemap:Space Planning', 'tools:Execution Drawings']
+              },
+              {
+                num: 7,
+                icon: 'palette',
+                title: 'Vastu Color Consultation',
+                desc: 'Based on the elemental zones of your home, we provide a personalized Vastu color chart.',
+                items: ['paint-roller:Wall Colors', 'chair:Furniture Finishes', 'gem:Decorative Accents', 'layer-group:Material Combinations']
+              },
+              {
+                num: 8,
+                icon: 'lightbulb',
+                title: 'Décor & Energy Enhancement',
+                desc: 'We recommend specific elements to amplify the positive vibrations in your space.',
+                items: ['image:Artwork', 'mirror:Mirrors', 'leaf:Indoor Plants', 'lightbulb:Lighting', 'infinity:Energy Accessories']
+              },
+              {
+                num: 9,
+                icon: 'file-contract',
+                title: 'Detailed Vastu Interior Report',
+                desc: 'You will receive a comprehensive report containing all guidelines and recommendations.',
+                items: ['map-marked-alt:Zone-wise Analysis', 'ruler-combined:Furniture Placement', 'fill-drip:Color Recommendations', 'bolt:Energy Enhancement', 'book-open:Practical Guidance']
+              },
+              {
+                num: 10,
+                icon: 'home',
+                title: 'Creating a Harmonious Living Environment',
+                desc: 'Our ultimate goal is to create interiors that perfectly balance ancient wisdom with modern aesthetics.',
+                items: ['check-circle:Vastu Compliant', 'check-circle:Aesthetically Beautiful', 'check-circle:Functionally Efficient', 'check-circle:Energy Balanced', 'check-circle:Personalized to You']
+              },
+              {
+                num: 11,
+                icon: 'star',
+                title: 'Advanced Vastu Analysis (Optional)',
+                desc: 'For clients requiring deeper Vastu consultation, we offer advanced analysis.',
+                items: ['door-open:32 Entrances', 'door-closed:Main Entrance', 'utensils:Kitchen Placement', 'toilet:Washroom Analysis', 'exclamation-triangle:Defect Identification', 'magic:Remedies & Solutions']
+              }
+            ].map(step => `
+              <div class="process-step">
+                <div class="step-number">${step.num}</div>
+                <div class="step-content">
+                  <h3 class="step-title">
+                    <div class="step-icon"><i class="fas fa-${step.icon}"></i></div>
+                    ${step.title}
+                  </h3>
+                  <p class="step-description">${step.desc}</p>
+                  ${step.items.length ? `
+                    <ul class="step-list">
+                      ${step.items.map(item => {
+                        const [icon, label] = item.split(':');
+                        return `<li><i class="fas fa-${icon}"></i> ${label}</li>`;
+                      }).join('')}
+                    </ul>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </section>
+
+      <!-- Benefits Section -->
+      <section class="benefits-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">The Vastu Advantage</h2>
+            <p class="section-subtitle">Experience the transformative power of Vastu-compliant design</p>
+          </div>
+          <div class="benefits-grid">
+            <div class="benefit-card">
+              <div class="benefit-icon">🏡</div>
+              <h3 class="benefit-title">Enhanced Well-being</h3>
+              <p>Improved physical and mental health through balanced energy flow</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">💰</div>
+              <h3 class="benefit-title">Prosperity & Growth</h3>
+              <p>Attract abundance and opportunities with proper directional planning</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">❤️</div>
+              <h3 class="benefit-title">Harmonious Relationships</h3>
+              <p>Foster love, understanding, and peace in family relationships</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">🎯</div>
+              <h3 class="benefit-title">Career Success</h3>
+              <p>Boost productivity and achieve professional excellence</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">😌</div>
+              <h3 class="benefit-title">Peace of Mind</h3>
+              <p>Create a stress-free sanctuary that nurtures your soul</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">⚡</div>
+              <h3 class="benefit-title">Positive Energy</h3>
+              <p>Eliminate negative influences and amplify positive vibrations</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced Services -->
+      <section class="advanced-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Advanced Vastu Analysis</h2>
+            <p class="section-subtitle">Deep-dive consultation for comprehensive Vastu transformation</p>
+          </div>
+          <div class="advanced-card">
+            <span class="advanced-badge">⭐ PREMIUM SERVICE</span>
+            <h3 style="font-size: 2rem; margin-bottom: 1.5rem; color: #1a1a2e;">
+              For Clients Seeking Ultimate Vastu Perfection
+            </h3>
+            <p style="font-size: 1.1rem; color: #555; margin-bottom: 2rem;">
+              Our Advanced Vastu Analysis goes beyond standard interior design to provide you with a complete spiritual and energetic blueprint of your space.
+            </p>
+            <div class="advanced-features">
+              <div class="advanced-feature">
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: #1a1a2e;">
+                  <i class="fas fa-door-open" style="color: var(--vastu-deep-red);"></i> 32 Dwar Analysis
+                </h4>
+                <p style="margin: 0; color: #666;">Detailed analysis of all 32 entrance possibilities</p>
+              </div>
+              <div class="advanced-feature">
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: #1a1a2e;">
+                  <i class="fas fa-exclamation-circle" style="color: var(--vastu-deep-red);"></i> Defect Identification
+                </h4>
+                <p style="margin: 0; color: #666;">Pinpoint major Vastu doshas affecting your life</p>
+              </div>
+              <div class="advanced-feature">
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: #1a1a2e;">
+                  <i class="fas fa-magic" style="color: var(--vastu-deep-red);"></i> Practical Remedies
+                </h4>
+                <p style="margin: 0; color: #666;">Effective solutions without major structural changes</p>
+              </div>
+              <div class="advanced-feature">
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: #1a1a2e;">
+                  <i class="fas fa-file-pdf" style="color: var(--vastu-deep-red);"></i> Comprehensive Report
+                </h4>
+                <p style="margin: 0; color: #666;">Detailed documentation with remedies and timeline</p>
+              </div>
+            </div>
+            <p style="margin-top: 2rem; text-align: center; color: #888; font-size: 0.95rem;">
+              <i class="fas fa-info-circle"></i> Advanced Vastu Analysis is an additional consultation service charged separately from the standard interior design package.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <div class="container">
+          <h2 class="cta-title">Ready to Transform Your Space?</h2>
+          <p class="cta-subtitle">Let's create a home that nurtures your dreams and amplifies positive energy</p>
+          <a href="/contact" class="cta-button">
+            <i class="fas fa-phone-alt"></i> Schedule Your Vastu Consultation
+          </a>
+          <p style="margin-top: 2rem; font-size: 1.1rem; opacity: 0.9;">
+            📞 Call: +91 9557058902 | 📧 Email: designersvisionstudio@gmail.com
+          </p>
+        </div>
+      </section>
+
+      <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+          threshold: 0.2,
+          rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        }, observerOptions);
+
+        document.querySelectorAll('.process-step').forEach(step => {
+          observer.observe(step);
+        });
+
+        // Element cards interaction
+        document.querySelectorAll('.element-card').forEach(card => {
+          card.addEventListener('click', function() {
+            this.style.animation = 'pulse 0.5s ease';
+            setTimeout(() => {
+              this.style.animation = '';
+            }, 500);
+          });
+        });
+      </script>
+    `
+  }) %>
+
+</body>
+</html>
