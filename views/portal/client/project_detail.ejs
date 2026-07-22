@@ -6,6 +6,17 @@
    }
 %>
 <%- include('../partials/project_location_actions', { worksiteHref: _worksiteHref }) %>
+<% var _hardAsk = (typeof paymentHardAsk !== 'undefined' && paymentHardAsk) ? paymentHardAsk : null; %>
+<% if (_hardAsk) { %>
+<div class="alert border-0 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3"
+     style="background: linear-gradient(135deg, rgba(224,64,64,0.14), rgba(224,160,58,0.12)); border-left: 4px solid #e0a03a !important;">
+  <div>
+    <div class="fw-semibold text-warning mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Outstanding balance: ₹<%= (Number(_hardAsk.remaining) || 0).toLocaleString('en-IN') %></div>
+    <div class="small text-light mb-0">Your project is complete. Your <strong>Warranty &amp; Guarantee</strong> coverage and complimentary benefits are on hold until this balance is cleared in full.</div>
+  </div>
+  <a href="#tab-finance" class="btn btn-gold btn-sm text-nowrap" data-bs-toggle="tab" data-bs-target="#tab-finance" role="tab">Settle now</a>
+</div>
+<% } %>
 <% var tabOrderClient = ['updates','timelines','mood-board','design-ideas','vault','material-selection','daily','finance','warranty','vastu','other-docs','messages','meetings'];
    var cTabs = typeof clientAllowedTabs !== 'undefined' && clientAllowedTabs ? clientAllowedTabs : {};
    tabOrderClient.forEach(function(k) { if (cTabs[k] === undefined) cTabs[k] = true; });
@@ -311,7 +322,14 @@
     <div class="card card-portal mb-4">
       <div class="card-header serif text-warning">Warranty &amp; Guarantee</div>
       <div class="card-body">
-        <% if (typeof warrantyDocs !== 'undefined' && warrantyDocs.length > 0) { %>
+        <% if (_hardAsk) { %>
+        <div class="text-center py-4">
+          <i class="bi bi-lock-fill text-warning" style="font-size:2rem;"></i>
+          <p class="serif text-light mt-3 mb-1">Warranty &amp; Guarantee is on hold</p>
+          <p class="text-muted small mb-3">Please settle your outstanding balance of <strong class="text-warning">₹<%= (Number(_hardAsk.remaining) || 0).toLocaleString('en-IN') %></strong> to unlock your warranty &amp; guarantee documents and reactivate your complimentary benefits.</p>
+          <a href="#tab-finance" class="btn btn-gold btn-sm" data-bs-toggle="tab" data-bs-target="#tab-finance" role="tab">Go to Finance to settle</a>
+        </div>
+        <% } else if (typeof warrantyDocs !== 'undefined' && warrantyDocs.length > 0) { %>
         <ul class="list-unstyled mb-0">
           <% warrantyDocs.forEach(function(m) { %>
           <% var wPdf = (m.type || '') === 'DOCUMENT' || (m.url || '').toLowerCase().indexOf('.pdf') !== -1; %>

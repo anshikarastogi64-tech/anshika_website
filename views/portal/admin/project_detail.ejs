@@ -378,6 +378,13 @@
       </div>
     </div>
     <%- include('../partials/payment_finance_panel', { project, paymentScheduleProgress: typeof paymentScheduleProgress !== 'undefined' ? paymentScheduleProgress : null, showPaymentScheduleExplain: true, paymentTerms: typeof paymentTerms !== 'undefined' ? paymentTerms : null, quotationBaseForTerms: typeof quotationBaseForTerms !== 'undefined' ? quotationBaseForTerms : 0, contractTotal: typeof total !== 'undefined' ? total : 0, paymentTermsEditMode: true }) %>
+    <%- include('../partials/payment_reminders_admin', {
+      project: project,
+      financeBalanceDue: typeof financeBalanceDue !== 'undefined' ? financeBalanceDue : 0,
+      reminderCampaign: typeof reminderCampaign !== 'undefined' ? reminderCampaign : null,
+      reminderLogs: typeof reminderLogs !== 'undefined' ? reminderLogs : [],
+      smsConfigured: typeof smsConfigured !== 'undefined' ? smsConfigured : false
+    }) %>
     <div class="card card-portal mb-4">
       <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
         <span>Client payments</span>

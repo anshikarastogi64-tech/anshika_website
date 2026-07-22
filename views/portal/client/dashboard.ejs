@@ -9,8 +9,13 @@
 <div class="card card-portal mb-4">
   <div class="card-header">DV Points</div>
   <div class="card-body">
+    <% if (typeof dvPointsFrozen !== 'undefined' && dvPointsFrozen) { %>
+    <p class="mb-1">Your balance: <strong class="text-muted serif h5" style="text-decoration:line-through;"><%= dvPoints %></strong> points <span class="badge bg-warning text-dark ms-1"><i class="bi bi-lock-fill me-1"></i>On hold</span></p>
+    <p class="small text-muted mb-0">Your complimentary DV points and perks are temporarily on hold because a completed project has an outstanding balance. They’ll be reinstated as soon as the balance is cleared — see your project’s Finance tab.</p>
+    <% } else { %>
     <p class="mb-1">Your balance: <strong class="text-warning serif h5"><%= dvPoints %></strong> points</p>
     <p class="small text-muted mb-0">When someone you refer completes a project, you earn <strong>4%</strong> of the final project value as DV points. Refer friends & family below to grow your balance.</p>
+    <% } %>
   </div>
 </div>
 <% if (typeof notifications !== 'undefined' && notifications.length > 0) { %>

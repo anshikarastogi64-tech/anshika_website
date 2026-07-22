@@ -1617,3 +1617,25 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on http://0.0.0.0:${PORT}`);
 });
 
+// Continuous payment-reminder scheduler: check for due campaigns on an interval.
+// In-process (single PM2 instance). Auto-stops each campaign once its balance is zero.
+(() => {
+  let paymentReminders;
+  try {
+    paymentReminders = require('./lib/payment-reminders');
+  } catch (e) {
+    console.error('Payment reminder engine failed to load:', e.message);
+    return;
+  }
+  const everyMs = Math.max(1, Number(process.env.PAYMENT_REMINDER_TICK_MINUTES) || 15) * 60 * 1000;
+  const tick = () => {
+    Promise.resolve(paymentReminders.runDueCampaigns()).catch((e) =>
+      console.error('Payment reminder tick error:', e.message)
+    );
+  };
+  // Small delay on boot so the DB schema init has settled, then run on interval.
+  setTimeout(tick, 30 * 1000);
+  const timer = setInterval(tick, everyMs);
+  if (timer.unref) timer.unref();
+})();
+

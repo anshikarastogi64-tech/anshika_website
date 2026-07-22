@@ -1,0 +1,153 @@
+<%
+  var bal = Number(financeBalanceDue) || 0;
+  var camp = reminderCampaign || null;
+  var logs = reminderLogs || [];
+  var status = camp ? String(camp.status) : null;
+  var isLive = status === 'ACTIVE' || status === 'PAUSED';
+  function fmtDT(v) {
+    if (!v) return '—';
+    var d = new Date(v);
+    if (isNaN(d.getTime())) return v;
+    return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+  function inr(n) { return '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN'); }
+%>
+<div class="card card-portal mb-4 border-warning">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="text-warning"><i class="bi bi-bell-fill me-1"></i>Payment reminders — soft ask &amp; hard ask</span>
+    <% if (camp && status === 'ACTIVE') { %>
+      <span class="badge <%= camp.phase === 'HARD' ? 'bg-danger' : 'bg-secondary' %>"><%= camp.phase === 'HARD' ? 'HARD ASK' : 'SOFT ASK' %> · running</span>
+    <% } else if (camp && status === 'PAUSED') { %>
+      <span class="badge bg-warning text-dark">Paused</span>
+    <% } else if (camp && status === 'COMPLETED') { %>
+      <span class="badge bg-success">Settled &amp; closed</span>
+    <% } %>
+  </div>
+  <div class="card-body">
+    <% if (bal <= 0) { %>
+      <p class="text-muted mb-0">This project has <strong class="text-light">no outstanding balance</strong>, so payment reminders aren’t needed.<% if (camp && status === 'COMPLETED') { %> The previous campaign closed automatically once the balance was cleared.<% } %></p>
+    <% } else { %>
+      <p class="small text-muted mb-3">
+        Automatically emails &amp; texts the client the outstanding
+        <strong class="text-warning"><%= inr(bal) %></strong>.
+        Starts gentle (soft ask); after the set number of soft sends it escalates to a
+        hard ask, and the client’s <strong>Warranty &amp; Guarantee</strong> and complimentary
+        perks are placed on hold until the balance is cleared. Stops automatically when paid.
+      </p>
+
+      <% if (!smsConfigured) { %>
+        <div class="alert alert-secondary border-secondary small py-2 px-3 mb-3">
+          <i class="bi bi-info-circle me-1"></i>No SMS provider is configured yet, so SMS sends are skipped and logged — <strong>email reminders still go out</strong>. Set <code>SMS_PROVIDER</code> (and credentials) in the server environment to enable SMS.
+        </div>
+      <% } %>
+
+      <% if (camp && isLive) { %>
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-lg-3">
+            <div class="rounded-3 p-2 bg-dark border border-secondary h-100">
+              <div class="small text-muted text-uppercase" style="letter-spacing:.04em;">Phase</div>
+              <div class="fw-semibold <%= camp.phase === 'HARD' ? 'text-danger' : 'text-light' %>"><%= camp.phase === 'HARD' ? 'Hard ask' : 'Soft ask' %></div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="rounded-3 p-2 bg-dark border border-secondary h-100">
+              <div class="small text-muted text-uppercase" style="letter-spacing:.04em;">Sends so far</div>
+              <div class="fw-semibold text-light"><%= camp.sends_count %> <span class="small text-muted">(<%= camp.soft_sends_count %> soft)</span></div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="rounded-3 p-2 bg-dark border border-secondary h-100">
+              <div class="small text-muted text-uppercase" style="letter-spacing:.04em;">Last sent</div>
+              <div class="fw-semibold text-light small"><%= fmtDT(camp.last_sent_at) %></div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="rounded-3 p-2 bg-dark border border-secondary h-100">
+              <div class="small text-muted text-uppercase" style="letter-spacing:.04em;">Next send</div>
+              <div class="fw-semibold text-light small"><%= status === 'PAUSED' ? 'Paused' : fmtDT(camp.next_run_at) %></div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <form method="post" action="/portal/admin/projects/<%= project.id %>/payment-reminders/send-now">
+            <button class="btn btn-gold btn-sm" type="submit"><i class="bi bi-send me-1"></i>Send reminder now</button>
+          </form>
+          <% if (status === 'ACTIVE') { %>
+          <form method="post" action="/portal/admin/projects/<%= project.id %>/payment-reminders/pause">
+            <button class="btn btn-outline-warning btn-sm" type="submit">Pause</button>
+          </form>
+          <% } else { %>
+          <form method="post" action="/portal/admin/projects/<%= project.id %>/payment-reminders/resume">
+            <button class="btn btn-outline-success btn-sm" type="submit">Resume</button>
+          </form>
+          <% } %>
+          <form method="post" action="/portal/admin/projects/<%= project.id %>/payment-reminders/stop" onsubmit="return confirm('Stop reminders and lift the warranty/perks hold for this client?');">
+            <button class="btn btn-outline-danger btn-sm" type="submit">Stop &amp; lift hold</button>
+          </form>
+        </div>
+        <p class="small text-muted mb-3">Current cadence: every <strong><%= camp.interval_days %></strong> day(s) ·
+          escalates to hard ask after <strong><%= camp.soft_sends_before_hard %></strong> soft send(s) ·
+          channels: <%= Number(camp.channel_email) === 1 ? 'Email' : '' %><%= (Number(camp.channel_email) === 1 && Number(camp.channel_sms) === 1) ? ' + ' : '' %><%= Number(camp.channel_sms) === 1 ? 'SMS' : '' %>.
+          Change the settings below to re-arm.</p>
+      <% } %>
+
+      <details class="mb-2" <%= (!camp || !isLive) ? 'open' : '' %>>
+        <summary class="text-warning small mb-2" style="cursor:pointer;"><%= (camp && isLive) ? 'Change reminder settings' : 'Start payment reminders' %></summary>
+        <form method="post" action="/portal/admin/projects/<%= project.id %>/payment-reminders/start" class="row g-2 align-items-end mt-1">
+          <div class="col-auto">
+            <label class="form-label small mb-0">Every … days</label>
+            <input type="number" name="interval_days" min="1" max="90" value="<%= camp ? camp.interval_days : 3 %>" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:110px" required />
+          </div>
+          <div class="col-auto">
+            <label class="form-label small mb-0">Soft sends before hard ask</label>
+            <input type="number" name="soft_sends_before_hard" min="0" max="50" value="<%= camp ? camp.soft_sends_before_hard : 3 %>" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:150px" required />
+          </div>
+          <div class="col-auto">
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" name="channel_email" value="1" id="rmEmail" <%= (!camp || Number(camp.channel_email) === 1) ? 'checked' : '' %> />
+              <label class="form-check-label small" for="rmEmail">Email</label>
+            </div>
+          </div>
+          <div class="col-auto">
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" name="channel_sms" value="1" id="rmSms" <%= (!camp || Number(camp.channel_sms) === 1) ? 'checked' : '' %> />
+              <label class="form-check-label small" for="rmSms">SMS</label>
+            </div>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-gold btn-sm" type="submit"><i class="bi bi-play-fill me-1"></i><%= (camp && isLive) ? 'Apply &amp; re-arm' : 'Start reminders' %></button>
+          </div>
+        </form>
+      </details>
+
+      <% if (logs.length) { %>
+        <details class="mt-3">
+          <summary class="text-muted small" style="cursor:pointer;">Recent send log (<%= logs.length %>)</summary>
+          <div class="table-responsive mt-2">
+            <table class="table table-dark table-sm table-borderless align-middle mb-0 small">
+              <thead><tr class="text-muted">
+                <th>When</th><th>Phase</th><th>Channel</th><th>To</th><th>Amount</th><th>Status</th>
+              </tr></thead>
+              <tbody>
+                <% logs.forEach(function(l) { %>
+                <tr>
+                  <td class="text-nowrap"><%= fmtDT(l.created_at) %></td>
+                  <td><span class="badge <%= l.phase === 'HARD' ? 'bg-danger' : 'bg-secondary' %>"><%= l.phase %></span></td>
+                  <td><%= l.channel %></td>
+                  <td class="text-truncate" style="max-width:180px;"><%= l.recipient || '—' %></td>
+                  <td class="text-nowrap"><%= inr(l.amount_remaining) %></td>
+                  <td>
+                    <% if (l.status === 'SENT') { %><span class="text-success">Sent</span>
+                    <% } else if (l.status === 'SKIPPED') { %><span class="text-muted" title="<%= l.error || '' %>">Skipped</span>
+                    <% } else { %><span class="text-danger" title="<%= l.error || '' %>">Failed</span><% } %>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      <% } %>
+    <% } %>
+  </div>
+</div>

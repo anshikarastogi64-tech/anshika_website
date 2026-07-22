@@ -588,6 +588,58 @@ db.serialize(() => {
       FOREIGN KEY (project_id) REFERENCES portal_projects(id)
     )`
   );
+  // Continuous payment-reminder campaigns (soft ask -> hard ask). One active campaign per project.
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_payment_reminder_campaigns (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ACTIVE',
+      phase TEXT NOT NULL DEFAULT 'SOFT',
+      interval_days INTEGER NOT NULL DEFAULT 3,
+      soft_sends_before_hard INTEGER NOT NULL DEFAULT 3,
+      channel_email INTEGER NOT NULL DEFAULT 1,
+      channel_sms INTEGER NOT NULL DEFAULT 1,
+      sends_count INTEGER NOT NULL DEFAULT 0,
+      soft_sends_count INTEGER NOT NULL DEFAULT 0,
+      last_sent_at TEXT,
+      next_run_at TEXT,
+      last_amount_remaining REAL,
+      started_by_user_id TEXT,
+      started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      stopped_at TEXT,
+      completed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES portal_projects(id)
+    )`
+  );
+  db.run(
+    'CREATE INDEX IF NOT EXISTS idx_payment_reminder_campaigns_project ON portal_payment_reminder_campaigns (project_id)',
+    () => {}
+  );
+  db.run(
+    'CREATE INDEX IF NOT EXISTS idx_payment_reminder_campaigns_due ON portal_payment_reminder_campaigns (status, next_run_at)',
+    () => {}
+  );
+  // Audit log: one row per reminder send attempt (per channel/recipient).
+  db.run(
+    `CREATE TABLE IF NOT EXISTS portal_payment_reminder_log (
+      id TEXT PRIMARY KEY,
+      campaign_id TEXT NOT NULL,
+      project_id TEXT NOT NULL,
+      phase TEXT NOT NULL,
+      channel TEXT NOT NULL,
+      recipient TEXT,
+      amount_remaining REAL,
+      status TEXT NOT NULL,
+      error TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (campaign_id) REFERENCES portal_payment_reminder_campaigns(id)
+    )`
+  );
+  db.run(
+    'CREATE INDEX IF NOT EXISTS idx_payment_reminder_log_campaign ON portal_payment_reminder_log (campaign_id, created_at)',
+    () => {}
+  );
   db.run(
     `CREATE TABLE IF NOT EXISTS portal_timeline_extensions (
       id TEXT PRIMARY KEY,

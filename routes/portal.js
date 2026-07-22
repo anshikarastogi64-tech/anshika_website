@@ -31,6 +31,7 @@ const {
   buildPaymentScheduleShortLine,
 } = require('../lib/portal');
 const timelineUtil = require('../lib/portal-timeline');
+const paymentReminders = require('../lib/payment-reminders');
 const portalNotify = require('../lib/portal-notify');
 const { CATEGORIES: NC } = portalNotify;
 const portalMeet = require('../lib/portal-meet');
@@ -780,6 +781,9 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
   const quotationBaseForTerms =
     quotation && quotation.status === 'APPROVED' ? Number(quotation.base_total) || 0 : 0;
   const paymentScheduleProgress = buildPaymentScheduleViewForProject(project, quotation, extraCosts, clientPayments || []);
+  const reminderCampaign = await portalDb.getLatestReminderCampaign(project.id);
+  const reminderLogs = reminderCampaign ? await portalDb.getReminderLogsByCampaign(reminderCampaign.id, 20) : [];
+  const smsConfigured = require('../lib/sms').isConfigured();
   const projectMessagesRaw = await portalDb.getProjectMessages(project.id);
   const projectMessageThreads = groupPortalProjectMessages(projectMessagesRaw);
   const projectMeetings = enrichProjectMeetingsList(await portalDb.getProjectMeetings(project.id));
@@ -815,6 +819,9 @@ router.get('/admin/projects/:id', requirePortalAuth, requireAdmin, async (req, r
     paymentTerms,
     quotationBaseForTerms,
     paymentScheduleProgress,
+    reminderCampaign: reminderCampaign || null,
+    reminderLogs: reminderLogs || [],
+    smsConfigured,
     projectMembers: projectMembers || [],
     portalClientsAvailable: portalClientsAvailable || [],
     clientPortalTabKeys: portalDb.CLIENT_PORTAL_TAB_KEYS,
@@ -1011,6 +1018,79 @@ router.post('/admin/projects/:id/payment-terms', express.urlencoded({ extended: 
     );
   }
   res.redirect(redir);
+});
+
+// ----- Continuous payment reminders (soft ask -> hard ask) -----
+router.post('/admin/projects/:id/payment-reminders/start', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) return res.status(404).send('Project not found');
+  const redir = '/portal/admin/projects/' + req.params.id + '#tab-finance';
+  const balance = await paymentReminders.computeProjectBalance(req.params.id);
+  if (!balance || balance.remaining <= 0) {
+    return res.redirect(`${redir}?msg=${encodeURIComponent('Nothing to remind — this project has no outstanding balance.')}`);
+  }
+  const intervalDays = Math.max(1, Math.min(90, parseInt(req.body.interval_days, 10) || 3));
+  const softSendsBeforeHard = Math.max(0, Math.min(50, parseInt(req.body.soft_sends_before_hard, 10) || 0));
+  const channelEmail = req.body.channel_email === '1' || req.body.channel_email === 'on';
+  const channelSms = req.body.channel_sms === '1' || req.body.channel_sms === 'on';
+  if (!channelEmail && !channelSms) {
+    return res.redirect(`${redir}?msg=${encodeURIComponent('Pick at least one channel (email or SMS) to start reminders.')}`);
+  }
+  await paymentReminders.startCampaign(req.params.id, {
+    intervalDays,
+    softSendsBeforeHard,
+    channelEmail,
+    channelSms,
+    startedByUserId: req.session[PORTAL_USER_ID],
+  });
+  res.redirect(`${redir}?msg=${encodeURIComponent('Payment reminders started. The first message goes out on the next cycle.')}`);
+});
+
+async function resolveProjectSteeringCampaign(req, res) {
+  const project = await portalDb.getProjectById(req.params.id);
+  if (!project) { res.status(404).send('Project not found'); return null; }
+  const campaign = await portalDb.getSteeringReminderCampaign(req.params.id);
+  return { project, campaign };
+}
+
+router.post('/admin/projects/:id/payment-reminders/pause', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const ctx = await resolveProjectSteeringCampaign(req, res);
+  if (!ctx) return;
+  const redir = '/portal/admin/projects/' + req.params.id + '#tab-finance';
+  if (ctx.campaign) await paymentReminders.pauseCampaign(ctx.campaign.id);
+  res.redirect(`${redir}?msg=${encodeURIComponent('Payment reminders paused.')}`);
+});
+
+router.post('/admin/projects/:id/payment-reminders/resume', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const ctx = await resolveProjectSteeringCampaign(req, res);
+  if (!ctx) return;
+  const redir = '/portal/admin/projects/' + req.params.id + '#tab-finance';
+  if (ctx.campaign) await paymentReminders.resumeCampaign(ctx.campaign.id);
+  res.redirect(`${redir}?msg=${encodeURIComponent('Payment reminders resumed.')}`);
+});
+
+router.post('/admin/projects/:id/payment-reminders/stop', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const ctx = await resolveProjectSteeringCampaign(req, res);
+  if (!ctx) return;
+  const redir = '/portal/admin/projects/' + req.params.id + '#tab-finance';
+  if (ctx.campaign) await paymentReminders.stopCampaign(ctx.campaign.id);
+  res.redirect(`${redir}?msg=${encodeURIComponent('Payment reminders stopped. Warranty & complimentary benefits are no longer withheld.')}`);
+});
+
+router.post('/admin/projects/:id/payment-reminders/send-now', express.urlencoded({ extended: false }), requirePortalAuth, requireAdmin, async (req, res) => {
+  const ctx = await resolveProjectSteeringCampaign(req, res);
+  if (!ctx) return;
+  const redir = '/portal/admin/projects/' + req.params.id + '#tab-finance';
+  if (!ctx.campaign) {
+    return res.redirect(`${redir}?msg=${encodeURIComponent('No active reminder campaign to send.')}`);
+  }
+  const result = await paymentReminders.sendNow(ctx.campaign.id);
+  const msg = result && result.completed
+    ? 'Balance is already settled — the campaign was closed.'
+    : result && result.sent
+      ? `Reminder sent now (${result.phase === 'HARD' ? 'hard ask' : 'soft ask'}).`
+      : 'Could not send the reminder. Check the send log below.';
+  res.redirect(`${redir}?msg=${encodeURIComponent(msg)}`);
 });
 
 router.post('/admin/projects/:id/update', express.urlencoded({ extended: true }), requirePortalAuth, requireAdmin, async (req, res) => {
@@ -3342,9 +3422,18 @@ router.get('/client', requirePortalAuth, async (req, res) => {
     portalDb.getNotificationsForUser(req.session[PORTAL_USER_ID]),
   ]);
   (projects || []).forEach((p) => enrichProjectLifecycle(p));
+  // Complimentary DV points are frozen while any of the client's projects is under a hard ask.
+  let dvPointsFrozen = false;
+  for (const p of (projects || [])) {
+    const hac = await portalDb.getActiveHardAskCampaign(p.id);
+    if (!hac) continue;
+    const bal = await paymentReminders.computeProjectBalance(p.id);
+    if (bal && bal.remaining > 0) { dvPointsFrozen = true; break; }
+  }
   renderPortal(req, res, 'portal/client/dashboard', {
     projects,
     dvPoints: user?.dv_points_balance ?? 0,
+    dvPointsFrozen,
     referrals: referrals || [],
     notifications: notifications || [],
     query: req.query,
@@ -3624,7 +3713,14 @@ router.get('/client/projects/:id', requirePortalAuth, async (req, res) => {
     portalDb.listDesignIdeaAreasForProject(project.id),
     portalDb.listDesignIdeasWithCommentsForProject(project.id),
   ]);
+  // Hard-ask gating: while a HARD reminder campaign is active AND a balance remains,
+  // lock the Warranty tab, freeze complimentary perks, and show a balance-due banner.
+  const hardAskCampaign = await portalDb.getActiveHardAskCampaign(project.id);
+  const paymentHardAsk = (hardAskCampaign && financeBalanceDue > 0)
+    ? { remaining: financeBalanceDue, campaignId: hardAskCampaign.id }
+    : null;
   renderPortal(req, res, 'portal/client/project_detail', {
+    paymentHardAsk,
     project,
     quotation,
     extraCosts,
